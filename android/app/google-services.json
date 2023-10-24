@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "747945249445",
+    "project_id": "indiespot-7d691",
+    "storage_bucket": "indiespot-7d691.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:747945249445:android:e6c7ae62596467816c5b4c",
+        "android_client_info": {
+          "package_name": "com.example.firebase_sample1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBAEerXfvy9qSD_etVmxm4ymhj8bP8q9Qc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:747945249445:android:585efff7364ef9166c5b4c",
+        "android_client_info": {
+          "package_name": "com.example.indie_spot"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBAEerXfvy9qSD_etVmxm4ymhj8bP8q9Qc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
