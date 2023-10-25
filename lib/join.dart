@@ -316,7 +316,7 @@ class _JoinState extends State<Join> {
             children: [
               Text(
                 "이메일",
-                style: TextStyle(fontSize: 12,fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 10),
               TextField(
@@ -335,12 +335,12 @@ class _JoinState extends State<Join> {
               ),
               Text(
                 "※보안정책으로 인하여 gmail은 이메일찾기가 불가능합니다.",
-                style: TextStyle(fontSize: 10),
+                style: TextStyle(fontSize: 12),
               ),
               SizedBox(height: 40),
               Text(
                 "비밀번호",
-                style: TextStyle(fontSize: 12,fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 10),
               TextField(
@@ -361,7 +361,7 @@ class _JoinState extends State<Join> {
               SizedBox(height: 40),
               Text(
                 "비밀번호 확인",
-                style: TextStyle(fontSize: 12,fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 10),
               TextField(
@@ -382,7 +382,7 @@ class _JoinState extends State<Join> {
               SizedBox(height: 40),
               Text(
                 "이름",
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 10),
               TextField(
@@ -408,7 +408,7 @@ class _JoinState extends State<Join> {
                 children: [
                   Text(
                     "닉네임",
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(width: 10),
                   ElevatedButton(
@@ -439,7 +439,7 @@ class _JoinState extends State<Join> {
               SizedBox(height: 40),
               Text(
                 "생일",
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 10),
               TextField(
@@ -458,15 +458,11 @@ class _JoinState extends State<Join> {
               ),
               SizedBox(height: 40),
 
-              // 성별 입력 필드
-
-
-              SizedBox(height: 40),
 
               // 전화번호 입력 필드
               Text(
                 "전화번호",
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 10),
               TextField(
@@ -486,7 +482,7 @@ class _JoinState extends State<Join> {
               SizedBox(height: 40),
               Text(
                 "성별",
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
               ),
               Row(
                 children: [
