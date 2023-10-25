@@ -23,25 +23,25 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: Text("ㅋㅋzㅋ"),
+          title: Text("ㅋㅋㅋㅋ"),
         ),
         body: Padding(
-          padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16.0),
             child:
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Join(), // Join() 페이지로 이동합니다.
-                      ),
-                    );
-                  },
-                  child: Text('회원가입'),
-                )
-          ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => Join(), // Join() 페이지로 이동합니다.
+                  ),
+                );
+              },
+              child: Text('회원가입'),
+            )
         ),
-      );
+      ),
+    );
 
   }
 }

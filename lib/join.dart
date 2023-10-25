@@ -34,6 +34,9 @@ class _JoinState extends State<Join> {
 
 
 
+
+
+
   void _checkNickname() async {
     // 닉네임이 비어있는지 확인
     if (_nick.text.isEmpty) {
@@ -118,8 +121,10 @@ class _JoinState extends State<Join> {
     }
 
     // Firestore에서 중복 아이디 체크
-    final checkId = await _fs.collection('userList')
-        .where('email', isEqualTo: _email.text).get();
+    final checkId = await _fs
+        .collection('userList')
+        .where('email', isEqualTo: _email.text)
+        .get();
     if (checkId.docs.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('이미 존재함')),
@@ -129,7 +134,7 @@ class _JoinState extends State<Join> {
 
     try {
       // 가입 처리
-      await _fs.collection('userList').add({
+      DocumentReference userRef = await _fs.collection('userList').add({
         'gender': _selectedGender,
         'name': _name.text,
         'phone': _phone.text,
@@ -137,6 +142,24 @@ class _JoinState extends State<Join> {
         'pwd': _pwd.text,
         'email': _email.text,
         'nick': _nick.text,
+      });
+
+      // Get the user ID
+      String userID = userRef.id;
+
+      // Add 'image' subcollection
+      await _fs.collection('userList').doc(userID).collection('image').add({
+        'CDATETIME': FieldValue.serverTimestamp(),
+        'DELETE_YN': 'false',
+        'IMAGENAME': "기본.jpg",
+        'ORG_NAME': "기본.jpg",
+        'PATH': 'assets/images/기본.jpg',
+        'SIZE': '120x123',
+      });
+
+      // Add 'point' subcollection
+      await _fs.collection('userList').doc(userID).collection('point').add({
+        'POINT_BALANCE': 0,
       });
 
       // 가입 성공 메시지
@@ -162,7 +185,6 @@ class _JoinState extends State<Join> {
       );
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
