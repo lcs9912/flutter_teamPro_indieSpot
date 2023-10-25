@@ -1,9 +1,10 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'join.dart'; // SignUpMain 파일이 있는 경로에 맞게 수정해주세요.
+import 'login.dart';
+import 'join.dart';
 
-void main() async {
+void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -11,16 +12,36 @@ void main() async {
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Firebase SignUp Example',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: const Join(), // SignUpMain 위젯을 메인 페이지로 설정
-    );
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text("ㅋㅋㅋㅋ"),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+            child:
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Join(), // Join() 페이지로 이동합니다.
+                      ),
+                    );
+                  },
+                  child: Text('회원가입'),
+                )
+          ),
+        ),
+      );
+
   }
 }
