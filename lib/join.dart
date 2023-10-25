@@ -187,256 +187,275 @@ class _JoinState extends State<Join> {
   }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "이메일",
-              style: TextStyle(fontSize: 12,fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            TextField(
-              controller: _email,
-              onChanged: (value) {
-                setState(() {
-                  _isEmailEmpty = value.isEmpty;
-                });
-              },
-              decoration: InputDecoration(
-                hintText: '이메일',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
+    return Padding(
+        padding: EdgeInsets.symmetric(vertical: 30.0),
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.pop(context); // This will navigate back
+            },
+          ),
+          title: Text('회원가입'),
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "이메일",
+                style: TextStyle(fontSize: 12,fontWeight: FontWeight.bold),
               ),
-            ),
-            Text(
-              "※보안정책으로 인하여 gmail은 이메일찾기가 불가능합니다.",
-              style: TextStyle(fontSize: 10),
-            ),
-            SizedBox(height: 40),
-            Text(
-              "비밀번호",
-              style: TextStyle(fontSize: 12,fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            TextField(
-              controller: _pwd,
-              onChanged: (value) {
-                setState(() {
-                  _isPwdEmpty = value.isEmpty;
-                });
-              },
-              obscureText: true,
-              decoration: InputDecoration(
-                hintText: '비밀번호',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-              ),
-            ),
-            SizedBox(height: 40),
-            Text(
-              "비밀번호 확인",
-              style: TextStyle(fontSize: 12,fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            TextField(
-              controller: _pwd2,
-              onChanged: (value) {
-                setState(() {
-                  _isPwd2Empty = value.isEmpty;
-                });
-              },
-              obscureText: true,
-              decoration: InputDecoration(
-                hintText: '비밀번호 확인',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-              ),
-            ),
-            SizedBox(height: 40),
-            Text(
-              "이름",
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            TextField(
-              controller: _name,
-              onChanged: (value) {
-                setState(() {
-                  _isNameEmpty = value.isEmpty;
-                });
-              },
-              decoration: InputDecoration(
-                hintText: '이름',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-              ),
-            ),
-            SizedBox(height: 40),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  "닉네임",
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(width: 10),
-                ElevatedButton(
-                  onPressed: _checkNickname,
-
-                  style: ElevatedButton.styleFrom(
-                    primary: Color(0xFF392F31), // 색상 변경
+              SizedBox(height: 10),
+              TextField(
+                controller: _email,
+                onChanged: (value) {
+                  setState(() {
+                    _isEmailEmpty = value.isEmpty;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: '이메일',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
                   ),
-                  child: Text('중복 확인'),
-                ),
-              ],
-            ),
-            SizedBox(height: 10),
-            TextField(
-              controller: _nick,
-              onChanged: (value) {
-                setState(() {
-                  _isNickEmpty = value.isEmpty;
-                });
-              },
-              decoration: InputDecoration(
-                hintText: '닉네임',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
                 ),
               ),
-            ),
-            SizedBox(height: 40),
-            Text(
-              "생일",
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            TextField(
-              controller: _birthday,
-              onChanged: (value) {
-                setState(() {
-                  _isBirthdayEmpty = value.isEmpty;
-                });
-              },
-              decoration: InputDecoration(
-                hintText: '생일 (YYYY-MM-DD)',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
+              Text(
+                "※보안정책으로 인하여 gmail은 이메일찾기가 불가능합니다.",
+                style: TextStyle(fontSize: 10),
+              ),
+              SizedBox(height: 40),
+              Text(
+                "비밀번호",
+                style: TextStyle(fontSize: 12,fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10),
+              TextField(
+                controller: _pwd,
+                onChanged: (value) {
+                  setState(() {
+                    _isPwdEmpty = value.isEmpty;
+                  });
+                },
+                obscureText: true,
+                decoration: InputDecoration(
+                  hintText: '비밀번호',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: 40),
-
-            // 성별 입력 필드
-
-
-            SizedBox(height: 40),
-
-            // 전화번호 입력 필드
-            Text(
-              "전화번호",
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            TextField(
-              controller: _phone,
-              onChanged: (value) {
-                setState(() {
-                  _isPhoneEmpty = value.isEmpty;
-                });
-              },
-              decoration: InputDecoration(
-                hintText: '전화번호',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
+              SizedBox(height: 40),
+              Text(
+                "비밀번호 확인",
+                style: TextStyle(fontSize: 12,fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10),
+              TextField(
+                controller: _pwd2,
+                onChanged: (value) {
+                  setState(() {
+                    _isPwd2Empty = value.isEmpty;
+                  });
+                },
+                obscureText: true,
+                decoration: InputDecoration(
+                  hintText: '비밀번호 확인',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: 40),
-            Text(
-              "성별",
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-            ),
-            Row(
-              children: [
-                Radio(
-                  value: '남자',
-                  groupValue: _selectedGender,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedGender = value!;
-                    });
-                  },
+              SizedBox(height: 40),
+              Text(
+                "이름",
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10),
+              TextField(
+                controller: _name,
+                onChanged: (value) {
+                  setState(() {
+                    _isNameEmpty = value.isEmpty;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: '이름',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
                 ),
-                Text('남자'),
-                Radio(
-                  value: '여자',
-                  groupValue: _selectedGender,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedGender = value!;
-                    });
-                  },
+              ),
+              SizedBox(height: 40),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    "닉네임",
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(width: 10),
+                  ElevatedButton(
+                    onPressed: _checkNickname,
+
+                    style: ElevatedButton.styleFrom(
+                      primary: Color(0xFF392F31), // 색상 변경
+                    ),
+                    child: Text('중복 확인'),
+                  ),
+                ],
+              ),
+              SizedBox(height: 10),
+              TextField(
+                controller: _nick,
+                onChanged: (value) {
+                  setState(() {
+                    _isNickEmpty = value.isEmpty;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: '닉네임',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
                 ),
-                Text('여자'),
-              ],
-            ),
-            SizedBox(height: 40),
-            Row(
-              children: [
-                Checkbox(
-                  value: _isAgreedToTerms ?? false, // null이면 기본값으로 false를 사용합니다.
-                  onChanged: (bool? value) {
-                    setState(() {
-                      _isAgreedToTerms = value ?? false; // null이면 기본값으로 false를 사용합니다.
-                    });
-                  },
+              ),
+              SizedBox(height: 40),
+              Text(
+                "생일",
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10),
+              TextField(
+                controller: _birthday,
+                onChanged: (value) {
+                  setState(() {
+                    _isBirthdayEmpty = value.isEmpty;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: '생일 (YYYY-MM-DD)',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
                 ),
-                Text('이용약관에 동의합니다.  '),
-                GestureDetector(
-                  onTap: () {
-                    _showTermsAndConditionsDialog(context);
-                  },
-                  child: Text(
-                    '보기.',
-                    style: TextStyle(
-                      color: Colors.blue,
-                      decoration: TextDecoration.underline,
+              ),
+              SizedBox(height: 40),
+
+              // 성별 입력 필드
+
+
+              SizedBox(height: 40),
+
+              // 전화번호 입력 필드
+              Text(
+                "전화번호",
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10),
+              TextField(
+                controller: _phone,
+                onChanged: (value) {
+                  setState(() {
+                    _isPhoneEmpty = value.isEmpty;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: '전화번호',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+              ),
+              SizedBox(height: 40),
+              Text(
+                "성별",
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+              ),
+              Row(
+                children: [
+                  Radio(
+                    value: '남자',
+                    groupValue: _selectedGender,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedGender = value!;
+                      });
+                    },
+                  ),
+                  Text('남자'),
+                  Radio(
+                    value: '여자',
+                    groupValue: _selectedGender,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedGender = value!;
+                      });
+                    },
+                  ),
+                  Text('여자'),
+                ],
+              ),
+              SizedBox(height: 40),
+              Row(
+                children: [
+                  Checkbox(
+                    value: _isAgreedToTerms ?? false, // null이면 기본값으로 false를 사용합니다.
+                    onChanged: (bool? value) {
+                      setState(() {
+                        _isAgreedToTerms = value ?? false; // null이면 기본값으로 false를 사용합니다.
+                      });
+                    },
+                  ),
+                  Text('이용약관에 동의합니다.  '),
+                  GestureDetector(
+                    onTap: () {
+                      _showTermsAndConditionsDialog(context);
+                    },
+                    child: Text(
+                      '보기.',
+                      style: TextStyle(
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 40),
+              SizedBox(height: 16),
+
+
+              Align(
+                alignment: Alignment.center,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0), // Add horizontal padding if needed
+                  child: ElevatedButton(
+                    onPressed: _register,
+                    style: ElevatedButton.styleFrom(
+                      primary: Color(0xFF392F31), // 392F31 색상
+                      minimumSize: Size(double.infinity, 48), // Set button width and height
+                    ),
+                    child: Text(
+                      '가입',
+                      style: TextStyle(fontSize: 16),
                     ),
                   ),
                 ),
-              ],
-            ),
-            SizedBox(height: 40),
-            SizedBox(height: 16),
-
-
-            Align(
-              alignment: Alignment.center,
-              child: ElevatedButton(
-                onPressed: _register,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF392F31), // 392F31 색상
-                ),
-                child: Text('가입'),
               ),
-            ),
-          ],
+
+            ],
+          ),
+        ],
         ),
-      ],
-      ),
+        ),
       ),
     );
 
