@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:indie_spot/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,13 +50,20 @@ class _BuskingReservationState extends State<BuskingReservation> {
       height: 200,
       color: Color(0xffEEEEEE),
       child: Center(
-        child: Container(
-          margin: EdgeInsets.all(10),
-          color: Colors.white,
-          height: 180,
-          width: 180,
-          child: _imageBox(),
-        ),
+        child: InkWell(
+          onTap: () async{
+            var picker = ImagePicker();
+            var image = await picker.pickImage(source: ImageSource.gallery);
+            print(image);
+          },
+          child: Container(
+            margin: EdgeInsets.all(10),
+            color: Colors.white,
+            height: 180,
+            width: 180,
+            child: _imageBox(),
+          ),
+        )
       ),
     );
   }
