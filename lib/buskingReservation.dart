@@ -11,7 +11,6 @@ void main() async{
 }
 
 class BuskingReservation extends StatefulWidget {
-  Fi_image
 
   @override
   State<BuskingReservation> createState() => _BuskingReservationState();
