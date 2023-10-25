@@ -85,7 +85,8 @@ class _LoginPageState extends State<LoginPage> {
                 style: ElevatedButton.styleFrom(
                     backgroundColor: Color.fromRGBO(240, 240, 240, 1),
                   side: BorderSide(color: Color.fromRGBO(240, 240, 240, 1)),
-                  padding: EdgeInsets.symmetric(horizontal: 90, vertical: 18)
+                  padding: EdgeInsets.symmetric(horizontal: 90, vertical: 18),
+                  elevation: 0.2
                 ),
                 child: Text(
                     '회원 로그인',
