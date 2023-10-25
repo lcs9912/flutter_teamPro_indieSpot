@@ -48,7 +48,7 @@ class _JoinState extends State<Join> {
         .where('nickname', isEqualTo: _nick.text).get();
     if (checkNickname.docs.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('이미 사용 중인 닉네임입니다.')),
+        SnackBar(content: Text('이미 사용 중인 닉네임 입니다.')),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
