@@ -6,6 +6,8 @@ import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
 
+import 'join.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -122,7 +124,12 @@ class _LoginPageState extends State<LoginPage> {
                   SizedBox(width: 150),
                   InkWell(
                     onTap: (){
-
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => Join()
+                          )
+                      );
                     },
                     child: Text(
                       "가입하기",
