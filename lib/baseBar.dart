@@ -35,23 +35,146 @@ class _MyDrawerState extends State<MyDrawer> {
       child: ListView(
         children: <Widget>[
           DrawerHeader(
-            child: Column(
+            child: Row(
               children: [
-                Container(
-                  child: CircleAvatar(
-                    radius: 40,
-                    backgroundImage: AssetImage('iu.jpg'), // 프로필 이미지
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 0, 20, 0),
+                  child: Container(
+                    child: CircleAvatar(
+                      radius: 40,
+                      backgroundImage: AssetImage('iu.jpg'), // 프로필 이미지
+                    ),
                   ),
                 ),
-                Text("아이유", style: TextStyle(color: Colors.white, fontSize: 18),),
-                Text("qwer@naver.com",style: TextStyle(color: Colors.white))
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("아이유", style: TextStyle(color: Colors.white, fontSize: 18),),
+                    Text("qwer@naver.com",style: TextStyle(color: Colors.white))
+                  ],
+                ),
               ],
             ),
             decoration: BoxDecoration(color: Colors.lightBlue),
           ),
-          ListTile(
-            title: Text("1"),
-          )
+
+          ExpansionTile(
+            title: Text('MENU'),
+            children: <Widget>[
+              ListTile(
+                title: Text('공지사항'),
+                onTap: () {
+
+                },
+              ),
+              ListTile(
+                title: Text('공연일정'),
+                onTap: () {
+
+                },
+              ),
+              ListTile(
+                title: Text('후원내역조회'),
+                onTap: () {
+
+                },
+              ),
+              ListTile(
+                title: Text('아티스트 등록'),
+                onTap: () {
+
+                },
+              ),
+              ListTile(
+                title: Text('사업자 등록'),
+                onTap: () {
+
+                },
+              ),
+            ],
+          ),
+          ExpansionTile(
+            title: Text('ARTIST MENU'),
+            children: <Widget>[
+              ListTile(
+                title: Text('공지사항'),
+                onTap: () {
+
+                },
+              ),
+              ListTile(
+                title: Text('팀·솔로 등록/관리'),
+                onTap: () {
+
+                },
+              ),
+              ExpansionTile(
+                  title: Text("지하철역 버스킹존"),
+                  children: [
+                    ListTile(
+                      title: Text("이용 신청"),
+                      onTap: () {
+
+                      },
+                    ),
+                    ListTile(
+                      title: Text("내 공연 일정"),
+                      onTap: () {
+
+                      },
+                    ),
+                    ListTile(
+                      title: Text("위치 안내"),
+                      onTap: () {
+
+                      },
+                    ),
+                  ],
+                ),
+              ExpansionTile(
+                title: Text("지자체 버스킹존"),
+                children: [
+                  ListTile(
+                    title: Text("이용 신청"),
+                    onTap: () {
+
+                    },
+                  ),
+                  ListTile(
+                    title: Text("내 공연 일정"),
+                    onTap: () {
+
+                    },
+                  ),
+                  ListTile(
+                    title: Text("위치 안내"),
+                    onTap: () {
+
+                    },
+                  ),
+                ],
+              ),
+              ListTile(
+                title: Text('공연 신청'),
+                onTap: () {
+
+                },
+              ),
+              ListTile(
+                title: Text('공연 신청 관리'),
+                onTap: () {
+
+                },
+              ),
+              ListTile(
+                title: Text('아티스트 정보 수정'),
+                onTap: () {
+
+                },
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -70,14 +193,46 @@ class _MyBottomBarState extends State<MyBottomBar> {
     return BottomAppBar(
       child: Container(
       height: 70,
-      color: Colors.grey[300],
+      color: Colors.white,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Icon(Icons.home),
-          Icon(Icons.category),
-          Icon(Icons.post_add),
-          Icon(Icons.image),
+          InkWell(
+            /*onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => ),
+                        );
+                      },*/
+            child: Image.asset('../assets/mic.png',width: 23,),
+          ),
+          InkWell(
+            /*onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => ),
+                        );
+                      },*/
+            child: Icon(Icons.calendar_month_outlined,color: Colors.black54,),
+          ),
+          InkWell(
+            /*onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => ),
+                        );
+                      },*/
+            child: Icon(Icons.home_outlined),
+          ),
+          InkWell(
+            /*onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => ),
+                        );
+                      },*/
+            child: Icon(Icons.play_circle_outline),
+          ),
           InkWell(
             /*onTap: () {
                         Navigator.push(
