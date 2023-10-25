@@ -19,7 +19,13 @@ class _PwdEditState extends State<PwdEdit> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("비밀번호 찾기"),
+        backgroundColor: Colors.white,
+        title: Text(
+            "비밀번호 변경",
+          style: TextStyle(color: Colors.black),
+        ),
+        iconTheme: IconThemeData(color: Colors.black),
+        elevation: 1,
       ),
       body: Center(
         child: Padding(
@@ -27,6 +33,12 @@ class _PwdEditState extends State<PwdEdit> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              Text(
+                "설정한 이메일/전화번호로 찾기",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.left,
+              ),
+              SizedBox(height: 30),
               Container(
                 child: TextField(
                   controller: _email,
@@ -42,13 +54,14 @@ class _PwdEditState extends State<PwdEdit> {
                 ),
                 width: 300,
               ),
-              SizedBox(height: 40),
+              SizedBox(height: 50),
               ElevatedButton(
                   onPressed: _pwdEdit,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color.fromRGBO(240, 240, 240, 1),
                     side: BorderSide(color: Color.fromRGBO(240, 240, 240, 1)),
-                    padding: EdgeInsets.symmetric(horizontal: 90, vertical: 18)
+                    padding: EdgeInsets.symmetric(horizontal: 90, vertical: 18),
+                    elevation: 0
                   ),
                   child: Text(
                       "비밀번호 변경",
@@ -58,7 +71,7 @@ class _PwdEditState extends State<PwdEdit> {
                       fontWeight: FontWeight.bold,
                       letterSpacing: 4
                     )
-                  )
+                  ),
               )
             ],
           ),

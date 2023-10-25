@@ -45,7 +45,13 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('로그인'),
+        backgroundColor: Colors.white,
+        elevation: 1,
+        title: Text(
+            '로그인',
+          style: TextStyle(color: Colors.black),
+          textAlign: TextAlign.center,
+        ),
       ),
       body: Center(
         child: Padding(
