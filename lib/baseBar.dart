@@ -57,3 +57,39 @@ class _MyDrawerState extends State<MyDrawer> {
     );
   }
 }
+class MyBottomBar extends StatefulWidget {
+  const MyBottomBar({super.key});
+
+  @override
+  State<MyBottomBar> createState() => _MyBottomBarState();
+}
+
+class _MyBottomBarState extends State<MyBottomBar> {
+  @override
+  Widget build(BuildContext context) {
+    return BottomAppBar(
+      child: Container(
+      height: 70,
+      color: Colors.grey[300],
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Icon(Icons.home),
+          Icon(Icons.category),
+          Icon(Icons.post_add),
+          Icon(Icons.image),
+          InkWell(
+            /*onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => ),
+                        );
+                      },*/
+            child: Icon(Icons.person),
+            )
+          ]
+        )
+      )
+    );
+  }
+}
