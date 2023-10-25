@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:indie_spot/pwdEind.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
@@ -35,7 +36,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final FirebaseFirestore _fs = FirebaseFirestore.instance; // Firestore 인스턴스를 가져옵니다.
-  final TextEditingController _id = TextEditingController();
+  final TextEditingController _email = TextEditingController();
   final TextEditingController _pwd = TextEditingController();
 
   @override
@@ -51,13 +52,13 @@ class _LoginPageState extends State<LoginPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
-                'assets/indiespot.jpg',
-                width: 200,
+                '../assets/indiespot.jpg',
+                width: 300,
               ),
               Container(
                   child: TextField(
-                    controller: _id,
-                    decoration: InputDecoration(labelText: '아이디'),
+                    controller: _email,
+                    decoration: InputDecoration(labelText: '이메일'),
                   ),
                 width: 300
               ),
@@ -70,15 +71,24 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 width: 300,
               ),
-              SizedBox(height: 40),
+              SizedBox(height: 50),
               ElevatedButton(
                 onPressed: _login,
                 style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 20)
+                  primary: Color.fromRGBO(240, 240, 240, 1),
+                  side: BorderSide(color: Color.fromRGBO(240, 240, 240, 1)),
+                  padding: EdgeInsets.symmetric(horizontal: 90, vertical: 18)
                 ),
-                child: Text('로그인'),
+                child: Text(
+                    '회원 로그인',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 4
+                    ),),
               ),
-              SizedBox(height: 30),
+              SizedBox(height: 60),
               // ElevatedButton(
               //   onPressed: (){
               //     Navigator.push(
@@ -90,15 +100,40 @@ class _LoginPageState extends State<LoginPage> {
               //   },
               //   child: Text('회원가입'),
               // ),
-              InkWell(
-                onTap: (){
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  InkWell(
+                    onTap: (){
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => PwdEdit()
+                          )
+                      );
+                    },
+                    child: Text(
+                      "비밀번호 찾기",
+                      style: TextStyle(
+                      color: Colors.black
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 150),
+                  InkWell(
+                    onTap: (){
 
-                },
-                child: Text("비밀번호 찾기",
-                style: TextStyle(
-                  color: Colors.blue,
-                  decoration: TextDecoration.underline
-                ),),
+                    },
+                    child: Text(
+                      "가입하기",
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 2
+                      ),
+                    ),
+                  )
+                ],
               )
             ],
           ),
@@ -108,15 +143,15 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _login() async {
-    String id = _id.text;
+    String email = _email.text;
     String password = _pwd.text;
 
     final userDocs = await _fs.collection('userList')
-        .where('id', isEqualTo: id)
+        .where('email', isEqualTo: email)
         .where('pwd', isEqualTo: password).get();
 
     if (userDocs.docs.isNotEmpty) {
-      Provider.of<UserModel>(context, listen: false).login(id);
+      Provider.of<UserModel>(context, listen: false).login(email);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('성공적으로 로그인되었습니다!')),
       );
