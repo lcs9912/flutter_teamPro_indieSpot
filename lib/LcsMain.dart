@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'concertDetails.dart';
 import 'firebase_options.dart';
 import 'baseBar.dart';
@@ -20,6 +21,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  bool iconFlg = false;
+
   List<String> imgList = [
     'busking/bus_sample1.jpg',
     'busking/bus_sample2.jpg',
@@ -52,6 +55,7 @@ class _MyAppState extends State<MyApp> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text("공연일정",style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+
                 TextButton( 
                     onPressed: (){}, // 버스킹 공연 일정 리스트 페이지로 넘어갈것
                     child: Text("더보기",style: TextStyle(color: Colors.black),))
@@ -102,13 +106,114 @@ class _MyAppState extends State<MyApp> {
                   ],
                 )
               ),
-            )
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Column(
+                  children: [
+                    IconButton(
+                        onPressed: (){},
+                        icon: Icon(Icons.person)
+                    ),
+                    Text("여기다"),
+                  ],
+                ),
+                Column(
+                  children: [
+                    IconButton(
+                        onPressed: (){},
+                        icon: Icon(Icons.pages)
+                    ),
+                    Text("페이지"),
+                  ],
+                ),
+                Column(
+                  children: [
+                    IconButton(
+                        onPressed: (){},
+                        icon: Icon(Icons.move_down)
+                    ),
+                    Text("이동"),
+                  ],
+                ),
+                Column(
+                  children: [
+                    IconButton(
+                        onPressed: (){},
+                        icon: Icon(Icons.icecream)
+                    ),
+                    Text("아이콘"),
+                  ],
+                ),
+
+                if(!iconFlg!)
+                  IconButton(
+                      onPressed: (){
+                        setState(() {
+                          iconFlg = true;
+                        });
+                      },
+                      icon: Icon(Icons.expand_more)
+                  ),
+
+                if(iconFlg)
+                  IconButton(
+                      onPressed: (){
+                        setState(() {
+                          iconFlg = false;
+                        });
+                      },
+                      icon: Icon(Icons.expand_less)
+
+                  ),
+
+
+              ],
+
+            ),
+            if(iconFlg)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.post_add),
+                  Icon(Icons.post_add),
+                  Icon(Icons.post_add),
+                  TextButton(
+                    onPressed: (){
+                      setState(() {
+                        iconFlg = true;
+                      });
+                    },
+                    child: Text("편집"),
+                  ),
+                ],
+              ),
+            SizedBox(height: 20,),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("뭐가 들어오는게 좋을까"),
+                SizedBox(width: 17,),
+                Text("후원페이지 이미지 "),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("상업공간 공연일정",style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+                TextButton(
+                    onPressed: (){}, // 상업공간 공연 일정 리스트 페이지로 넘어갈것
+                    child: Text("더보기",style: TextStyle(color: Colors.black),))
+              ],
+            ),
+            Text("여기는 ListView ListTile")
           ],
         ),
       ),
       bottomNavigationBar: MyBottomBar(),
     );
-
   }
+
 
 }
