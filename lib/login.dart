@@ -44,39 +44,64 @@ class _LoginPageState extends State<LoginPage> {
       appBar: AppBar(
         title: Text('로그인'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: _id,
-              decoration: InputDecoration(labelText: '아이디'),
-            ),
-            SizedBox(height: 8),
-            TextField(
-              controller: _pwd,
-              obscureText: true,
-              decoration: InputDecoration(labelText: '비밀번호'),
-            ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _login,
-              child: Text('로그인'),
-            ),
-            SizedBox(height: 16),
-            // ElevatedButton(
-            //   onPressed: (){
-            //     Navigator.push(
-            //       context,
-            //       MaterialPageRoute(
-            //         builder: (context) => Join(),
-            //       ),
-            //     );
-            //   },
-            //   child: Text('회원가입'),
-            // ),
-          ],
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/indiespot.jpg',
+                width: 200,
+              ),
+              Container(
+                  child: TextField(
+                    controller: _id,
+                    decoration: InputDecoration(labelText: '아이디'),
+                  ),
+                width: 300
+              ),
+              SizedBox(height: 20),
+              Container(
+                child:  TextField(
+                  controller: _pwd,
+                  obscureText: true,
+                  decoration: InputDecoration(labelText: '비밀번호'),
+                ),
+                width: 300,
+              ),
+              SizedBox(height: 40),
+              ElevatedButton(
+                onPressed: _login,
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 20)
+                ),
+                child: Text('로그인'),
+              ),
+              SizedBox(height: 30),
+              // ElevatedButton(
+              //   onPressed: (){
+              //     Navigator.push(
+              //       context,
+              //       MaterialPageRoute(
+              //         builder: (context) => Join(),
+              //       ),
+              //     );
+              //   },
+              //   child: Text('회원가입'),
+              // ),
+              InkWell(
+                onTap: (){
+
+                },
+                child: Text("비밀번호 찾기",
+                style: TextStyle(
+                  color: Colors.blue,
+                  decoration: TextDecoration.underline
+                ),),
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -91,7 +116,7 @@ class _LoginPageState extends State<LoginPage> {
         .where('pwd', isEqualTo: password).get();
 
     if (userDocs.docs.isNotEmpty) {
-      Provider.of<UserModel>(context, listen: false).login(id);    //listen: 변화가 감지되었을때 true면 재실행, false면 노노
+      Provider.of<UserModel>(context, listen: false).login(id);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('성공적으로 로그인되었습니다!')),
       );
