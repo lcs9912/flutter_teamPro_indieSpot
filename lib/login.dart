@@ -55,14 +55,14 @@ class _LoginPageState extends State<LoginPage> {
       ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(vertical: 30),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
-                '../assets/indiespot.jpg',
+                'assets/indiespot.jpg',
                 width: 300,
               ),
+              SizedBox(height: 20),
               Container(
                   child: TextField(
                     controller: _email,

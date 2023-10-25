@@ -29,9 +29,8 @@ class _PwdEditState extends State<PwdEdit> {
       ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(vertical: 60),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 "설정한 이메일/전화번호로 찾기",
