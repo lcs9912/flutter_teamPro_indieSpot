@@ -65,17 +65,17 @@ class _LoginPageState extends State<LoginPage> {
               child: Text('로그인'),
             ),
             SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: (){
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => Join(),
-                  ),
-                );
-              },
-              child: Text('회원가입'),
-            ),
+            // ElevatedButton(
+            //   onPressed: (){
+            //     Navigator.push(
+            //       context,
+            //       MaterialPageRoute(
+            //         builder: (context) => Join(),
+            //       ),
+            //     );
+            //   },
+            //   child: Text('회원가입'),
+            // ),
           ],
         ),
       ),
