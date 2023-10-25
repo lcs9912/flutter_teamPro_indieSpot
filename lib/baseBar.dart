@@ -7,11 +7,12 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       title: Text("indieSpot"),
+      backgroundColor: Colors.white,
       leading: IconButton(
           onPressed: (){
             Scaffold.of(context).openDrawer();
           },
-          icon: Icon(Icons.menu)),
+          icon: Icon(Icons.menu),color: Colors.black54),
     );
   }
 }
@@ -45,13 +46,13 @@ class _MyDrawerState extends State<MyDrawer> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("아이유", style: TextStyle(color: Colors.white, fontSize: 18),),
-                    Text("qwer@naver.com",style: TextStyle(color: Colors.white))
+                    Text("아이유", style: TextStyle(color: Colors.black54, fontSize: 18,fontWeight: FontWeight.bold),),
+                    Text("qwer@naver.com",style: TextStyle(color: Colors.black54))
                   ],
                 ),
               ],
             ),
-            decoration: BoxDecoration(color: Colors.lightBlue),
+            decoration: BoxDecoration(color: Colors.black12),
           ),
 
           ExpansionTile(
@@ -90,7 +91,7 @@ class _MyDrawerState extends State<MyDrawer> {
             ],
           ),
           ExpansionTile(
-            title: Text('ARTIST MENU',style: TextStyle(fontWeight: FontWeight.bold)),
+            title: Text('ARTIST MENU',style: TextStyle(fontWeight: FontWeight.bold,)),
             children: <Widget>[
               ListTile(
                 title: Text('공지사항'),
@@ -217,7 +218,7 @@ class _MyBottomBarState extends State<MyBottomBar> {
                           MaterialPageRoute(builder: (context) => ),
                         );
                       },*/
-            child: Icon(Icons.home_outlined),
+            child: Icon(Icons.home_outlined,color: Colors.black54,),
           ),
           InkWell(
             /*onTap: () {
@@ -226,7 +227,7 @@ class _MyBottomBarState extends State<MyBottomBar> {
                           MaterialPageRoute(builder: (context) => ),
                         );
                       },*/
-            child: Icon(Icons.play_circle_outline),
+            child: Icon(Icons.play_circle_outline,color: Colors.black54,),
           ),
           InkWell(
             /*onTap: () {
@@ -235,7 +236,7 @@ class _MyBottomBarState extends State<MyBottomBar> {
                           MaterialPageRoute(builder: (context) => ),
                         );
                       },*/
-            child: Icon(Icons.person),
+            child: Icon(Icons.person,color: Colors.black54,),
             )
           ]
         )
