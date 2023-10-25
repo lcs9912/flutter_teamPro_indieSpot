@@ -45,7 +45,13 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('로그인'),
+        backgroundColor: Colors.white,
+        elevation: 1,
+        title: Text(
+            '로그인',
+          style: TextStyle(color: Colors.black),
+          textAlign: TextAlign.center,
+        ),
       ),
       body: Center(
         child: Padding(
@@ -106,7 +112,8 @@ class _LoginPageState extends State<LoginPage> {
                     child: Text(
                       "비밀번호 변경",
                       style: TextStyle(
-                      color: Colors.black
+                      color: Colors.black,
+                        fontSize: 15
                       ),
                     ),
                   ),
@@ -124,6 +131,7 @@ class _LoginPageState extends State<LoginPage> {
                       "가입하기",
                       style: TextStyle(
                         color: Colors.black,
+                          fontSize: 14,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 2
                       ),
@@ -157,6 +165,10 @@ class _LoginPageState extends State<LoginPage> {
       Provider.of<UserModel>(context, listen: false).login(email);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('성공적으로 로그인되었습니다!')),
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MyApp()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

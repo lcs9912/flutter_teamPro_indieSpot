@@ -45,6 +45,8 @@ dev_dependencies:
   intl:
   provider:
   image_picker:
+  path_provider:
+  uuid:
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
