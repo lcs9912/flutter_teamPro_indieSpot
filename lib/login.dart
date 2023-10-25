@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:indie_spot/pwdEind.dart';
+import 'package:indie_spot/pwdEdit.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
@@ -77,7 +77,7 @@ class _LoginPageState extends State<LoginPage> {
               ElevatedButton(
                 onPressed: _login,
                 style: ElevatedButton.styleFrom(
-                  primary: Color.fromRGBO(240, 240, 240, 1),
+                    backgroundColor: Color.fromRGBO(240, 240, 240, 1),
                   side: BorderSide(color: Color.fromRGBO(240, 240, 240, 1)),
                   padding: EdgeInsets.symmetric(horizontal: 90, vertical: 18)
                 ),
@@ -91,17 +91,6 @@ class _LoginPageState extends State<LoginPage> {
                     ),),
               ),
               SizedBox(height: 60),
-              // ElevatedButton(
-              //   onPressed: (){
-              //     Navigator.push(
-              //       context,
-              //       MaterialPageRoute(
-              //         builder: (context) => Join(),
-              //       ),
-              //     );
-              //   },
-              //   child: Text('회원가입'),
-              // ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -115,7 +104,7 @@ class _LoginPageState extends State<LoginPage> {
                       );
                     },
                     child: Text(
-                      "비밀번호 찾기",
+                      "비밀번호 변경",
                       style: TextStyle(
                       color: Colors.black
                       ),
@@ -153,6 +142,13 @@ class _LoginPageState extends State<LoginPage> {
     String email = _email.text;
     String password = _pwd.text;
 
+    if(email.isEmpty || password.isEmpty){
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('이메일과 비밀번호를 입력하세요'))
+      );
+       return;
+    }
+
     final userDocs = await _fs.collection('userList')
         .where('email', isEqualTo: email)
         .where('pwd', isEqualTo: password).get();
@@ -164,7 +160,7 @@ class _LoginPageState extends State<LoginPage> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('아이디나 패스워드를 다시 확인해주세요.')),
+        SnackBar(content: Text('이메일과 패스워드를 다시 확인해주세요.')),
       );
     }
   }

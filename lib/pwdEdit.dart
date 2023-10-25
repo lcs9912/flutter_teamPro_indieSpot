@@ -1,0 +1,136 @@
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:indie_spot/login.dart';
+
+class PwdEdit extends StatefulWidget {
+  const PwdEdit({super.key});
+
+  @override
+  State<PwdEdit> createState() => _PwdEditState();
+}
+
+class _PwdEditState extends State<PwdEdit> {
+
+  final FirebaseFirestore _fs = FirebaseFirestore.instance; // Firestore 인스턴스를 가져옵니다.
+  final TextEditingController _email = TextEditingController();
+  final TextEditingController _phone= TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("비밀번호 찾기"),
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                child: TextField(
+                  controller: _email,
+                  decoration: InputDecoration(labelText: '이메일'),
+                ),
+                width: 300,
+              ),
+              SizedBox(height: 20),
+              Container(
+                child: TextField(
+                  controller: _phone,
+                  decoration: InputDecoration(labelText: '전화번호'),
+                ),
+                width: 300,
+              ),
+              SizedBox(height: 40),
+              ElevatedButton(
+                  onPressed: _pwdEdit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color.fromRGBO(240, 240, 240, 1),
+                    side: BorderSide(color: Color.fromRGBO(240, 240, 240, 1)),
+                    padding: EdgeInsets.symmetric(horizontal: 90, vertical: 18)
+                  ),
+                  child: Text(
+                      "비밀번호 변경",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 4
+                    )
+                  )
+              )
+            ],
+          ),
+        )
+      ),
+    );
+  }
+
+  void _pwdEdit() async {
+    String email = _email.text;
+    String phone = _phone.text;
+
+    final userDocs = await _fs.collection('userList')
+        .where('email', isEqualTo: email)
+        .where('phone', isEqualTo: phone).get();
+
+    if(userDocs.docs.isNotEmpty) {
+      String newPwd = await _showPwdDialog();
+      if(newPwd.isNotEmpty) {
+        await _fs.collection('userList')
+            .doc(userDocs.docs.first.id)
+            .update({'pwd': newPwd});
+
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("비밀번호가 변경되었습니다."))
+        );
+
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => LoginPage()),
+        );
+      }
+
+    }else{
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('이메일과 전화번호를 다시 확인해주세요.'))
+      );
+    }
+  }
+  Future<String> _showPwdDialog() async {
+    String newPwd = '';
+
+    await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("비밀번호 변경"),
+            content: TextField(
+              onChanged: (value){
+                newPwd = value;
+              },
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: '새로운 비밀번호를 입력',
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                  onPressed: (){
+                    Navigator.of(context).pop(newPwd);
+                  },
+                  child: Text('확인')
+              )
+            ],
+          );
+        }
+    );
+    if (newPwd.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("새로운 비밀번호를 입력해주세요."))
+      );
+    }
+    return newPwd;
+  }
+}
