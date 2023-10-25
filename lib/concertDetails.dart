@@ -145,7 +145,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                 ),
                                 SizedBox(height: 20),
                                 Text(
-                                  '버스킹 시간 ${buskingData?['buskingStart']}',
+                                  '버스킹시간 ${buskingData?['buskingStart']}',
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
 
