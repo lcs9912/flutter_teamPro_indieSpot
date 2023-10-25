@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'baseBar.dart';
 import 'login.dart';
 import 'join.dart';
 
@@ -22,9 +23,8 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: Text("ㅋㅋㅋㅋ"),
-        ),
+        appBar: MyAppBar(),
+        drawer: MyDrawer(),
         body: Padding(
             padding: const EdgeInsets.all(16.0),
             child:
@@ -40,6 +40,7 @@ class _MyAppState extends State<MyApp> {
               child: Text('회원가입'),
             )
         ),
+        bottomNavigationBar: MyBottomBar(),
       ),
     );
 

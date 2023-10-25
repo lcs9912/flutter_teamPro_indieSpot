@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
 
-class MyAppBar extends StatefulWidget implements PreferredSizeWidget {
+class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
   const MyAppBar({super.key});
   Size get preferredSize => Size.fromHeight(kToolbarHeight);
-  @override
-  State<MyAppBar> createState() => _MyAppBarState();
-}
-
-class _MyAppBarState extends State<MyAppBar> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
@@ -60,7 +55,7 @@ class _MyDrawerState extends State<MyDrawer> {
           ),
 
           ExpansionTile(
-            title: Text('MENU'),
+            title: Text('MENU',style: TextStyle(fontWeight: FontWeight.bold),),
             children: <Widget>[
               ListTile(
                 title: Text('공지사항'),
@@ -95,7 +90,7 @@ class _MyDrawerState extends State<MyDrawer> {
             ],
           ),
           ExpansionTile(
-            title: Text('ARTIST MENU'),
+            title: Text('ARTIST MENU',style: TextStyle(fontWeight: FontWeight.bold)),
             children: <Widget>[
               ListTile(
                 title: Text('공지사항'),
@@ -204,7 +199,7 @@ class _MyBottomBarState extends State<MyBottomBar> {
                           MaterialPageRoute(builder: (context) => ),
                         );
                       },*/
-            child: Image.asset('../assets/mic.png',width: 23,),
+            child: Image.asset('assets/mic.png',width: 23,),
           ),
           InkWell(
             /*onTap: () {
