@@ -41,6 +41,7 @@ dev_dependencies:
     sdk: flutter
   youtube_player_flutter:
   cloud_firestore:
+  firebase_core:
   intl:
   provider:
 
