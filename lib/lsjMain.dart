@@ -24,12 +24,12 @@ class MainPage extends StatelessWidget {
       body: Center(
         child: ElevatedButton(
           onPressed: () {
-            Navigator.push(
+            /*Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => ConcertDetails(), // concertDetails.dart로 이동합니다.
               ),
-            );
+            );*/
           },
           child: Text('공연 상세 페이지로 이동'),
         ),

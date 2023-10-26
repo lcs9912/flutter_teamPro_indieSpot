@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 class ConcertDetails extends StatefulWidget {
+  final DocumentSnapshot document;
+  ConcertDetails({required this.document});
   @override
   _ConcertDetailsState createState() => _ConcertDetailsState();
 }
@@ -134,6 +136,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
 
   @override
   Widget build(BuildContext context) {
+    print(widget.document.id);
     return DefaultTabController(
       length: 2,
       child: Scaffold(

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:indie_spot/baseBar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/*import 'concertDetails.dart';*/
+import 'concertDetails.dart';
 class BuskingList extends StatefulWidget{
   const BuskingList({super.key});
 
@@ -181,7 +181,7 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
                                   leading: Image.asset('assets/기본.jpg'),
                                   /*leading: Image.network(firstImage['imageUrl']),*/
                                   onTap: () {
-                                      /*Navigator.push(context, MaterialPageRoute(builder: (context) => ConcertDetails(document : doc2.id),));*/
+                                      Navigator.push(context, MaterialPageRoute(builder: (context) => ConcertDetails(document : doc2),));
                                   },
                                 ),
                               );
