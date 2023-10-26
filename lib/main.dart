@@ -3,33 +3,43 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/join.dart';
 import 'package:indie_spot/login.dart';
+import 'package:indie_spot/userModel.dart';
 import 'buskingList.dart';
 import 'buskingReservation.dart';
 import 'concertDetails.dart';
 import 'firebase_options.dart';
+import 'package:provider/provider.dart';
 import 'baseBar.dart';
+import 'package:indie_spot/userModel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(MaterialApp(
-      theme: ThemeData(fontFamily: 'Pretendard'),
+  runApp(
+    MultiProvider(
+      providers: [
+      ChangeNotifierProvider(create: (_) => UserModel())
+    ],
+    child: MaterialApp(
+        theme: ThemeData(fontFamily: 'Pretendard'),
       themeMode: ThemeMode.system,
       home: MyApp()
-  ));
+    ),
+    )
+  );
 }
 
 class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
-
   @override
   State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
   bool iconFlg = false;
+  bool loginFlg = false;
 
   List<String> imgList = [
     'busking/bus_sample1.jpg',
@@ -153,15 +163,68 @@ class _MyAppState extends State<MyApp> {
                 Column(
                   children: [
                     IconButton(
-                        onPressed: (){
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => LoginPage()) // 상세페이지로 넘어갈것
-                          );
+                        onPressed: () async {
+                          if(Provider.of<UserModel>(context, listen: false).isLogin) {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text('로그아웃 확인'),
+                                  content: Text('로그아웃 하시겠습니까?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context); // 첫 번째 다이얼로그 닫기
+                                      },
+                                      child: Text('취소'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () async {
+                                        // 두 번째 확인 다이얼로그
+                                        Navigator.pop(context); // 첫 번째 다이얼로그 닫기
+
+                                        showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return AlertDialog(
+                                              title: Text('알림'),
+                                              content: Text('로그아웃 하였습니다.'),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    // 로그아웃 수행
+                                                    Provider.of<UserModel>(context, listen: false).logout();
+                                                    Navigator.pop(context); // 두 번째 다이얼로그 닫기
+                                                  },
+                                                  child: Text('확인'),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+                                      },
+                                      child: Text('확인'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          }else {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) =>
+                                    LoginPage()) // 상세페이지로 넘어갈것
+                            );
+                          }
                         },
                         icon: Icon(Icons.login)
                     ),
-                    Text("로그인"),
+                    Consumer<UserModel>(
+                        builder: (context, userModel, child){
+                          print('isLogin : ${userModel.isLogin}');
+                          return Text(userModel.isLogin ? "로그아웃" : "로그인");
+                        }
+                        ),
                   ],
                 ),
                 Column(

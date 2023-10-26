@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:indie_spot/main.dart';
 import 'package:indie_spot/pwdEdit.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
@@ -8,28 +9,28 @@ import 'package:indie_spot/userModel.dart';
 
 import 'join.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(
-      ChangeNotifierProvider(
-        create: (context) => UserModel(),
-        child: MyApp(),
-      )
-  );
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: '로그인',
-      home: LoginPage(),
-    );
-  }
-}
+// void main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+//   await Firebase.initializeApp(
+//     options: DefaultFirebaseOptions.currentPlatform,
+//   );
+//   runApp(
+//       ChangeNotifierProvider (
+//         create: (context) => UserModel(),
+//         child: MyApp(),
+//       )
+//   );
+// }
+//
+// class MyApp extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       title: '로그인',
+//       home: LoginPage(),
+//     );
+//   }
+// }
 
 class LoginPage extends StatefulWidget {
   @override
@@ -44,6 +45,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 1,
@@ -52,6 +54,7 @@ class _LoginPageState extends State<LoginPage> {
           style: TextStyle(color: Colors.black),
           textAlign: TextAlign.center,
         ),
+        iconTheme: IconThemeData(color: Colors.black),
       ),
       body: Center(
         child: Padding(
@@ -60,7 +63,7 @@ class _LoginPageState extends State<LoginPage> {
             children: [
               Image.asset(
                 'assets/indiespot.jpg',
-                width: 300,
+                width: 200,
               ),
               SizedBox(height: 20),
               Container(
@@ -169,7 +172,7 @@ class _LoginPageState extends State<LoginPage> {
       );
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => MyApp()),
+        MaterialPageRoute(builder: (context) => MyApp() ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
