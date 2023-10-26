@@ -14,7 +14,11 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(MaterialApp(home: MyApp()));
+  runApp(MaterialApp(
+      theme: ThemeData(fontFamily: 'Pretendard'),
+      themeMode: ThemeMode.system,
+      home: MyApp()
+  ));
 }
 
 class MyApp extends StatefulWidget {
@@ -134,7 +138,7 @@ class _MyAppState extends State<MyApp> {
                         onPressed: (){},
                         icon: Icon(Icons.person)
                     ),
-                    Text("여기다"),
+                    Text("아티스트"),
                   ],
                 ),
                 Column(
@@ -308,7 +312,7 @@ class _MyAppState extends State<MyApp> {
             ),
             Expanded(
                 child: _commercialList()
-            ),
+            )
           ],
 
         ),
@@ -419,29 +423,50 @@ class _MyAppState extends State<MyApp> {
       itemCount: commList.length,
       itemBuilder: (context, index) {
         return Container(
-          margin: EdgeInsets.only(bottom: 16.0), // 각 ListTile 사이의 간격을 조절
+          margin: EdgeInsets.only(bottom: 16.0),
           child: ListTile(
-            contentPadding: EdgeInsets.all(16.0), // ListTile 내부 컨텐츠와 가장자리 간격 조절
+            contentPadding: EdgeInsets.all(0),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0), // ListTile의 둥근 테두리 조절
+              borderRadius: BorderRadius.circular(10.0),
             ),
-            tileColor: Colors.grey[200], // ListTile의 배경색 조절
-            leading: Image.asset(commList[index], width: 80, height: 80, fit: BoxFit.cover),
-            title: Text('아따맘마', style: TextStyle(fontSize: 18.0)), // 제목 텍스트 스타일 조절
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            tileColor: Colors.white,
+            title: Row(
               children: [
-                Text("인천 부평구"),
-                Text("공연팀: 오동동"),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10), // 모서리 둥글게
+                  child: Container(
+                    width: 120,
+                    height: 100,
+                    child: Image.asset(commList[index], fit: BoxFit.cover),
+                  ),
+                ),
+                SizedBox(width: 16), // 이미지와 텍스트 사이의 간격 조절
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '아따맘마',
+                      style: TextStyle(
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text("인천 부평구"),
+                    Text("공연팀: 오동동"),
+                  ],
+                ),
               ],
             ),
             trailing: Text(" 날짜 \n 첫순서 \n 두번째"),
-            onTap: (){ // 상업공간 공연 상세페이지
-
+            onTap: () {
+              // 상업공간 공연 상세페이지
             },
           ),
         );
       },
-    );
+    )
+    ;
   }
+
+
 }

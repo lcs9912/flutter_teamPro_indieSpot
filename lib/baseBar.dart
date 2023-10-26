@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:indie_spot/buskingList.dart';
 
+import 'artistList.dart';
+
 class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
   const MyAppBar({super.key});
   Size get preferredSize => Size.fromHeight(kToolbarHeight);
@@ -202,12 +204,12 @@ class _MyBottomBarState extends State<MyBottomBar> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           InkWell(
-            /*onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => ),
-                        );
-                      },*/
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ArtistList()),
+              );
+            },
             child: Image.asset('assets/mic.png',width: 23,),
           ),
           InkWell(
