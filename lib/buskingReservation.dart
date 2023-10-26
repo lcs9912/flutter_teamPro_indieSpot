@@ -325,7 +325,7 @@ class BuskingZoneListScreen extends StatelessWidget {
                         child: ListTile(
                           title: Text(data['spotName']),
                           subtitle: Text(addr[0].data()['addr']),
-                          leading: Container(child: Image.asset('busking/SE-70372558-15b5-11ee-8f66-416d786acd10.jpg'), width: 100, height: 100,),
+                          leading: Container(child: Image.file(File('/data/user/0/com.example.indie_spot/app_flutter/busking/2a2e2f59-09c9-488c-8d85-d47bc3e0d482.jpg')), width: 100, height: 100,),
                           onTap: () {
                             Navigator.pop(context, document); // 선택한 항목 반환
                           },
