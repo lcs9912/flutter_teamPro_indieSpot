@@ -1,24 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
+import 'package:indie_spot/baseBar.dart';
 import 'package:indie_spot/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:indie_spot/spotDetailed.dart';
 
 import 'firebase_options.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(
-    MaterialApp(
-        theme: ThemeData(fontFamily: 'Pretendard'),
-        themeMode: ThemeMode.system,
-        home: BuskingZoneList()
-    ),
-  );
-}
 
 class BuskingZoneList extends StatefulWidget {
   @override
@@ -107,7 +96,7 @@ class _BuskingZoneListState extends State<BuskingZoneList> {
                               ),
                               trailing: Icon(Icons.chevron_right),
                               onTap: () {
-
+                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => SpotDetailed(data, addr),));
                               },
                             ),
                           );
@@ -130,8 +119,25 @@ class _BuskingZoneListState extends State<BuskingZoneList> {
     return DefaultTabController(
         length: _regions.length,
         child: Scaffold(
+            drawer: MyDrawer(),
             backgroundColor: Colors.white,
             appBar: AppBar(
+              actions: [
+                IconButton(
+                    onPressed: (){
+
+                    },
+                    icon: Icon(Icons.person),color: Colors.black54),
+                Builder(
+                    builder: (context) {
+                      return IconButton(
+                          onPressed: (){
+                            Scaffold.of(context).openDrawer();
+                          },
+                          icon: Icon(Icons.menu),color: Colors.black54);
+                    }
+                ),
+              ],
               automaticallyImplyLeading: false,
               leading: IconButton(
                 icon: Icon(

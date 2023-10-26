@@ -119,11 +119,15 @@ class _BuskingReservationState extends State<BuskingReservation> {
 
                 },
                 icon: Icon(Icons.person),color: Colors.black54),
-            IconButton(
-                onPressed: (){
-                  Scaffold.of(context).openDrawer();
-                },
-                icon: Icon(Icons.menu),color: Colors.black54),
+            Builder(
+              builder: (context) {
+                return IconButton(
+                    onPressed: (){
+                      Scaffold.of(context).openDrawer();
+                    },
+                    icon: Icon(Icons.menu),color: Colors.black54);
+              }
+            ),
           ],
           elevation: 1,
           automaticallyImplyLeading: false,
