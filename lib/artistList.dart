@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:indie_spot/artistInfo.dart';
 import 'baseBar.dart';
 
 class RadioItem {
@@ -19,49 +20,112 @@ class ArtistList extends StatefulWidget {
 
 class _ArtistListState extends State<ArtistList> {
   List<RadioItem> radioItems = [
-    RadioItem(label: "활동순", isSelected: true), // "활동순"을 초기 선택 상태로 설정
-    RadioItem(label: "좋아요순"),
+    RadioItem(label: "인기순", isSelected: true),
+    RadioItem(label: "활동순"),
     RadioItem(label: "최신순"),
   ];
 
-  String selectedRadio = "활동순"; // 선택된 라디오 버튼의 라벨
-
-  // 검색
+  String selectedRadio = "활동순";
   final TextEditingController _search = TextEditingController();
   FocusNode _focusNode = FocusNode();
   late TextField sharedTextField;
+  int likeCnt = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    _LikeCnt();
+  }
+
+  Widget _LikeCnt() {
+    return StreamBuilder(
+      stream: FirebaseFirestore.instance.collection("artist").orderBy('createdate', descending: true).snapshots(),
+      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
+        if (!snap.hasData) {
+          return Center(child: CircularProgressIndicator());
+        }
+        return ListView.builder(
+            itemCount: snap.data!.docs.length,
+            itemBuilder: (context, index) {
+              DocumentSnapshot doc = snap.data!.docs[index];
+              Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+              return FutureBuilder(
+                future: FirebaseFirestore.instance
+                    .collection("artist")
+                    .doc(doc.id)
+                    .collection("artist_like")
+                    .get(),
+                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot2) {
+                  if (snapshot2.hasData) {
+                    likeCnt = snapshot2.data!.docs.length;
+                    print('$likeCnt');
+                    return Container();
+                  } else {
+                    setState(() {
+                      likeCnt = 0;
+                    });
+                    return Container();
+                  }
+                },
+              );
+            },
+          );
+
+      },
+    );
+  }
 
   Widget _artistList() {
     return StreamBuilder(
-      stream: FirebaseFirestore.instance.collection("artist").snapshots(),
+      stream: FirebaseFirestore.instance.collection("artist").orderBy('createdate', descending: true).snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
         if (!snap.hasData) {
           return Center(child: CircularProgressIndicator());
         }
         return Expanded(
-            child: ListView.builder(
-              itemCount: snap.data!.docs.length,
-              itemBuilder: (context, index){
-                DocumentSnapshot doc = snap.data!.docs[index]; // artist 컬렉션의 모든필드를 순차적으로 대입
-                Map<String,dynamic> data= doc.data() as Map<String, dynamic>;
+          child: ListView.builder(
+            itemCount: snap.data!.docs.length,
+            itemBuilder: (context, index) {
+              DocumentSnapshot doc = snap.data!.docs[index];
+              Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
 
-                return FutureBuilder(
-                  future: FirebaseFirestore.instance.collection("artist").doc(doc.id).collection("image").get(),
-                  builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                    if(snapshot.hasData){ // hasData : 데이터가 있는지 없는지
-                      var img = snapshot.data!.docs.first;
-                      print('이미지 ${img['path'].toString()}');
-                      return ListTile(
-                        leading: Image.asset('artist/${img['path']}'),
-                        title: Text('${img['path'].toString()}'),
-                      );
-                    }
-                    return Container();
-                  },
-                );
-              }
-            ),
+              return FutureBuilder(
+                future: FirebaseFirestore.instance
+                    .collection("artist")
+                    .doc(doc.id)
+                    .collection("image")
+                    .get(),
+                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (snapshot.hasData) {
+                    var img = snapshot.data!.docs.first;
+                    return ListTile(
+                      leading: Image.asset(
+                        'artist/${img['path']}'
+                        ,fit: BoxFit.cover,
+                        width: 100.0, // 이미지의 가로 크기 설정
+                        height: 100.0, // 이미지의 세로 크기 설정
+                      ),
+                      title: Text('${data['artistName']}'),
+                      subtitle: Text('${data['genre']}\n$likeCnt'),
+                      isThreeLine: true,
+                      trailing: Icon(Icons.chevron_right),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ArtistInfo(doc: doc),
+                          ),
+                        );
+                      },
+                    );
+
+                  }
+                  return Container();
+                },
+              );
+            },
+          ),
         );
       },
     );
@@ -140,7 +204,7 @@ class _ArtistListState extends State<ArtistList> {
           ),
           elevation: 1,
         ),
-        drawer: MyDrawer(),
+        // drawer: MyDrawer(),
         body: TabBarView(
           physics: NeverScrollableScrollPhysics(),
           children: [
@@ -167,12 +231,6 @@ class _ArtistListState extends State<ArtistList> {
                 sharedTextField,
                 Padding(
                   padding: EdgeInsets.all(12),
-                  /*child: ListView.builder(
-                    itemCount: 4,
-                    itemBuilder: (context, index) {
-
-                    },
-                ),*/
                 )
               ],
             ),
@@ -187,12 +245,6 @@ class _ArtistListState extends State<ArtistList> {
                 sharedTextField,
                 Padding(
                   padding: EdgeInsets.all(12),
-                  /*child: ListView.builder(
-                    itemCount: 4,
-                    itemBuilder: (context, index) {
-
-                    },
-                ),*/
                 )
               ],
             ),
@@ -206,11 +258,10 @@ class _ArtistListState extends State<ArtistList> {
     return OutlinedButton(
       onPressed: () {
         setState(() {
-          // 라디오 버튼이 선택되었을 때 상태를 업데이트합니다.
           for (var item in radioItems) {
             item.isSelected = item.label == label;
           }
-          selectedRadio = "활동순"; // 클릭 시 항상 "활동순"으로 설정합니다.
+          selectedRadio = "활동순";
         });
       },
       style: ButtonStyle(
@@ -219,7 +270,7 @@ class _ArtistListState extends State<ArtistList> {
       child: Text(
         label,
         style: TextStyle(
-          color: isSelected ? Colors.white : Colors.black, // isSelected 값에 따라 텍스트의 색상을 변경합니다.
+          color: isSelected ? Colors.white : Colors.black,
         ),
       ),
     );
