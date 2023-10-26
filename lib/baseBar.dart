@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:indie_spot/buskingList.dart';
+import 'package:indie_spot/buskingSpotList.dart';
 
 import 'artistList.dart';
 
@@ -115,51 +116,11 @@ class _MyDrawerState extends State<MyDrawer> {
 
                 },
               ),
-              ExpansionTile(
-                  title: Text("지하철역 버스킹존"),
-                  children: [
-                    ListTile(
-                      title: Text("이용 신청"),
-                      onTap: () {
-
-                      },
-                    ),
-                    ListTile(
-                      title: Text("내 공연 일정"),
-                      onTap: () {
-
-                      },
-                    ),
-                    ListTile(
-                      title: Text("위치 안내"),
-                      onTap: () {
-
-                      },
-                    ),
-                  ],
-                ),
-              ExpansionTile(
-                title: Text("지자체 버스킹존"),
-                children: [
-                  ListTile(
-                    title: Text("이용 신청"),
-                    onTap: () {
-
-                    },
-                  ),
-                  ListTile(
-                    title: Text("내 공연 일정"),
-                    onTap: () {
-
-                    },
-                  ),
-                  ListTile(
-                    title: Text("위치 안내"),
-                    onTap: () {
-
-                    },
-                  ),
-                ],
+              ListTile(
+                title: Text('버스킹존'),
+                onTap: () {
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => BuskingZoneList(),));
+                },
               ),
               ListTile(
                 title: Text('공연 신청'),
