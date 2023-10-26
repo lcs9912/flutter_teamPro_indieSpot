@@ -101,10 +101,10 @@ class _MyAppState extends State<MyApp> {
                         GestureDetector(
                           onTap: () {
                             // 이미지를 클릭했을 때 실행할 코드를 여기에 추가
-                            Navigator.push(
+                            /*Navigator.push(
                                 context,
                                 MaterialPageRoute(builder: (_) => ConcertDetails()) // 상세페이지로 넘어갈것
-                            );
+                            );*/
                           },
                           child: Row(
                             children: [
