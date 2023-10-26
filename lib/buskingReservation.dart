@@ -9,20 +9,6 @@ import 'package:uuid/uuid.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
-void main() async{
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(
-    MaterialApp(
-      theme: ThemeData(fontFamily: 'Pretendard'),
-      themeMode: ThemeMode.system,
-      home: BuskingReservation()
-    )
-  );
-}
-
 class BuskingReservation extends StatefulWidget {
   @override
   State<BuskingReservation> createState() => _BuskingReservationState();
@@ -278,9 +264,28 @@ class _BuskingReservationState extends State<BuskingReservation> {
   }
 }
 
-class BuskingZoneListScreen extends StatelessWidget {
+class BuskingZoneListScreen extends StatefulWidget {
+  @override
+  State<BuskingZoneListScreen> createState() => _BuskingZoneListScreenState();
+}
+
+class _BuskingZoneListScreenState extends State<BuskingZoneListScreen> {
+  int _currentTabIndex = 0;
+  final _searchControl = TextEditingController();
+  final List<String> _regions = ['전국', '강원', '경기', '경남', '경북', '광주', '대구', '대전', '부산', '서울', '울산', '인천', '전남', '전북', '제주', '충남', '충북'];
+
+
+  Query getSelectedCollection(FirebaseFirestore fs) {
+    if (_currentTabIndex == 0) {
+      return fs.collection('busking_spot');
+    } else {
+      String selectedRegion = _regions[_currentTabIndex]; // -1을 해서 _regions 리스트에 맞는 값으로 선택
+      return fs.collection('busking_spot').where('regions', isEqualTo: selectedRegion);
+    }
+  }
 
   Widget _spotList() {
+
     FirebaseFirestore fs = FirebaseFirestore.instance;
     CollectionReference spots = fs.collection('busking_spot');
 
@@ -291,13 +296,20 @@ class BuskingZoneListScreen extends StatelessWidget {
           child: TextField(
             decoration: InputDecoration(
               hintText: '검색',
-              border: OutlineInputBorder()
+              border: OutlineInputBorder(),
             ),
+            controller: _searchControl,
+            textInputAction: TextInputAction.go,
+            onSubmitted: (value) {
+              setState(() {
+
+              });
+            },
           ),
         ),
         Expanded(
           child: StreamBuilder<QuerySnapshot>(
-            stream: spots.snapshots(),
+            stream: getSelectedCollection(fs).snapshots(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -307,32 +319,34 @@ class BuskingZoneListScreen extends StatelessWidget {
                 itemBuilder: (context, index) {
                   DocumentSnapshot document = snapshot.data!.docs[index];
                   Map<String, dynamic> data = document.data() as Map<String, dynamic>;
-
-                  return FutureBuilder<QuerySnapshot>(
-                    future: spots.doc(document.id).collection('addr').limit(1).get(),
-                    builder: (context, addrSnapshot) {
-                      if (addrSnapshot.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator()); // 데이터가 로딩 중이면 로딩 표시
-                      }
-                      if (addrSnapshot.hasError) {
-                        return Text('데이터를 불러오는 중 오류가 발생했습니다.');
-                      }
-                      List<QueryDocumentSnapshot<Map<String, dynamic>>> addr = addrSnapshot.data!.docs as List<QueryDocumentSnapshot<Map<String, dynamic>>>;
-
-                      return Container(
-                        padding: EdgeInsets.only(bottom: 5, top: 5),
-                        decoration: BoxDecoration(border: Border(bottom: BorderSide(width: 1, color: Color(0xFFEEEEEE)))),
-                        child: ListTile(
-                          title: Text(data['spotName']),
-                          subtitle: Text(addr[0].data()['addr']),
-                          leading: Container(child: Image.file(File('/data/user/0/com.example.indie_spot/app_flutter/busking/2a2e2f59-09c9-488c-8d85-d47bc3e0d482.jpg')), width: 100, height: 100,),
-                          onTap: () {
-                            Navigator.pop(context, document); // 선택한 항목 반환
-                          },
-                        ),
-                      );
-                    },
-                  );
+                  if (data['spotName'].contains(_searchControl.text)) {
+                    return FutureBuilder<QuerySnapshot>(
+                      future: spots.doc(document.id).collection('addr').limit(1).get(),
+                      builder: (context, addrSnapshot) {
+                        if (addrSnapshot.connectionState == ConnectionState.waiting) {
+                          return Container(); // 데이터가 로딩 중이면 로딩 표시
+                        }
+                        if (addrSnapshot.hasError) {
+                          return Text('데이터를 불러오는 중 오류가 발생했습니다.');
+                        }
+                        List<QueryDocumentSnapshot<Map<String, dynamic>>> addr = addrSnapshot.data!.docs as List<QueryDocumentSnapshot<Map<String, dynamic>>>;
+                        return Container(
+                          padding: EdgeInsets.only(bottom: 5, top: 5),
+                          decoration: BoxDecoration(border: Border(bottom: BorderSide(width: 1, color: Color(0xFFEEEEEE)))),
+                          child: ListTile(
+                            title: Text(data['spotName']),
+                            subtitle: Text(addr[0].data()['addr']),
+                            leading: Container(child: Image.asset('busking/SE-70372558-15b5-11ee-8f66-416d786acd10.jpg'), width: 100, height: 100,),
+                            onTap: () {
+                              Navigator.pop(context, document); // 선택한 항목 반환
+                            },
+                          ),
+                        );
+                      },
+                    );
+                  } else {
+                    return Container();
+                  }
                 },
               );
             },
@@ -344,11 +358,40 @@ class BuskingZoneListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('버스킹존 목록'),
-      ),
-        body: _spotList()
+    return DefaultTabController(
+      length: _regions.length,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            centerTitle: true,
+            title: Text('버스킹존 목록', style: TextStyle(color: Colors.black),),
+            bottom: TabBar(
+                isScrollable: true,
+                tabs: [
+                  for(String region in _regions)
+                    Tab(
+                      child: Text(region, style: TextStyle(color: Colors.black),),
+                    )
+                ],
+                unselectedLabelColor: Colors.black, // 선택되지 않은 탭의 텍스트 색상
+                labelColor: Colors.blue,
+                labelStyle: TextStyle(
+                  fontWeight: FontWeight.bold, // 선택된 탭의 텍스트 굵기 설정
+                ),
+                unselectedLabelStyle: TextStyle(
+                  fontWeight: FontWeight.normal, // 선택되지 않은 탭의 텍스트 굵기 설정
+                ),
+                onTap: (value) {
+                  setState(() {
+                    _currentTabIndex = value; // 탭 선택 변경
+                  });
+                },
+            ),
+            elevation: 1,
+          ),
+          body: _spotList()
+      )
     );
   }
 }
