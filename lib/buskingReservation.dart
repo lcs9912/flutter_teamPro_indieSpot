@@ -35,17 +35,31 @@ class _BuskingReservationState extends State<BuskingReservation> {
   final _descriptionControl = TextEditingController();  //공연 설명
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
-  String? _spotId = '';
-  int _time = 0;
-  var _imageData;
+  String? _spotId;
+  String? _spotName = '';
+  String? _path;
 
-  Future<void> downloadAndSaveImage() async {
-    final appDocumentsDirectory = await getApplicationDocumentsDirectory();
-    final localPath = appDocumentsDirectory.path;
+  Future<void> downloadAndSaveImage(String name) async {
+    Directory dir = await getApplicationDocumentsDirectory();
+    Directory buskingDir = Directory('${dir.path}/busking');
 
-    final File localImage = File('$localPath/$_imageName');
-    print(localImage);
-    await localImage.writeAsBytes(await _image!.readAsBytes());
+    if (!await buskingDir.exists()) {
+      await buskingDir.create(); // 폴더 생성
+    }
+
+    try {
+      File targetFile = File('${buskingDir.path}/$name');
+      // targetFile.path 얘를 db에 저장 후 호출 때 사용
+      // 보통 안드로이드 => /data/user/0/com.example.indie_spot/app_flutter
+      // 아이폰 => /Users/your_user_name/Library/Developer/CoreSimulator/Devices/DEVICE_ID/data/Containers/Data/Application/APP_ID/Documents
+      print('저장경로 확인 ==> ${targetFile.path}');
+      _path = targetFile.path;
+      // _image는 File객체
+      await _image!.copy(targetFile.path);
+      // 저장 후 호출 시에는 Image.file(imageFile) 형태로 사용할 것
+    } catch (e) {
+      print("에러메세지: $e");
+    }
   }
 
   String generateUniqueFileName(String originalName) {
@@ -54,6 +68,21 @@ class _BuskingReservationState extends State<BuskingReservation> {
     return '$uuid.$extension';
   }
 
+  void _openBuskingZoneList() async {
+    final selectedZone = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BuskingZoneListScreen(),
+      ),
+    );
+
+    if (selectedZone != null) {
+      setState(() {
+        _spotId = selectedZone.id;
+        _spotName = selectedZone.data()['spotName'];
+      });
+    }
+  }
 
 
   void _addBusking() async{
@@ -62,7 +91,7 @@ class _BuskingReservationState extends State<BuskingReservation> {
     }
 
     String name = generateUniqueFileName(_imageName!);
-    await downloadAndSaveImage();
+    await downloadAndSaveImage(name);
 
     await Firebase.initializeApp();
     FirebaseFirestore fs = FirebaseFirestore.instance;
@@ -83,7 +112,7 @@ class _BuskingReservationState extends State<BuskingReservation> {
           .add({
             'orgName' : _imageName,
             'name' : name,
-            'path' : '/busking/',
+            'path' : _path,
             'size' : _image!.lengthSync(),
             'deleteYn' : 'n',
             'cDateTime' : FieldValue.serverTimestamp(),
@@ -190,11 +219,11 @@ class _BuskingReservationState extends State<BuskingReservation> {
           ListTile(
             contentPadding: EdgeInsets.zero,
             onTap: () async{
-
+              _openBuskingZoneList();
             },
-            title: Text(_spotId != null? '' : '장소를 선택해주세요'),
+            title: Text(_spotId != null? _spotName.toString() : '장소를 선택해주세요'),
           ),
-          SizedBox(height: 20,),
+          SizedBox(height: 40,),
           Align(
             alignment: Alignment.center,
             child: Padding(
@@ -245,6 +274,81 @@ class _BuskingReservationState extends State<BuskingReservation> {
         }
       },
       title: Text(_selectedTime != null ? '${DateFormat('yyyy-MM-dd').format(_selectedDate!)} ${_selectedTime!.format(context)}' : '날짜 선택', style: TextStyle(fontSize: 15),),
+    );
+  }
+}
+
+class BuskingZoneListScreen extends StatelessWidget {
+
+  Widget _spotList() {
+    FirebaseFirestore fs = FirebaseFirestore.instance;
+    CollectionReference spots = fs.collection('busking_spot');
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: TextField(
+            decoration: InputDecoration(
+              hintText: '검색',
+              border: OutlineInputBorder()
+            ),
+          ),
+        ),
+        Expanded(
+          child: StreamBuilder<QuerySnapshot>(
+            stream: spots.snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              return ListView.builder(
+                itemCount: snapshot.data!.docs.length,
+                itemBuilder: (context, index) {
+                  DocumentSnapshot document = snapshot.data!.docs[index];
+                  Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+
+                  return FutureBuilder<QuerySnapshot>(
+                    future: spots.doc(document.id).collection('addr').limit(1).get(),
+                    builder: (context, addrSnapshot) {
+                      if (addrSnapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator()); // 데이터가 로딩 중이면 로딩 표시
+                      }
+                      if (addrSnapshot.hasError) {
+                        return Text('데이터를 불러오는 중 오류가 발생했습니다.');
+                      }
+                      List<QueryDocumentSnapshot<Map<String, dynamic>>> addr = addrSnapshot.data!.docs as List<QueryDocumentSnapshot<Map<String, dynamic>>>;
+
+                      return Container(
+                        padding: EdgeInsets.only(bottom: 5, top: 5),
+                        decoration: BoxDecoration(border: Border(bottom: BorderSide(width: 1, color: Color(0xFFEEEEEE)))),
+                        child: ListTile(
+                          title: Text(data['spotName']),
+                          subtitle: Text(addr[0].data()['addr']),
+                          leading: Container(child: Image.asset('busking/SE-70372558-15b5-11ee-8f66-416d786acd10.jpg'), width: 100, height: 100,),
+                          onTap: () {
+                            Navigator.pop(context, document); // 선택한 항목 반환
+                          },
+                        ),
+                      );
+                    },
+                  );
+                },
+              );
+            },
+          )
+        )
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('버스킹존 목록'),
+      ),
+        body: _spotList()
     );
   }
 }
