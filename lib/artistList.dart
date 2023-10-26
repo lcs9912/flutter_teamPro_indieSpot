@@ -26,96 +26,44 @@ class _ArtistListState extends State<ArtistList> {
 
   String selectedRadio = "활동순"; // 선택된 라디오 버튼의 라벨
 
-  // 지역
-  final List<String> _regions = ['전국', '서울', '부산', '인천', '강원', '경기', '경남', '경북', '광주', '대구', '대전', '울산', '전남', '전북', '제주', '충남', '충북'];
-
   // 검색
   final TextEditingController _search = TextEditingController();
   FocusNode _focusNode = FocusNode();
   late TextField sharedTextField;
 
-  int _currentTabIndex = 0; // 센세꺼 훔쳐옴
-  
-  // 뭔지모르지만 훔쳐옴..
-  Query getSelectedCollection(FirebaseFirestore fs) {
-    if (_currentTabIndex == 0) {
-      return fs.collection('busking_spot');
-    } else {
-      String selectedRegion = _regions[_currentTabIndex]; // -1을 해서 _regions 리스트에 맞는 값으로 선택
-      return fs.collection('busking_spot').where('regions', isEqualTo: selectedRegion);
-    }
-  }
 
-  // 센세 리스트 코드 훔쳐옴
   Widget _artistList() {
+    return StreamBuilder(
+      stream: FirebaseFirestore.instance.collection("artist").snapshots(),
+      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
+        if (!snap.hasData) {
+          return Center(child: CircularProgressIndicator());
+        }
+        return Expanded(
+            child: ListView.builder(
+              itemCount: snap.data!.docs.length,
+              itemBuilder: (context, index){
+                DocumentSnapshot doc = snap.data!.docs[index]; // artist 컬렉션의 모든필드를 순차적으로 대입
+                Map<String,dynamic> data= doc.data() as Map<String, dynamic>;
 
-    FirebaseFirestore fs = FirebaseFirestore.instance;
-    CollectionReference spots = fs.collection('busking_spot');
-
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: '검색',
-              border: OutlineInputBorder(),
-            ),
-            controller: _search,
-            textInputAction: TextInputAction.go,
-            onSubmitted: (value) {
-              setState(() {
-
-              });
-            },
-          ),
-        ),
-        Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: getSelectedCollection(fs).snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                return ListView.builder(
-                  itemCount: snapshot.data!.docs.length,
-                  itemBuilder: (context, index) {
-                    DocumentSnapshot document = snapshot.data!.docs[index];
-                    Map<String, dynamic> data = document.data() as Map<String, dynamic>;
-                    if (data['spotName'].contains(_search.text)) {
-                      return FutureBuilder<QuerySnapshot>(
-                        future: spots.doc(document.id).collection('addr').limit(1).get(),
-                        builder: (context, addrSnapshot) {
-                          if (addrSnapshot.connectionState == ConnectionState.waiting) {
-                            return Container(); // 데이터가 로딩 중이면 로딩 표시
-                          }
-                          if (addrSnapshot.hasError) {
-                            return Text('데이터를 불러오는 중 오류가 발생했습니다.');
-                          }
-                          List<QueryDocumentSnapshot<Map<String, dynamic>>> addr = addrSnapshot.data!.docs as List<QueryDocumentSnapshot<Map<String, dynamic>>>;
-                          return Container(
-                            padding: EdgeInsets.only(bottom: 5, top: 5),
-                            decoration: BoxDecoration(border: Border(bottom: BorderSide(width: 1, color: Color(0xFFEEEEEE)))),
-                            child: ListTile(
-                              title: Text(data['spotName']),
-                              subtitle: Text(addr[0].data()['addr']),
-                              leading: Container(child: Image.asset('busking/SE-70372558-15b5-11ee-8f66-416d786acd10.jpg'), width: 100, height: 100,),
-                              onTap: () {
-                                Navigator.pop(context, document); // 선택한 항목 반환
-                              },
-                            ),
-                          );
-                        },
+                return FutureBuilder(
+                  future: FirebaseFirestore.instance.collection("artist").doc(doc.id).collection("image").get(),
+                  builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                    if(snapshot.hasData){ // hasData : 데이터가 있는지 없는지
+                      var img = snapshot.data!.docs.first;
+                      print('이미지 ${img['path'].toString()}');
+                      return ListTile(
+                        leading: Image.asset('artist/${img['path']}'),
+                        title: Text('${img['path'].toString()}'),
                       );
-                    } else {
-                      return Container();
                     }
+                    return Container();
                   },
                 );
-              },
-            )
-        )
-      ],
+              }
+            ),
+        );
+      },
     );
   }
 
@@ -205,36 +153,7 @@ class _ArtistListState extends State<ArtistList> {
                       .toList(),
                 ),
                 sharedTextField,
-                Expanded(
-                  child: StreamBuilder(
-                    stream: FirebaseFirestore.instance.collection("artist").orderBy("createdate", descending: true).snapshots(),
-                    builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
-                      if (!snap.hasData) {
-                        return Center(
-                          child: Stack(
-                            children: [
-                              CircularProgressIndicator(strokeWidth: 5),
-                              Text("로딩중"),
-                            ],
-                          ),
-                        );
-                      }
-                      return ListView.builder(
-                        itemCount: snap.data!.docs.length,
-                        itemBuilder: (context, index) {
-                          DocumentSnapshot doc = snap.data!.docs[index];
-                          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-                          return ListTile(
-                            title: Text("${data['artistName']}"),
-                            onTap: () {
-                              // 상세페이지로 이동
-                            },
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
+                _artistList(),
               ],
             ),
             Column(
