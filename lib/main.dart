@@ -20,13 +20,12 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-      ChangeNotifierProvider(create: (_) => UserModel())
-    ],
-    child: MaterialApp(
-        theme: ThemeData(fontFamily: 'Pretendard'),
-      themeMode: ThemeMode.system,
-      home: MyApp()
-    ),
+        ChangeNotifierProvider(create: (_) => UserModel())
+      ],
+      child: MaterialApp(
+        theme: ThemeData(fontFamily: 'NotoSansKR'),
+        home: MyApp()
+      ),
     )
   );
 }
