@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:indie_spot/buskingList.dart';
 
 class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
   const MyAppBar({super.key});
@@ -8,11 +9,18 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: Text("indieSpot"),
       backgroundColor: Colors.white,
-      leading: IconButton(
+      actions: [
+        IconButton(
+            onPressed: (){
+
+            },
+            icon: Icon(Icons.person),color: Colors.black54),
+        IconButton(
           onPressed: (){
             Scaffold.of(context).openDrawer();
           },
           icon: Icon(Icons.menu),color: Colors.black54),
+      ]
     );
   }
 }
@@ -203,12 +211,12 @@ class _MyBottomBarState extends State<MyBottomBar> {
             child: Image.asset('assets/mic.png',width: 23,),
           ),
           InkWell(
-            /*onTap: () {
+            onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => ),
+                          MaterialPageRoute(builder: (context) => BuskingList()),
                         );
-                      },*/
+                      },
             child: Icon(Icons.calendar_month_outlined,color: Colors.black54,),
           ),
           InkWell(
