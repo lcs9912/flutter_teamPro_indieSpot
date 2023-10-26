@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:indie_spot/baseBar.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'dart:convert';
+
 
 class SpotDetailed extends StatefulWidget {
   final Map<String, dynamic> _data;
@@ -27,7 +30,7 @@ class _SpotDetailedState extends State<SpotDetailed> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(widget._data['spotName'], style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                ElevatedButton(onPressed: (){}, child: Text('길찾기'), style: ButtonStyle(elevation: MaterialStatePropertyAll(0), backgroundColor: MaterialStatePropertyAll(Color(0xFF392F31))),)
+                ElevatedButton(onPressed: (){_launchWeb(widget._addr[0]['addr'], widget._addr[0]['addr2']);}, child: Text('길찾기'), style: ButtonStyle(elevation: MaterialStatePropertyAll(0), backgroundColor: MaterialStatePropertyAll(Color(0xFF392F31))),)
               ],
             ),
             subtitle: Column(
@@ -106,5 +109,17 @@ class _SpotDetailedState extends State<SpotDetailed> {
       centerTitle: true,
       title: Text('버스킹존', style: TextStyle(color: Colors.black),),
     );
+  }
+
+  _launchWeb(addr, addr2) async {
+    String encodedAddress = Uri.encodeComponent('$addr $addr2');
+    String decodedAddress = utf8.decode(encodedAddress.runes.toList());
+
+    final Uri url = Uri.parse('https://map.kakao.com/?q=$decodedAddress'); // 열고자 하는 웹 페이지 URL로 변경
+    if (!await launchUrl(url)) {
+      throw Exception('Could not launch $url');
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 }
