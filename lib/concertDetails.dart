@@ -359,32 +359,41 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                               ElevatedButton(
                                 onPressed: () {
                                   submitReview();
-                                  addReview('RNy4zfYiBdHOcQwvt0pR', _review.text, rating.toString());
+                                  addReview('HNkRaJfMyHYdAD2NVBeE', _review.text, rating.toString());
                                 },
                                 child: Text('댓글작성'),
                               ),
                               SizedBox(height: 20,),
                             ],
                           ),
-                          Text("후기글 (총${buskingReview?[0]['reviewCnt']}개)"),
+                         // Text("후기글 (총${buskingReview?[0]['reviewCnt']}개)"),
                           SizedBox(height: 20,),
                           Row(
                             children: [
                               InkWell(
                                 onTap: () {
-                                  // 최신순 버튼을 눌렀을 때 수행할 작업을 여기에 추가하세요.
+                                  setState(() {
+                                    // 최신순으로 리뷰 정렬 및 UI 업데이트
+                                    buskingReview?.sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
+                                  });
                                 },
                                 child: Text("최신순                 "),
                               ),
                               InkWell(
                                 onTap: () {
-                                  // 별점높은순 버튼을 눌렀을 때 수행할 작업을 여기에 추가하세요.
+                                  setState(() {
+                                    // 별점 높은 순으로 리뷰 정렬 및 UI 업데이트
+                                    buskingReview?.sort((a, b) => b['rating'].compareTo(a['rating']));
+                                  });
                                 },
                                 child: Text("별점높은순                  "),
                               ),
                               InkWell(
                                 onTap: () {
-                                  // 별점낮은순 버튼을 눌렀을 때 수행할 작업을 여기에 추가하세요.
+                                  setState(() {
+                                    // 별점 낮은 순으로 리뷰 정렬 및 UI 업데이트
+                                    buskingReview?.sort((a, b) => a['rating'].compareTo(b['rating']));
+                                  });
                                 },
                                 child: Text("별점낮은순"),
                               ),
