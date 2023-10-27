@@ -165,11 +165,38 @@ class _LoginPageState extends State<LoginPage> {
         .where('email', isEqualTo: email)
         .where('pwd', isEqualTo: password).get();
 
+    if(!context.mounted) return;
+
     if (userDocs.docs.isNotEmpty) {
-      Provider.of<UserModel>(context, listen: false).login(email);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('성공적으로 로그인되었습니다!')),
-      );
+      final userId = userDocs!.docs[0].id;
+      String? artistId;
+      CollectionReference artistCollectionRef = _fs.collection('artist');
+
+      QuerySnapshot artistDocs = await artistCollectionRef.get();
+
+      for (QueryDocumentSnapshot artistDoc in artistDocs.docs) {
+        // 각 artist 문서에서 team_members 컬렉션 참조
+        CollectionReference teamMembersRef = artistDoc.reference.collection('team_members');
+
+        // userId를 사용하여 특정 문서 내에서 검색
+        QuerySnapshot teamMembers = await teamMembersRef.where('userId', isEqualTo: userId).get();
+
+        if (teamMembers.docs.isNotEmpty) {
+          artistId = artistDoc.id;
+        }
+      }
+
+
+      if(!context.mounted) return;
+
+      if (artistId != null) {
+        Provider.of<UserModel>(context, listen: false).loginArtist(userId, artistId);
+        print('아티스트');
+      } else {
+        Provider.of<UserModel>(context, listen: false).login(userId);
+        print('일반');
+      }
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => MyApp() ),
