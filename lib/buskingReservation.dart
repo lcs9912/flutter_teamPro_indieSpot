@@ -76,6 +76,7 @@ class _BuskingReservationState extends State<BuskingReservation> {
 
 
   void _addBusking() async{
+    FocusScope.of(context).unfocus();
     if (_image == null) {
       return; // 이미지가 없으면 업로드하지 않음
     }
@@ -358,13 +359,19 @@ class _BuskingZoneListScreenState extends State<BuskingZoneListScreen> {
             decoration: InputDecoration(
               hintText: '검색',
               border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.search),
+              suffixIcon: IconButton(
+                onPressed: () {_searchControl.clear(); setState(() {});},
+                icon: Icon(Icons.cancel_outlined),
+                highlightColor: Colors.transparent, // 클릭 시 하이라이트 효과를 제거
+                splashColor: Colors.transparent,
+              ),
             ),
             controller: _searchControl,
             textInputAction: TextInputAction.go,
             onSubmitted: (value) {
-              setState(() {
-
-              });
+              FocusScope.of(context).unfocus();
+              setState(() {});
             },
           ),
         ),

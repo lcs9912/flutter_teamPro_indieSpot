@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:indie_spot/baseBar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:indie_spot/pointRecharge.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -120,7 +119,7 @@ class _PointDetailedState extends State<PointDetailed> {
                     ),
                     children: <TextSpan>[
                       TextSpan(
-                        text: '원',
+                        text: '포인트',
                         style: TextStyle(
                           fontSize: 15,
                           color: Colors.black,
@@ -157,17 +156,20 @@ class _PointDetailedState extends State<PointDetailed> {
           ),
         ],
       ),
+      bottomNavigationBar: MyBottomBar(),
     );
   }
 
   SizedBox _sizedBox() {
     return SizedBox(
-      height: 100,
+      height: 95,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           TextButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => PointRecharge(),));
+              },
               child: Column(
                 children: [
                   Icon(
