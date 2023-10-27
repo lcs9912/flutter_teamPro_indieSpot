@@ -21,64 +21,44 @@ class ArtistList extends StatefulWidget {
 class _ArtistListState extends State<ArtistList> {
   List<RadioItem> radioItems = [
     RadioItem(label: "인기순", isSelected: true),
-    RadioItem(label: "활동순"),
     RadioItem(label: "최신순"),
+    RadioItem(label: "가입순"),
   ];
 
-  String selectedRadio = "활동순";
+  // 라디오 버튼 기본 선택
+  String? selectedRadio = "인기순";
+  
+  // 검색 컨트롤러
   final TextEditingController _search = TextEditingController();
   FocusNode _focusNode = FocusNode();
   late TextField sharedTextField;
-  int likeCnt = 0;
 
-  @override
-  void initState() {
-    super.initState();
-    _LikeCnt();
-  }
+  dynamic? _stream; // 쿼리문
 
-  Widget _LikeCnt() {
-    return StreamBuilder(
-      stream: FirebaseFirestore.instance.collection("artist").orderBy('createdate', descending: true).snapshots(),
-      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
-        if (!snap.hasData) {
-          return Center(child: CircularProgressIndicator());
-        }
-        return ListView.builder(
-            itemCount: snap.data!.docs.length,
-            itemBuilder: (context, index) {
-              DocumentSnapshot doc = snap.data!.docs[index];
-              Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
 
-              return FutureBuilder(
-                future: FirebaseFirestore.instance
-                    .collection("artist")
-                    .doc(doc.id)
-                    .collection("artist_like")
-                    .get(),
-                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot2) {
-                  if (snapshot2.hasData) {
-                    likeCnt = snapshot2.data!.docs.length;
-                    print('$likeCnt');
-                    return Container();
-                  } else {
-                    setState(() {
-                      likeCnt = 0;
-                    });
-                    return Container();
-                  }
-                },
-              );
-            },
-          );
+  String? selectGenre; // 장르 탭바
 
-      },
-    );
-  }
 
+  int cnt = 0; // 팔로우 갯수
+
+  // 아티스트 리스트 출력
   Widget _artistList() {
+    _stream = FirebaseFirestore.instance.collection("artist").orderBy('followerCnt', descending: true).snapshots();
+    if(selectGenre == null){
+      if(selectedRadio == "가입순"){
+        _stream = FirebaseFirestore.instance.collection("artist").orderBy('createdate', descending: true).snapshots();
+      } else if(selectedRadio == "인기순"){
+        _stream = FirebaseFirestore.instance.collection("artist").orderBy('followerCnt', descending: true).snapshots();
+      } else if(selectedRadio == "최신순"){
+        _stream = FirebaseFirestore.instance.collection("artist").orderBy('recentShow', descending: true).snapshots();
+      }
+    } else {
+      _stream = FirebaseFirestore.instance.collection("artist").where('genre',isEqualTo: selectGenre)
+          .orderBy('followerCnt', descending: true).snapshots();
+    }
+
     return StreamBuilder(
-      stream: FirebaseFirestore.instance.collection("artist").orderBy('createdate', descending: true).snapshots(),
+      stream: _stream,
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
         if (!snap.hasData) {
           return Center(child: CircularProgressIndicator());
@@ -89,41 +69,59 @@ class _ArtistListState extends State<ArtistList> {
             itemBuilder: (context, index) {
               DocumentSnapshot doc = snap.data!.docs[index];
               Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-
-              return FutureBuilder(
-                future: FirebaseFirestore.instance
-                    .collection("artist")
-                    .doc(doc.id)
-                    .collection("image")
-                    .get(),
-                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                  if (snapshot.hasData) {
-                    var img = snapshot.data!.docs.first;
-                    return ListTile(
-                      leading: Image.asset(
-                        'artist/${img['path']}'
-                        ,fit: BoxFit.cover,
-                        width: 100.0, // 이미지의 가로 크기 설정
-                        height: 100.0, // 이미지의 세로 크기 설정
-                      ),
-                      title: Text('${data['artistName']}'),
-                      subtitle: Text('${data['genre']}\n$likeCnt'),
-                      isThreeLine: true,
-                      trailing: Icon(Icons.chevron_right),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ArtistInfo(doc: doc),
+              if(data['artistName'].contains(_search.text)){
+                return FutureBuilder(
+                    future: FirebaseFirestore.instance
+                        .collection("artist")
+                        .doc(doc.id)
+                        .collection("image")
+                        .get(),
+                    builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> imgSnap) {
+                      if (imgSnap.hasData) {
+                        var img = imgSnap.data!.docs.first;
+                        if(data['followerCnt'] != null){
+                          cnt = data['followerCnt'];
+                        } else{
+                          cnt = 0;
+                        }
+                        return ListTile(
+                          leading: Image.network(
+                            img['path'],
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
                           ),
+                          title: Text('${data['artistName']}'),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('${data['genre']}'),
+                              Row(
+                                children: [
+                                  Icon(Icons.person_add_alt),
+                                  Text('  $cnt')
+                                ],
+                              )
+                            ],
+                          ),
+                          isThreeLine: true,
+                          trailing: Icon(Icons.chevron_right),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ArtistInfo(doc: doc),
+                              ),
+                            );
+                          },
                         );
-                      },
-                    );
+                      } else{
+                        return Container();
+                      }
+                    }
+                );
+              }
 
-                  }
-                  return Container();
-                },
-              );
             },
           ),
         );
@@ -131,14 +129,66 @@ class _ArtistListState extends State<ArtistList> {
     );
   }
 
+  // 장르 탭바
+  final List<String> _genre = ["음악","댄스","퍼포먼스","마술"];
+  Widget genreWidget(){
+    return SingleChildScrollView(
+      child: Column(
+          children: [
+            Container(
+              color: Colors.white,
+              height: 50.0, // 높이 조절
+              child: ListView(
+                scrollDirection: Axis.horizontal, // 수평 스크롤
+                children: [
+                  for (String genre in _genre)
+                    Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                        children:[
+                          Container(
+                            margin: EdgeInsets.symmetric(horizontal: 17.0),
+                            child: TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  selectGenre = genre;
+                                  print(selectGenre);
+                                });
+
+                              },
+
+                              child: Text(genre, style: TextStyle(
+                                  color: selectGenre == genre? Colors.lightBlue : Colors.black),
+
+                              ),
+                            ),
+                          ),]
+                    ),
+                ],
+              ),
+            ),
+          ]
+      ),
+    );
+
+  }
+
+
   @override
   Widget build(BuildContext context) {
     sharedTextField = TextField(
       controller: _search,
       focusNode: _focusNode,
+      textInputAction: TextInputAction.go,
+      onSubmitted: (value){
+        setState(() {
+
+        });
+      },
       decoration: InputDecoration(
-        labelText: "팀명으로 검색하기",
-        border: UnderlineInputBorder(),
+
+        hintText: "팀명으로 검색하기",
+        border: OutlineInputBorder(),
         filled: true,
         fillColor: Colors.white,
         suffixIcon: IconButton(
@@ -153,7 +203,7 @@ class _ArtistListState extends State<ArtistList> {
     );
 
     return DefaultTabController(
-      length: 3,
+      length: 2,
       child: Scaffold(
         appBar: AppBar(
           leading: Builder(
@@ -190,9 +240,25 @@ class _ArtistListState extends State<ArtistList> {
           bottom: TabBar(
             tabs: [
               Tab(text: '전체'),
-              Tab(text: '지역'),
               Tab(text: '장르'),
             ],
+            onTap: (int index) {
+              if (index == 0) {
+                setState(() {
+                  _search.clear();
+                  selectGenre = null; // 장르버튼
+                  selectedRadio = null; // 정렬 버튼
+                  _focusNode.unfocus();
+                });
+              } else if (index == 1) {
+                setState(() {
+                  _search.clear();
+                  selectGenre = "음악";
+                  selectedRadio = "인기순";
+                  _focusNode.unfocus();
+                });
+              }
+            },
             unselectedLabelColor: Colors.black,
             labelColor: Colors.blue,
             labelStyle: TextStyle(
@@ -204,11 +270,11 @@ class _ArtistListState extends State<ArtistList> {
           ),
           elevation: 1,
         ),
-        // drawer: MyDrawer(),
+        drawer: MyDrawer(),
         body: TabBarView(
-          physics: NeverScrollableScrollPhysics(),
+
           children: [
-            Column(
+            Column( // 전체
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -220,32 +286,11 @@ class _ArtistListState extends State<ArtistList> {
                 _artistList(),
               ],
             ),
-            Column(
+            Column( // 장르
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: radioItems
-                      .map((item) => customRadio(item.label, item.isSelected))
-                      .toList(),
-                ),
+                genreWidget(),
                 sharedTextField,
-                Padding(
-                  padding: EdgeInsets.all(12),
-                )
-              ],
-            ),
-            Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: radioItems
-                      .map((item) => customRadio(item.label, item.isSelected))
-                      .toList(),
-                ),
-                sharedTextField,
-                Padding(
-                  padding: EdgeInsets.all(12),
-                )
+                _artistList()
               ],
             ),
           ],
@@ -261,7 +306,8 @@ class _ArtistListState extends State<ArtistList> {
           for (var item in radioItems) {
             item.isSelected = item.label == label;
           }
-          selectedRadio = "활동순";
+          selectedRadio = label; // 정렬에 사용할 라디오버튼 선택값
+
         });
       },
       style: ButtonStyle(
