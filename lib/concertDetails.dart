@@ -1,4 +1,7 @@
-
+import 'package:indie_spot/userModel.dart';
+import 'package:provider/provider.dart';
+import 'package:indie_spot/login.dart';
+import 'package:intl/intl.dart';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -12,6 +15,7 @@ class ConcertDetails extends StatefulWidget {
 
 TextEditingController _review = TextEditingController();
 double rating = 0.0;
+String? _userId;
 @override
 void initState() {
   initState();
@@ -34,7 +38,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
   List<QueryDocumentSnapshot<Map<String, dynamic>>>? buskingImages;
 
   Future<void> loadBuskingImages() async {
-    buskingImages = await getBuskingImages('RNy4zfYiBdHOcQwvt0pR');
+    buskingImages = await getBuskingImages(widget.document.id);
     setState(() {});
 
     // 각 이미지의 NAME 필드 값을 출력합니다.
@@ -48,7 +52,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
 
   Future<void> loadBuskingData() async {
     buskingData = null;
-    DocumentSnapshot<Map<String, dynamic>> buskingSnapshot = await getBuskingDetails('RNy4zfYiBdHOcQwvt0pR');
+    DocumentSnapshot<Map<String, dynamic>> buskingSnapshot = await getBuskingDetails(widget.document.id);
     setState(() {
       buskingData = buskingSnapshot.data();
     });
@@ -62,6 +66,9 @@ class _ConcertDetailsState extends State<ConcertDetails> {
     loadBuskingData();
     loadBuskingImages();
     loadBuskingReview();
+
+    _userId = Provider.of<UserModel>(context, listen: false).userId;
+    print('real  ${_userId}');
   }
   //----------------------------------------------------두번째 탭 영역--------------------------------------------------------------------
   double rating = 0.0; // 필요한 경우 초기값 설정
@@ -71,24 +78,19 @@ class _ConcertDetailsState extends State<ConcertDetails> {
       rating = newRating;
     });
   }
-
-  Future<void> addReview(String buskingID, String review, [String? rating]) async {
+  Future<void> addReview(String buskingID, String review, double rating) async {
     try {
       Map<String, dynamic> reviewData = {
-        'nick': '사용자 닉네임',
-
+        'nick': 'test2',
         'content': review,
-        'reviewContents': review, // 리뷰 내용을 reviewContents 필드에 저장합니다.
+        'reviewContents': review,
         'timestamp': FieldValue.serverTimestamp(),
+        'rating': rating,
       };
-
-      if (rating != null) {
-        reviewData['rating'] = rating;
-      }
 
       await FirebaseFirestore.instance
           .collection('busking')
-          .doc(buskingID)
+          .doc(buskingID) // 기존 문서를 참조합니다.
           .collection('review')
           .add(reviewData);
     } catch (e) {
@@ -96,12 +98,13 @@ class _ConcertDetailsState extends State<ConcertDetails> {
     }
   }
 
-  Future<void> submitReview() async {
+  Future<void> submitReview(String buskingID, double userRating) async {
     if (!_isReviewEmpty) {
-      await addReview('RNy4zfYiBdHOcQwvt0pR', _review.text, rating.toString());
-      _review.clear(); // 댓글 작성이 완료되면 TextField를 초기화합니다.
+      await addReview(buskingID, _review.text, userRating);
+      _review.clear();
     }
   }
+
 
   Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>> getBuskingReview(String buskingID) async {
     return await FirebaseFirestore.instance.collection('busking').doc(buskingID).collection('review').get().then((snapshot) {
@@ -112,7 +115,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
 
 
   Future<void> loadBuskingReview() async {
-    List<QueryDocumentSnapshot<Map<String, dynamic>>> review = await getBuskingReview('RNy4zfYiBdHOcQwvt0pR');
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> review = await getBuskingReview(widget.document.id);
     setState(() {
       buskingReview = review;
     });
@@ -131,7 +134,6 @@ class _ConcertDetailsState extends State<ConcertDetails> {
 
     return snapshot.docs.map((doc) => doc.data()).toList();
   }
-
 
 
   @override
@@ -154,7 +156,6 @@ class _ConcertDetailsState extends State<ConcertDetails> {
             // 첫 번째 탭 (상세 정보)
             SingleChildScrollView(
               child: Container(
-
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -162,12 +163,10 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                     for (var index = 0; index < buskingImages!.length; index++)
                       Image.asset(
                         '${buskingImages![index]['path']}',
-
                         height: 130,
                         width: double.infinity,
                         fit: BoxFit.cover,
                       ),
-
                     SizedBox(height: 30), // 간격 추가
                     Text(
                       ' ${buskingData?['description']}',
@@ -190,7 +189,6 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                     ),
                     SizedBox(height: 20),
                     Container(
-
                       color: Color(0xFFdcdcdc),
                       height: 250,
                       width: 400,
@@ -202,7 +200,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                               padding: const EdgeInsets.symmetric(horizontal: 20),
                               child: Image.asset(
                                 'assets/기본.jpg',
-                                height: 150,
+                                height: 120,
                                 fit: BoxFit.cover,
                               ),
                             ),
@@ -230,23 +228,16 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                   '버스킹시간 ${buskingData?['buskingStart']}',
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
-
-
                                 Text(
                                   "출연          musision",
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                  ),
+                                  style: TextStyle(fontSize: 15),
                                 ),
                                 Text(
                                   "장르          rock",
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                  ),
+                                  style: TextStyle(fontSize: 15),
                                 ),
                               ],
                             ),
-
                           ],
                         ),
                       ),
@@ -256,42 +247,18 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                       width: double.infinity,
                       child: Row(
                         children: [
-                          Container(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              "댓글",
-                              textAlign: TextAlign.left,
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.refresh),
-                            onPressed: () {
-                              // Add your refresh logic here
-                            },
-                          ),
+
+
                         ],
                       ),
                     ),
                     SizedBox(height: 10),
-                    Container(
-                      width: double.infinity,
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: 'Write a comment...',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          prefixIcon: Icon(Icons.mode_comment),
-                        ),
-                        maxLines: null, // Allow multiple lines for the comment
-                      ),
-                    ),
+
                   ],
                 ),
               ),
             ),
-            // 두 번째 탭 (공연 후기)
+            // 두 번째 탭 (공연 후기)--------------------------------------------------------------------------------------------
             SingleChildScrollView(
               child: Container(
 
@@ -315,7 +282,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                       direction: Axis.horizontal,
                       allowHalfRating: true,
                       itemCount: 5,
-                      itemSize: 50.0,
+                      itemSize: 30.0,
                       itemBuilder: (context, _) => Icon(
                         Icons.star,
                         color: Colors.amber,
@@ -324,6 +291,8 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                         setState(() {
                           rating = value;
                         });
+                        // rating 값을 여기서 활용하거나 필요한 곳으로 전달할 수 있습니다.
+                        // 예를 들어, submitReview 함수 호출 등을 여기서 할 수 있습니다.
                       },
                     ),
 
@@ -355,21 +324,24 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                             children: [
                               SizedBox(width: 10), // Add some space between avatar and nickname
                               Text(
-                                ' ${buskingReview?[0]['nick']}',
+                                ' $_userId', // 사용자의 ID를 텍스트로 표시
                                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                               ),
-                              Spacer(), // Push the button to the right
+
+                              Spacer(),
+
                               ElevatedButton(
                                 onPressed: () {
-                                  submitReview();
-                                  addReview('HNkRaJfMyHYdAD2NVBeE', _review.text, rating.toString());
+                                  double userRating = rating;
+                                  submitReview(widget.document.id, userRating);
                                 },
                                 child: Text('댓글작성'),
                               ),
+
                               SizedBox(height: 20,),
                             ],
                           ),
-                         // Text("후기글 (총${buskingReview?[0]['reviewCnt']}개)"),
+                          // Text("후기글 (총${buskingReview?[0]['reviewCnt']}개)"),
                           SizedBox(height: 20,),
                           Row(
                             children: [
@@ -409,29 +381,52 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                             color: Colors.black.withOpacity(0.1),
                           ),
 
-                          Text("${buskingReview?[0]['reviewContents']}"),
-
-                          if (buskingReview != null && buskingReview!.isNotEmpty)
-                            for (var document in buskingReview!)
-                              if (document['rating'] != null)
-                              // Text(document['rating'].toString()),
-                                RatingBarIndicator(
-                                  rating: double.parse(document['rating']!.toString()),
-                                  itemBuilder: (context, index) => Icon(
-                                    Icons.star,
-                                    color: Colors.amber,
-                                  ),
-                                  itemCount: 5,
-                                  itemSize: 20.0,
-                                  direction: Axis.horizontal,
-                                ),
-                          Row(
+                          Column(
                             children: [
-                              Text("${buskingReview?[0]['nick']}"),
-                              Text("${buskingData?['buskingStart']}"),
+                              // 리뷰 출력 부분
+                              if (buskingReview != null && buskingReview!.isNotEmpty)
+                                for (var document in buskingReview!)
+                                  if (document['rating'] != null)
+                                    Container(
+                                      width: double.infinity,
+                                      margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                                      padding: EdgeInsets.all(16.0),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[200], // Adjust background color as needed
+                                        borderRadius: BorderRadius.circular(10.0),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "${DateFormat('yyyy-MM-dd').format(document['timestamp'].toDate())}",
+                                            style: TextStyle(fontSize: 14, color: Colors.black87), // Adjust font size and color
+                                          ),
+                                          Text(
+                                            "${document['nick']}",
+                                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold), // Adjust font size and weight
+                                          ),
+                                          Text(
+                                            "${document['reviewContents']}",
+                                            style: TextStyle(fontSize: 16), // Adjust font size
+                                          ),
+                                          RatingBarIndicator(
+                                            rating: double.parse(document['rating'].toString()),
+                                            itemBuilder: (context, index) => Icon(
+                                              Icons.star,
+                                              color: Colors.amber,
+                                            ),
+                                            itemCount: 5,
+                                            itemSize: 20.0,
+                                            direction: Axis.horizontal,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                             ],
-
                           ),
+
+
                         ],
                       ),
                     )
