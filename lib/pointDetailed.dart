@@ -3,19 +3,6 @@ import 'package:indie_spot/baseBar.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(
-    MaterialApp(
-      theme: ThemeData(fontFamily: 'NotoSansKR'),
-      home: PointDetailed()
-    ),
-  );
-}
-
 class PointDetailed extends StatefulWidget {
   const PointDetailed({super.key});
 
