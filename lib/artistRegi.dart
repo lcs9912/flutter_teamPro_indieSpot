@@ -5,6 +5,9 @@ import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 
 void main() async {
@@ -38,6 +41,7 @@ class ArtistRegi extends StatefulWidget {
 class _ArtistRegiState extends State<ArtistRegi> {
 
   bool _isNameChecked = false;
+  File? _selectedImage;
 
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
   final TextEditingController _artistName = TextEditingController();
@@ -70,6 +74,27 @@ class _ArtistRegiState extends State<ArtistRegi> {
     }
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedImage = await picker.pickImage(source: ImageSource.gallery);
+
+    if(pickedImage != null){
+      setState(() {
+        _selectedImage = File(pickedImage.path);
+      });
+    }
+  }
+
+  void _change(){
+    setState(() {
+      _isNameChecked = false;
+    });
+  }
+
+  // Future<String> _uploadImage() async{
+  //
+  // }
+
   void _register() async {
     if(!_isNameChecked){
       showDialog(
@@ -95,15 +120,18 @@ class _ArtistRegiState extends State<ArtistRegi> {
     if(_artistName.text.isEmpty ||
         _artistInfo.text.isEmpty ||
         _mainPlace.text.isEmpty ||
-        _genre.text.isEmpty) {
+        _genre.text.isEmpty ||
+        _selectedImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("모든 정보를 입력해주세요."))
       );
       return;
     }
+    final imageUrl = await _uploadImage();
+
     try {
       //등록처리
-      await _fs.collection('artist').add(
+      DocumentReference artistRef = await _fs.collection('artist').add(
         {
           'artistName' : _artistName.text,
           'artistInfo' : _artistInfo.text,
@@ -116,6 +144,15 @@ class _ArtistRegiState extends State<ArtistRegi> {
         }
       );
 
+      String artistID = artistRef.id;
+
+      //서브 콜렉션에 이미지 추가
+      await _fs.collection('artist').doc(artistID).collection('image').add(
+          {
+        'deleteYn' : 'N',
+        'path' : imageUrl,
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('등록되었습니다.')),
       );
@@ -125,6 +162,17 @@ class _ArtistRegiState extends State<ArtistRegi> {
         SnackBar(content: Text('Error: $e')),
       );
     }
+  }
+
+  Widget? _buildSelectedImage() {
+    if (_selectedImage != null) {
+      // 이미지를 미리보기로 보여줄 수 있음
+      return Image.file(
+          _selectedImage!,
+          height: 150
+      );
+    }
+    return null; // 이미지가 없을 경우 null을 반환
   }
 
   @override
@@ -159,6 +207,36 @@ class _ArtistRegiState extends State<ArtistRegi> {
             Row(
               children: [
                 Text(
+                  '아티스트 이미지',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(width: 10),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                  ),
+                  onPressed: _pickImage,
+                  child: Text('이미지 선택'),
+                ),
+
+              ],
+            ),
+            SizedBox(height: 14),
+            _buildSelectedImage() ?? Container(
+              alignment: Alignment.center,
+              child: Image.asset(
+                  'assets/imgPick.png',
+                width: 360,
+
+              ),
+            ),
+            SizedBox(height: 14),
+            Row(
+              children: [
+                Text(
                   '아티스트 활동명(팀 or 솔로)',
                   style: TextStyle(
                       fontSize: 16,
@@ -166,6 +244,15 @@ class _ArtistRegiState extends State<ArtistRegi> {
                   ),
                 ),
                 SizedBox(width: 10),
+                if(_isNameChecked)
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black
+                    ),
+                      onPressed: _change,
+                      child: Text('수정')
+                  )
+                else if(!_isNameChecked)
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black
@@ -174,10 +261,12 @@ class _ArtistRegiState extends State<ArtistRegi> {
                     child: Text(
                       '중복 확인'
                     )
-                )
+                ),
+                SizedBox(width: 10),
+
               ],
             ),
-            SizedBox(height: 14),
+            SizedBox(height: 14), 
             TextField(
               controller: _artistName,
               decoration: InputDecoration(
@@ -186,6 +275,7 @@ class _ArtistRegiState extends State<ArtistRegi> {
                   borderRadius: BorderRadius.circular(6)
                 )
               ),
+              enabled: !_isNameChecked,
             ),
             SizedBox(height: 40),
             Text(
@@ -197,6 +287,7 @@ class _ArtistRegiState extends State<ArtistRegi> {
             ),
             SizedBox(height: 14),
             TextField(
+              maxLines: 4,
               controller: _artistInfo,
               decoration: InputDecoration(
                   hintText: '소개를 입력해주세요.',
