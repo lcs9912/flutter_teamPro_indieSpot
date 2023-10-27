@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:indie_spot/main.dart';
 import 'package:indie_spot/pwdEdit.dart';
-import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
 
@@ -176,7 +174,7 @@ class _LoginPageState extends State<LoginPage> {
     if(!context.mounted) return;
 
     if (userDocs.docs.isNotEmpty) {
-      final userId = userDocs!.docs[0].id;
+      final userId = userDocs.docs[0].id;
       String? artistId;
       CollectionReference artistCollectionRef = _fs.collection('artist');
 
