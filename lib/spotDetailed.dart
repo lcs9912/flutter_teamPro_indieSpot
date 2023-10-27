@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:indie_spot/baseBar.dart';
+import 'package:indie_spot/buskingReservation.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 
@@ -8,7 +9,8 @@ import 'dart:convert';
 class SpotDetailed extends StatefulWidget {
   final Map<String, dynamic> _data;
   final List<QueryDocumentSnapshot<Map<String, dynamic>>> _addr;
-  const SpotDetailed(this._data, this._addr, {super.key});
+  final String _spotId;
+  const SpotDetailed(this._data, this._addr, this._spotId, {super.key});
 
   @override
   State<SpotDetailed> createState() => _SpotDetailedState();
@@ -72,6 +74,31 @@ class _SpotDetailedState extends State<SpotDetailed> {
           )
         ],
       ),
+      bottomNavigationBar: MyBottomBar(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: Container(
+        margin: EdgeInsets.only(bottom: 40),
+        child: Row(
+          children: [
+            Expanded(child: ElevatedButton(
+              style: ButtonStyle(
+                minimumSize: MaterialStatePropertyAll(Size(0, 48)),
+                backgroundColor: MaterialStatePropertyAll(Color(0xFF392F31)),
+                elevation: MaterialStatePropertyAll(0),
+                shape: MaterialStatePropertyAll(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.zero
+                  )
+                )
+              ),
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => BuskingReservation.spot(widget._spotId, widget._data['spotName']),));
+              },
+              child: Text('버스킹 등록', style: TextStyle(fontSize: 17),),
+            ),)
+          ],
+        ),
+      )
     );
   }
   bool _ongoing = false;

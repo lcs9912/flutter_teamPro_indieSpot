@@ -10,6 +10,11 @@ import 'package:path_provider/path_provider.dart';
 import 'baseBar.dart';
 
 class BuskingReservation extends StatefulWidget {
+  BuskingReservation();
+  String? _receivingSpotId;
+  String? _receivingSpotName;
+  BuskingReservation.spot(this._receivingSpotId, this._receivingSpotName, {super.key});
+
   @override
   State<BuskingReservation> createState() => _BuskingReservationState();
 }
@@ -106,6 +111,13 @@ class _BuskingReservationState extends State<BuskingReservation> {
       });
   }
 
+  @override
+  void initState() {
+    super.initState();
+
+    _spotId = widget._receivingSpotId;
+    _spotName = widget._receivingSpotName;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -160,6 +172,7 @@ class _BuskingReservationState extends State<BuskingReservation> {
             _content(),
           ],
         ),
+        bottomNavigationBar: MyBottomBar(),
       );
   }
   
@@ -254,6 +267,7 @@ class _BuskingReservationState extends State<BuskingReservation> {
               ),
             ),
           ),
+          SizedBox(height: 40,),
         ],
       ),
     );
