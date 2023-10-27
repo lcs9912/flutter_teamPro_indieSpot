@@ -268,7 +268,7 @@ class _JoinState extends State<Join> {
 
       // Add 'point' subcollection
       await _fs.collection('userList').doc(userID).collection('point').add({
-        'POINT_BALANCE': 0,
+        'pointBalance': 0,
       });
 
       // 가입 성공 메시지
