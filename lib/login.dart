@@ -36,6 +36,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+
   final FirebaseFirestore _fs = FirebaseFirestore.instance; // Firestore 인스턴스를 가져옵니다.
   final TextEditingController _email = TextEditingController();
   final TextEditingController _pwd = TextEditingController();
@@ -60,8 +61,9 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             children: [
               Image.asset(
-                'assets/indiespot.jpg',
-                width: 200,
+                'assets/indiespot.png',
+                width: 300,
+                height: 100,
               ),
               SizedBox(height: 20),
               Container(
