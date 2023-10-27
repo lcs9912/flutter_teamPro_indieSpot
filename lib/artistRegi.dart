@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:indie_spot/LcsMain.dart';
+import 'package:indie_spot/lsjMain.dart';
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +8,7 @@ import 'package:indie_spot/userModel.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:path/path.dart' as path;
 
 
 void main() async {
@@ -29,8 +30,6 @@ void main() async {
   );
 }
 
-
-final TextEditingController _artistName = TextEditingController();
 
 class ArtistRegi extends StatefulWidget {
   const ArtistRegi({super.key});
@@ -91,9 +90,21 @@ class _ArtistRegiState extends State<ArtistRegi> {
     });
   }
 
-  // Future<String> _uploadImage() async{
-  //
-  // }
+  Future<String> _uploadImage(File imageFile) async {
+    try {
+      String fileName = path.basename(imageFile.path);
+      Reference firebaseStorageRef = FirebaseStorage.instance.ref().child('image/$fileName');
+
+      UploadTask uploadTask = firebaseStorageRef.putFile(imageFile);
+      TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
+
+      String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      print('Error uploading image: $e');
+      return '';
+    }
+  }
 
   void _register() async {
     if(!_isNameChecked){
@@ -127,7 +138,7 @@ class _ArtistRegiState extends State<ArtistRegi> {
       );
       return;
     }
-    final imageUrl = await _uploadImage();
+    final imageUrl = await _uploadImage(_selectedImage!);
 
     try {
       //등록처리
@@ -156,6 +167,21 @@ class _ArtistRegiState extends State<ArtistRegi> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('등록되었습니다.')),
       );
+
+      setState(() {
+        _artistName.clear();
+        _artistInfo.clear();
+        _mainPlace.clear();
+        _genre.clear();
+        _selectedImage = null;
+      });
+
+      //등록 완료후 페이지 이동
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MainPage())
+      );
+
 
     }catch (e){
       ScaffoldMessenger.of(context).showSnackBar(
@@ -346,8 +372,8 @@ class _ArtistRegiState extends State<ArtistRegi> {
                   child: Text(
                     '등록하기',
                     style: TextStyle(
-                      fontSize: 16,
-                      letterSpacing: 2
+                      fontSize: 18,
+                      letterSpacing: 3
                     ),
                   ),
                 ),
