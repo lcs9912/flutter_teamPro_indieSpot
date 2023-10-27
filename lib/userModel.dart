@@ -1,17 +1,26 @@
 import 'package:flutter/cupertino.dart';
 
 class UserModel with ChangeNotifier{
-  String? _userEmail;
-  String? get userEmail => _userEmail;
-  bool get isLogin => _userEmail != null;
+  String? _userId;
+  String? _artistId;
+  String? get userId => _userId;
+  String? get artistId => _artistId;
+  bool get isLogin => _userId != null;
+  bool get isArtist => _artistId != null;
 
-  void login(String email){
-    _userEmail = email;
+  void login(String userId){
+    _userId = userId;
+    notifyListeners();
+  }
+
+  void loginArtist(String userId, String artistId){
+    _userId = userId;
+    _artistId = artistId;
     notifyListeners();
   }
 
   logout(){
-    _userEmail = null;
+    _userId = null;
     notifyListeners();
   }
 }

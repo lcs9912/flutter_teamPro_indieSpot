@@ -2,14 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:indie_spot/userModel.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'baseBar.dart';
+import 'package:provider/provider.dart';
 
 class BuskingReservation extends StatefulWidget {
+  BuskingReservation();
+  String? _receivingSpotId;
+  String? _receivingSpotName;
+  BuskingReservation.spot(this._receivingSpotId, this._receivingSpotName, {super.key});
+
   @override
   State<BuskingReservation> createState() => _BuskingReservationState();
 }
@@ -24,6 +31,9 @@ class _BuskingReservationState extends State<BuskingReservation> {
   String? _spotId;
   String? _spotName = '';
   String? _path;
+  String? _artisName;
+  String? _userId;
+  String? _artisId;
 
   Future<void> downloadAndSaveImage(String name) async {
     Directory dir = await getApplicationDocumentsDirectory();
@@ -85,7 +95,7 @@ class _BuskingReservationState extends State<BuskingReservation> {
 
     await busking
       .add({
-        'artistId' : '집에가고싶다',
+        'artistId' : _artisId,
         'buskingStart' : '${DateFormat('yyyy-MM-dd').format(_selectedDate!)} ${_selectedTime!.format(context)}',
         'title' : _titleControl.text,
         'description' : _descriptionControl.text,
@@ -106,6 +116,33 @@ class _BuskingReservationState extends State<BuskingReservation> {
       });
   }
 
+  Future<void> _artisNameSearch() async{
+    final FirebaseFirestore fs = FirebaseFirestore.instance;
+
+    final artistDoc = await fs.collection('artist').doc('$_artisId').get();
+    if (artistDoc.exists) {
+      // 문서가 존재하는 경우
+      // 'fieldName'은 필드의 이름으로 변경해야 합니다.
+      var fieldValue = artistDoc.get('artistName');
+      setState(() {
+        _artisName = fieldValue;
+      });
+    } else {
+      print('해당 아티스트 문서가 존재하지 않습니다.');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    _spotId = widget._receivingSpotId;
+    _spotName = widget._receivingSpotName;
+    _userId = Provider.of<UserModel>(context, listen: false).userId;
+    _artisId = Provider.of<UserModel>(context, listen: false).artistId;
+
+    _artisNameSearch();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -160,6 +197,7 @@ class _BuskingReservationState extends State<BuskingReservation> {
             _content(),
           ],
         ),
+        bottomNavigationBar: MyBottomBar(),
       );
   }
   
@@ -207,7 +245,7 @@ class _BuskingReservationState extends State<BuskingReservation> {
         children: [
           Text('아티스트', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
           SizedBox(height: 20,),
-          Text('집에가고싶다', style: TextStyle(fontSize: 15)),
+          Text('$_artisName', style: TextStyle(fontSize: 15)),
           SizedBox(height: 20,),
           Text('공연명', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
           SizedBox(height: 10,),
@@ -254,6 +292,7 @@ class _BuskingReservationState extends State<BuskingReservation> {
               ),
             ),
           ),
+          SizedBox(height: 40,),
         ],
       ),
     );

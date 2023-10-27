@@ -96,7 +96,7 @@ class _BuskingZoneListState extends State<BuskingZoneList> {
                               ),
                               trailing: Icon(Icons.chevron_right),
                               onTap: () {
-                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => SpotDetailed(data, addr),));
+                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => SpotDetailed(data, addr, document.id),));
                               },
                             ),
                           );
@@ -176,7 +176,8 @@ class _BuskingZoneListState extends State<BuskingZoneList> {
               ),
               elevation: 1,
             ),
-            body: _spotList()
+          body: _spotList(),
+          bottomNavigationBar: MyBottomBar(),
         )
     );
   }

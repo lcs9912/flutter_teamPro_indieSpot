@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/join.dart';
 import 'package:indie_spot/login.dart';
+import 'package:indie_spot/pointDetailed.dart';
 import 'package:indie_spot/userModel.dart';
 import 'buskingList.dart';
 import 'buskingReservation.dart';
@@ -220,7 +221,6 @@ class _MyAppState extends State<MyApp> {
                     ),
                     Consumer<UserModel>(
                         builder: (context, userModel, child){
-                          print('isLogin : ${userModel.isLogin}');
                           return Text(userModel.isLogin ? "로그아웃" : "로그인");
                         }
                         ),
@@ -463,7 +463,9 @@ class _MyAppState extends State<MyApp> {
             Column(
               children: [
                 IconButton(
-                    onPressed: (){},
+                    onPressed: (){
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => PointDetailed(),));
+                    },
                     icon: Icon(Icons.air)
                 ),
                 Text("에혀.."),

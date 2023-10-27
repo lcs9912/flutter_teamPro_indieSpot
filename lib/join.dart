@@ -545,7 +545,7 @@ class _JoinState extends State<Join> {
                   child: ElevatedButton(
                     onPressed: _register,
                     style: ElevatedButton.styleFrom(
-                      primary: Color(0xFF392F31), // 392F31 색상
+                      backgroundColor: Color(0xFF392F31), // 392F31 색상
                       minimumSize: Size(double.infinity, 48), // Set button width and height
                     ),
                     child: Text(
