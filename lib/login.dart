@@ -156,7 +156,15 @@ class _LoginPageState extends State<LoginPage> {
 
     if(email.isEmpty || password.isEmpty){
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('이메일과 비밀번호를 입력하세요'))
+        SnackBar(content: Text('이메일과 비밀번호를 입력하세요'),
+            dismissDirection: DismissDirection.up,
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.only(
+                bottom: MediaQuery.of(context).size.height -150,
+                left: 10,
+                right: 10
+            )
+        )
       );
        return;
     }
@@ -203,7 +211,17 @@ class _LoginPageState extends State<LoginPage> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('이메일과 패스워드를 다시 확인해주세요.')),
+        SnackBar(content: Text(
+            '이메일과 패스워드를 다시 확인해주세요.',
+          ),
+          dismissDirection: DismissDirection.up,
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(
+            bottom: MediaQuery.of(context).size.height -150,
+            left: 10,
+            right: 10
+          ),
+        ),
       );
     }
   }
