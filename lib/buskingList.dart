@@ -98,20 +98,10 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
                             Map<String, dynamic> spotData = spotDocument.data() as Map<String, dynamic>;
 
                             return FutureBuilder(
-                              future: FirebaseFirestore.instance.collection(
-                                  'busking_spot').doc(spotId).collection(
-                                  'image').get(),
-                              builder: (BuildContext context, AsyncSnapshot<
-                                  QuerySnapshot> imageSnapshot) {
-                                if (imageSnapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return ListTile(
-                                    title: Text('${data['artistId']}'),
-                                    subtitle: Text(
-                                        '일시 : ${data['buskingStart']}'),
-                                    trailing: Text(
-                                        'Spot 정보: ${spotData['spotName']}'),
-                                  );
+                              future: FirebaseFirestore.instance.collection('busking').doc(doc.id).collection('image').get(),
+                              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> imageSnapshot) {
+                                if (imageSnapshot.connectionState == ConnectionState.waiting) {
+                                  return Container();
                                 }
                                 if (imageSnapshot.hasError) {
                                   return ListTile(
@@ -120,9 +110,7 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
                                   );
                                 }
                                 if (imageSnapshot.hasData) {
-                                  var firstImage = imageSnapshot.data!.docs
-                                      .first;
-
+                                  var firstImage = imageSnapshot.data!.docs.first ;
                                   return Padding(
                                     padding: const EdgeInsets.all(10.0),
                                     child: ListTile(
@@ -136,10 +124,12 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
                                           Text('장소: ${spotData['spotName']}')
                                         ],
                                       ),
-                                      leading: Image.asset('assets/기본.jpg'),
-                                      /*leading: Image.network(firstImage['imageUrl']),*/
+                                      /*leading: Image.asset('assets/기본.jpg'),*/
+                                      leading: Image.network(firstImage['path'],width: 100,),
                                       onTap: () {
-
+                                        Navigator.push(context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>ConcertDetails(document: doc),));
                                       },
                                     ),
                                   );
@@ -194,7 +184,9 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
                             selectRegions = region;
                           });
                         },
-                        child: Text(region, style: TextStyle(color: Colors.black),),
+                        child: Text(region, style: TextStyle(
+                            color: selectRegions == region? Colors.lightBlue : Colors.black),
+                        ),
                       ),]
                   ),
               ],
@@ -228,7 +220,9 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
                               selectGenre = genre;
                             });
                           },
-                          child: Text(genre, style: TextStyle(color: Colors.black),),
+                          child: Text(genre, style: TextStyle(
+                              color: selectGenre == genre? Colors.lightBlue : Colors.black),
+                          ),
                         ),
                       ),]
                   ),
@@ -253,7 +247,8 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
         });
       },
       decoration: InputDecoration(
-        labelText: "팀명으로 검색하기",
+
+        hintText: "팀명으로 검색하기",
         border: OutlineInputBorder(),
         filled: true,
         fillColor: Colors.white,
@@ -309,18 +304,21 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
                     _search.clear();
                     selectRegions = "";
                     selectGenre = "";
+                    _focusNode.unfocus();
                   });
                 } else if (index == 1) {
                   setState(() {
                     _search.clear();
                     selectRegions = "서울";
                     selectGenre = "";
+                    _focusNode.unfocus();
                   });
                 } else if (index == 2) {
                   setState(() {
                     _search.clear();
                     selectRegions = "";
                     selectGenre = "음악";
+                    _focusNode.unfocus();
                   });
                 }
               },
