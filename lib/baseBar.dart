@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:indie_spot/buskingList.dart';
 import 'package:indie_spot/buskingSpotList.dart';
+import 'package:indie_spot/donationPage.dart';
 
 import 'artistList.dart';
 
@@ -79,6 +80,12 @@ class _MyDrawerState extends State<MyDrawer> {
                 title: Text('공연일정'),
                 onTap: () {
 
+                },
+              ),
+              ListTile(
+                title: Text('후원 페이지'),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => DonationPage(),));
                 },
               ),
               ListTile(
