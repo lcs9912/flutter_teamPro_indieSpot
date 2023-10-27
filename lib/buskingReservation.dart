@@ -7,9 +7,9 @@ import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
 import 'baseBar.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class BuskingReservation extends StatefulWidget {
   BuskingReservation();
@@ -35,27 +35,21 @@ class _BuskingReservationState extends State<BuskingReservation> {
   String? _userId;
   String? _artisId;
 
-  Future<void> downloadAndSaveImage(String name) async {
-    Directory dir = await getApplicationDocumentsDirectory();
-    Directory buskingDir = Directory('${dir.path}/busking');
+  Future<String> uploadImage(String name) async {
+    // Firebase Storage에 저장할 파일의 참조 생성
+    Reference storageReference = FirebaseStorage.instance.ref().child('image/$name');
 
-    if (!await buskingDir.exists()) {
-      await buskingDir.create(); // 폴더 생성
-    }
+    // 파일을 Firebase Storage에 업로드하고 업로드 작업 시작
+    UploadTask uploadTask = storageReference.putFile(_image!);
 
-    try {
-      File targetFile = File('${buskingDir.path}/$name');
-      // targetFile.path 얘를 db에 저장 후 호출 때 사용
-      // 보통 안드로이드 => /data/user/0/com.example.indie_spot/app_flutter
-      // 아이폰 => /Users/your_user_name/Library/Developer/CoreSimulator/Devices/DEVICE_ID/data/Containers/Data/Application/APP_ID/Documents
-      print('저장경로 확인 ==> ${targetFile.path}');
-      _path = targetFile.path;
-      // _image는 File객체
-      await _image!.copy(targetFile.path);
-      // 저장 후 호출 시에는 Image.file(imageFile) 형태로 사용할 것
-    } catch (e) {
-      print("에러메세지: $e");
-    }
+    // 업로드 작업이 완료될 때까지 대기하고 업로드된 파일의 정보 가져오기
+    TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
+
+    // 업로드된 파일의 Firebase Storage 다운로드 URL 가져오기
+    String downloadURL = await taskSnapshot.ref.getDownloadURL();
+
+    // 업로드 및 다운로드가 완료된 후, 다운로드 URL을 반환
+    return downloadURL;
   }
 
   String generateUniqueFileName(String originalName) {
@@ -87,7 +81,7 @@ class _BuskingReservationState extends State<BuskingReservation> {
     }
 
     String name = generateUniqueFileName(_imageName!);
-    await downloadAndSaveImage(name);
+    _path = await uploadImage(name);
 
     await Firebase.initializeApp();
     FirebaseFirestore fs = FirebaseFirestore.instance;
