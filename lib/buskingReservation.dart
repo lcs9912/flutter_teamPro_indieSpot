@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:indie_spot/firebase_options.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:indie_spot/userModel.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
+import 'baseBar.dart';
+import 'package:provider/provider.dart';
 
 class BuskingReservation extends StatefulWidget {
+  BuskingReservation();
+  String? _receivingSpotId;
+  String? _receivingSpotName;
+  BuskingReservation.spot(this._receivingSpotId, this._receivingSpotName, {super.key});
+
   @override
   State<BuskingReservation> createState() => _BuskingReservationState();
 }
@@ -24,6 +31,9 @@ class _BuskingReservationState extends State<BuskingReservation> {
   String? _spotId;
   String? _spotName = '';
   String? _path;
+  String? _artisName;
+  String? _userId;
+  String? _artisId;
 
   Future<void> downloadAndSaveImage(String name) async {
     Directory dir = await getApplicationDocumentsDirectory();
@@ -85,7 +95,7 @@ class _BuskingReservationState extends State<BuskingReservation> {
 
     await busking
       .add({
-        'artistId' : '집에가고싶다',
+        'artistId' : _artisId,
         'buskingStart' : '${DateFormat('yyyy-MM-dd').format(_selectedDate!)} ${_selectedTime!.format(context)}',
         'title' : _titleControl.text,
         'description' : _descriptionControl.text,
@@ -106,15 +116,70 @@ class _BuskingReservationState extends State<BuskingReservation> {
       });
   }
 
+  Future<void> _artisNameSearch() async{
+    final FirebaseFirestore fs = FirebaseFirestore.instance;
+
+    final artistDoc = await fs.collection('artist').doc('$_artisId').get();
+    if (artistDoc.exists) {
+      // 문서가 존재하는 경우
+      // 'fieldName'은 필드의 이름으로 변경해야 합니다.
+      var fieldValue = artistDoc.get('artistName');
+      setState(() {
+        _artisName = fieldValue;
+      });
+    } else {
+      print('해당 아티스트 문서가 존재하지 않습니다.');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    _spotId = widget._receivingSpotId;
+    _spotName = widget._receivingSpotName;
+    _userId = Provider.of<UserModel>(context, listen: false).userId;
+    _artisId = Provider.of<UserModel>(context, listen: false).artistId;
+
+    _artisNameSearch();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
+      backgroundColor: Colors.white,
+      drawer: MyDrawer(),
+      appBar: AppBar(
+          actions: [
+            IconButton(
+                onPressed: (){
+
+                },
+                icon: Icon(Icons.person),color: Colors.black54),
+            Builder(
+              builder: (context) {
+                return IconButton(
+                    onPressed: (){
+                      Scaffold.of(context).openDrawer();
+                    },
+                    icon: Icon(Icons.menu),color: Colors.black54);
+              }
+            ),
+          ],
+          elevation: 1,
+          automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back, // 뒤로가기 아이콘
+              color: Colors.black54, // 원하는 색상으로 변경
+            ),
+            onPressed: () {
+              // 뒤로가기 버튼을 눌렀을 때 수행할 작업
+              Navigator.of(context).pop(); // 이 코드는 화면을 닫는 예제입니다
+            },
+          ),
           backgroundColor: Colors.white,
           centerTitle: true,
-          elevation: 0,
           title: Text(
             '버스킹 일정 등록',
             style: TextStyle(color: Colors.black),)
@@ -132,6 +197,7 @@ class _BuskingReservationState extends State<BuskingReservation> {
             _content(),
           ],
         ),
+        bottomNavigationBar: MyBottomBar(),
       );
   }
   
@@ -179,7 +245,7 @@ class _BuskingReservationState extends State<BuskingReservation> {
         children: [
           Text('아티스트', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
           SizedBox(height: 20,),
-          Text('집에가고싶다', style: TextStyle(fontSize: 15)),
+          Text('$_artisName', style: TextStyle(fontSize: 15)),
           SizedBox(height: 20,),
           Text('공연명', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
           SizedBox(height: 10,),
@@ -226,6 +292,7 @@ class _BuskingReservationState extends State<BuskingReservation> {
               ),
             ),
           ),
+          SizedBox(height: 40,),
         ],
       ),
     );
@@ -272,7 +339,7 @@ class BuskingZoneListScreen extends StatefulWidget {
 class _BuskingZoneListScreenState extends State<BuskingZoneListScreen> {
   int _currentTabIndex = 0;
   final _searchControl = TextEditingController();
-  final List<String> _regions = ['전국', '강원', '경기', '경남', '경북', '광주', '대구', '대전', '부산', '서울', '울산', '인천', '전남', '전북', '제주', '충남', '충북'];
+  final List<String> _regions = ['전국', '서울', '부산', '인천', '강원', '경기', '경남', '경북', '광주', '대구', '대전', '울산', '전남', '전북', '제주', '충남', '충북'];
 
 
   Query getSelectedCollection(FirebaseFirestore fs) {
@@ -363,6 +430,17 @@ class _BuskingZoneListScreenState extends State<BuskingZoneListScreen> {
       child: Scaffold(
         backgroundColor: Colors.white,
           appBar: AppBar(
+            automaticallyImplyLeading: false,
+            leading: IconButton(
+              icon: Icon(
+                Icons.arrow_back, // 뒤로가기 아이콘
+                color: Colors.black54, // 원하는 색상으로 변경
+              ),
+              onPressed: () {
+                // 뒤로가기 버튼을 눌렀을 때 수행할 작업
+                Navigator.of(context).pop(); // 이 코드는 화면을 닫는 예제입니다
+              },
+            ),
             backgroundColor: Colors.white,
             centerTitle: true,
             title: Text('버스킹존 목록', style: TextStyle(color: Colors.black),),
