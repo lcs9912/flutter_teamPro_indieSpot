@@ -22,11 +22,12 @@ class _DonationPageState extends State<DonationPage> {
   String amount = "";
   String _hintText = "후원할 금액을 입력하세요";
   String _hintText2 = "후원과 함께 보낼 메세지를 입력하세요";
+  Map<String, dynamic>? userPoint;
   final List<int> _price = [1000 ,5000,10000];
   Map<String, dynamic>? userData;
   FirebaseFirestore fs = FirebaseFirestore.instance;
   @override
-  void initState() {
+  void initState(){
     super.initState();
     final userModel = Provider.of<UserModel>(context, listen: false);
     if (!userModel.isLogin) {
@@ -34,20 +35,29 @@ class _DonationPageState extends State<DonationPage> {
     } else {
       _userId = userModel.userId;
       print(_userId);
+      pointBalanceSearch().then((value) => _donationUser.text = userData?['nick']);
+
     }
   }
   Future<void> pointBalanceSearch() async {
     DocumentSnapshot userSnapshot = await fs.collection('userList').doc(_userId).get();
-
     if (userSnapshot.exists) {
       setState(() {
-        userData = userSnapshot as Map<String,dynamic>;
+        userData = userSnapshot.data() as Map<String,dynamic>;
       });
+      QuerySnapshot pointSnapshot = await fs.collection('userList').doc(_userId).collection("point").get();
+      if(pointSnapshot.docs.isNotEmpty){
+        setState(() {
+          userPoint = pointSnapshot.docs.first.data() as Map<String, dynamic>;
+        });
+      }
     } else {}
   }
 
   @override
   Widget build(BuildContext context) {
+    print(userData?['nick']);
+    print(userPoint?['pointBalance']);
     return Scaffold(
       appBar: AppBar(
 
@@ -64,7 +74,7 @@ class _DonationPageState extends State<DonationPage> {
                   child: Row(
                     children: [
                       Text("보유 포인트 : ", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),),
-                      Text("400000"),
+                      Text(_numberFormat.format((userPoint?['pointBalance']) ?? 0)),
                     ],
                   ),
                 ),
