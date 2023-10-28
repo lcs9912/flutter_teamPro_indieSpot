@@ -7,8 +7,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 
 class DonationPage extends StatefulWidget {
-  const DonationPage({super.key});
 
+  DocumentSnapshot document;
+  DonationPage({required this.document});
   @override
   State<DonationPage> createState() => _DonationPageState();
 }
@@ -36,7 +37,7 @@ class _DonationPageState extends State<DonationPage> {
       _userId = userModel.userId;
       print(_userId);
       pointBalanceSearch().then((value) => _donationUser.text = userData?['nick']);
-
+      print(widget.document.id);
     }
   }
   Future<void> pointBalanceSearch() async {

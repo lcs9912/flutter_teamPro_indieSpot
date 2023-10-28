@@ -117,8 +117,7 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
                                       title: Text(
                                           '${artistData['artistName']}'),
                                       subtitle: Column(
-                                        crossAxisAlignment: CrossAxisAlignment
-                                            .start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text('일시 : ${data['buskingStart']}'),
                                           Text('장소: ${spotData['spotName']}')
