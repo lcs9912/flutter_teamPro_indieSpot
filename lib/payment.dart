@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:indie_spot/baseBar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:indie_spot/payment.dart';
+import 'package:indie_spot/result.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:iamport_flutter/iamport_payment.dart';
+import 'package:iamport_flutter/model/payment_data.dart';
 
 class Payment extends StatefulWidget {
   final String payment;
@@ -78,6 +80,8 @@ class _PaymentState extends State<Payment> {
         ],
         elevation: 1,
         automaticallyImplyLeading: false,
+        backgroundColor: Colors.white,
+        centerTitle: true,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
@@ -88,8 +92,6 @@ class _PaymentState extends State<Payment> {
             Navigator.of(context).pop();
           },
         ),
-        backgroundColor: Colors.white,
-        centerTitle: true,
         title: Text(
           '결제',
           style: TextStyle(color: Colors.black),
@@ -154,7 +156,52 @@ class _PaymentState extends State<Payment> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('결제 방법 선택', style: TextStyle(fontSize: 17, color: Colors.black54,),)
+            Text('결제 방법 선택', style: TextStyle(fontSize: 17, color: Colors.black54,),),
+            Container(
+              margin: EdgeInsets.only(top: 10),
+              decoration: BoxDecoration(color: Colors.white, border: Border.all(color: Colors.black26, width: 1)),
+              child: ListTile(
+                leading: Container(
+                    decoration: BoxDecoration(border: Border(right: BorderSide(width: 1, color: Colors.black26))),
+                    padding: EdgeInsets.only(right: 20),
+                    child: Image.asset('assets/free-icon-credit-card-payment-7510522.png', width: 80, height: 40,)
+                ),
+                title: Text('신용카드'),
+                onTap: () {
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentText({'pg' : 'danal_tpay', 'amountPayment' : _amountPayment, }),));
+                },
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.only(top: 10),
+              decoration: BoxDecoration(color: Colors.white, border: Border.all(color: Colors.black26, width: 1)),
+              child: ListTile(
+                leading: Container(
+                    decoration: BoxDecoration(border: Border(right: BorderSide(width: 1, color: Colors.black26))),
+                    padding: EdgeInsets.only(right: 20),
+                    child: Image.asset('assets/payment_icon_yellow_large.png', width: 80, height: 40,)
+                ),
+                title: Text('카카오페이'),
+                onTap: () {
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentText({'pg' : 'kakaopay', 'amountPayment' : _amountPayment, }),));
+                },
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.only(top: 10),
+              decoration: BoxDecoration(color: Colors.white, border: Border.all(color: Colors.black26, width: 1)),
+              child: ListTile(
+                leading: Container(
+                    decoration: BoxDecoration(border: Border(right: BorderSide(width: 1, color: Colors.black26))),
+                    padding: EdgeInsets.only(right: 20),
+                    child: Image.asset('assets/logo-toss-pay.png', width: 80, height: 40,)
+                ),
+                title: Text('토스페이'),
+                onTap: () {
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentText({'pg' : 'tosspay', 'amountPayment' : _amountPayment, }),));
+                },
+              ),
+            ),
           ],
         ),
       ),
@@ -180,7 +227,7 @@ class _PaymentState extends State<Payment> {
                   child: Icon(Icons.arrow_forward, color: Colors.black54, size: 20,),
                 ),
                 TextSpan(
-                  text: ' ${NumberFormat.decimalPattern().format((int.parse(widget.payment.replaceAll(',', '')) + _pointBalance!))}',
+                  text: ' ${NumberFormat.decimalPattern().format((int.parse(widget.payment.replaceAll(',', '')) + (_pointBalance ?? 0)))}',
                   style: TextStyle(
                     fontSize: 25,
                     color: Colors.black54,
@@ -228,6 +275,70 @@ class _PaymentState extends State<Payment> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class PaymentText extends StatelessWidget {
+  Map<String, dynamic> _info;
+  PaymentText(this._info);
+
+  @override
+  Widget build(BuildContext context) {
+    return IamportPayment(
+      appBar: AppBar(
+        elevation: 1,
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.white,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: Colors.black54,
+          ),
+          onPressed: () {
+            // 뒤로가기 버튼을 눌렀을 때 수행할 작업
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
+      /* 웹뷰 로딩 컴포넌트 */
+      initialChild: Container(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(padding: EdgeInsets.symmetric(vertical: 15)),
+              Text('잠시만 기다려주세요...', style: TextStyle(fontSize: 20)),
+            ],
+          ),
+        ),
+      ),
+      /* [필수입력] 가맹점 식별코드 */
+      userCode: 'imp41836047',
+      /* [필수입력] 결제 데이터 */
+      data: PaymentData(
+          pg: _info['pg'],                                          // PG사
+          payMethod: 'card',                                           // 결제수단
+          name: '인디 스팟 포인트 충전',                                  // 주문명
+          merchantUid: 'mid_${DateTime.now().millisecondsSinceEpoch}', // 주문번호
+          amount: _info['amountPayment'],                                               // 결제금액
+          buyerName: '홍길동',                                            // 구매자 이름
+          buyerTel: '01012345678',                                     // 구매자 연락처
+          buyerEmail: 'example@naver.com',                             // 구매자 이메일
+          buyerAddr: '서울시 강남구 신사동 661-16',                         // 구매자 주소
+          buyerPostcode: '06018',                                      // 구매자 우편번호
+          appScheme: 'example',                                        // 앱 URL scheme
+          cardQuota : [2,3]                                            //결제창 UI 내 할부개월수 제한
+      ),
+      /* [필수입력] 콜백 함수 */
+      callback: (Map<String, String> result) {
+        Navigator.pushReplacementNamed(
+          context,
+          '/result',
+          arguments: result,
+        );
+      },
     );
   }
 }

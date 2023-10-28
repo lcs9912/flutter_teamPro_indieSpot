@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/join.dart';
 import 'package:indie_spot/login.dart';
 import 'package:indie_spot/pointDetailed.dart';
+import 'package:indie_spot/result.dart';
 import 'package:indie_spot/userModel.dart';
 import 'buskingList.dart';
 import 'buskingReservation.dart';
@@ -25,7 +26,11 @@ void main() async {
       ],
       child: MaterialApp(
         theme: ThemeData(fontFamily: 'NotoSansKR'),
-        home: MyApp()
+        home: MyApp(),
+        routes: {
+          '/result': (context) => Result(), // '/result' 경로와 연결된 페이지
+          // 다른 경로와 페이지 설정
+        },
       ),
     )
   );
