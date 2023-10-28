@@ -21,8 +21,18 @@ class _PaymentState extends State<Payment> {
   FirebaseFirestore fs = FirebaseFirestore.instance;
   int? _pointBalance;
   int? _amountPayment;
+  String? _userName;
 
   Future<void> pointBalanceSearch() async {
+    DocumentSnapshot documentSnapshot = await fs.collection('userList').doc(_userId).get();
+
+    if (documentSnapshot.exists) {
+      Map<String, dynamic> data = documentSnapshot.data() as Map<String, dynamic>;
+      _userName = data['name'];
+    } else {
+      print('문서가 존재하지 않습니다.');
+    }
+
     QuerySnapshot pointSnapshot = await fs.collection('userList').doc(_userId)
         .collection('point').limit(1)
         .get();
@@ -50,6 +60,8 @@ class _PaymentState extends State<Payment> {
     }
     int num = int.parse(widget.payment.replaceAll(',', ''));
     _amountPayment = (num + (num/10)).toInt();
+
+
   }
 
   @override
@@ -168,7 +180,7 @@ class _PaymentState extends State<Payment> {
                 ),
                 title: Text('신용카드'),
                 onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentText({'pg' : 'danal_tpay', 'amountPayment' : _amountPayment, }),));
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentText({'pg' : 'danal_tpay', 'amountPayment' : _amountPayment, 'name' : _userName}),));
                 },
               ),
             ),
@@ -183,7 +195,7 @@ class _PaymentState extends State<Payment> {
                 ),
                 title: Text('카카오페이'),
                 onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentText({'pg' : 'kakaopay', 'amountPayment' : _amountPayment, }),));
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentText({'pg' : 'kakaopay', 'amountPayment' : _amountPayment, 'name' : _userName}),));
                 },
               ),
             ),
@@ -198,7 +210,7 @@ class _PaymentState extends State<Payment> {
                 ),
                 title: Text('토스페이'),
                 onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentText({'pg' : 'tosspay', 'amountPayment' : _amountPayment, }),));
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentText({'pg' : 'tosspay', 'amountPayment' : _amountPayment, 'name' : _userName}),));
                 },
               ),
             ),
@@ -323,7 +335,7 @@ class PaymentText extends StatelessWidget {
           name: '인디 스팟 포인트 충전',                                  // 주문명
           merchantUid: 'mid_${DateTime.now().millisecondsSinceEpoch}', // 주문번호
           amount: _info['amountPayment'],                                               // 결제금액
-          buyerName: '홍길동',                                            // 구매자 이름
+          buyerName: _info['name'],                                            // 구매자 이름
           buyerTel: '01012345678',                                     // 구매자 연락처
           buyerEmail: 'example@naver.com',                             // 구매자 이메일
           buyerAddr: '서울시 강남구 신사동 661-16',                         // 구매자 주소
