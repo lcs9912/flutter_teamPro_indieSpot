@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:indie_spot/main.dart';
 import 'package:indie_spot/pwdEdit.dart';
-import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
 
@@ -38,6 +36,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+
   final FirebaseFirestore _fs = FirebaseFirestore.instance; // Firestore 인스턴스를 가져옵니다.
   final TextEditingController _email = TextEditingController();
   final TextEditingController _pwd = TextEditingController();
@@ -62,8 +61,9 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             children: [
               Image.asset(
-                'assets/indiespot.jpg',
-                width: 200,
+                'assets/indiespot.png',
+                width: 300,
+                height: 100,
               ),
               SizedBox(height: 20),
               Container(
@@ -176,7 +176,7 @@ class _LoginPageState extends State<LoginPage> {
     if(!context.mounted) return;
 
     if (userDocs.docs.isNotEmpty) {
-      final userId = userDocs!.docs[0].id;
+      final userId = userDocs.docs[0].id;
       String? artistId;
       CollectionReference artistCollectionRef = _fs.collection('artist');
 
