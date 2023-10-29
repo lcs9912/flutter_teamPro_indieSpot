@@ -26,8 +26,8 @@ class _ArtistListState extends State<ArtistList> {
   ];
 
   // 라디오 버튼 기본 선택
-  String? selectedRadio = "인기순";
-  
+  String? selectedRadio ="인기순";
+  String? selectGenre; // 장르 탭바
   // 검색 컨트롤러
   final TextEditingController _search = TextEditingController();
   FocusNode _focusNode = FocusNode();
@@ -36,14 +36,13 @@ class _ArtistListState extends State<ArtistList> {
   dynamic? _stream; // 쿼리문
 
 
-  String? selectGenre; // 장르 탭바
+
 
 
   int cnt = 0; // 팔로우 갯수
 
   // 아티스트 리스트 출력
   Widget _artistList() {
-    _stream = FirebaseFirestore.instance.collection("artist").orderBy('followerCnt', descending: true).snapshots();
     if(selectGenre == null){
       if(selectedRadio == "가입순"){
         _stream = FirebaseFirestore.instance.collection("artist").orderBy('createdate', descending: true).snapshots();
@@ -246,16 +245,15 @@ class _ArtistListState extends State<ArtistList> {
               if (index == 0) {
                 setState(() {
                   _search.clear();
-                  selectGenre = null; // 장르버튼
-                  selectedRadio = null; // 정렬 버튼
                   _focusNode.unfocus();
+                  selectGenre = null; // 장르버튼
                 });
               } else if (index == 1) {
                 setState(() {
                   _search.clear();
                   selectGenre = "음악";
-                  selectedRadio = "인기순";
                   _focusNode.unfocus();
+
                 });
               }
             },
@@ -284,6 +282,7 @@ class _ArtistListState extends State<ArtistList> {
                 ),
                 sharedTextField,
                 _artistList(),
+
               ],
             ),
             Column( // 장르
@@ -307,7 +306,6 @@ class _ArtistListState extends State<ArtistList> {
             item.isSelected = item.label == label;
           }
           selectedRadio = label; // 정렬에 사용할 라디오버튼 선택값
-
         });
       },
       style: ButtonStyle(
@@ -321,4 +319,5 @@ class _ArtistListState extends State<ArtistList> {
       ),
     );
   }
+
 }

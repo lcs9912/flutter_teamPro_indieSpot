@@ -25,6 +25,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => UserModel())
       ],
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(fontFamily: 'NotoSansKR'),
         home: MyApp(),
         routes: {
