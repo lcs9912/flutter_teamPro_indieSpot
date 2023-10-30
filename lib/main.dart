@@ -5,6 +5,7 @@ import 'package:indie_spot/join.dart';
 import 'package:indie_spot/login.dart';
 import 'package:indie_spot/pointDetailed.dart';
 import 'package:indie_spot/result.dart';
+import 'package:indie_spot/userEdit.dart';
 import 'package:indie_spot/userModel.dart';
 import 'buskingList.dart';
 import 'buskingReservation.dart';
@@ -151,11 +152,17 @@ class _MyAppState extends State<MyApp> {
                 Column(
                   children: [
                     IconButton(
-                        onPressed: (){},
-                        icon: Icon(Icons.person)
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => UserEdit()),
+                        );
+                      },
+                      icon: Icon(Icons.person),
                     ),
                     Text("아티스트"),
                   ],
+
                 ),
                 Column(
                   children: [
