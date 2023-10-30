@@ -32,7 +32,7 @@ class Result extends StatelessWidget {
       };
 
       fs.collection('userList').doc(userId).collection('point').doc(documentSnapshot.id).collection('points_details').add({
-        'amount': int.parse(result['paid_amount']!),
+        'amount': (int.parse(result['paid_amount']!)/1.1) as int,
         'date': FieldValue.serverTimestamp(),
         'type': '충전',
         'merchantUid': result['merchant_uid'],
@@ -50,7 +50,7 @@ class Result extends StatelessWidget {
     bool isSuccessed = getIsSuccessed(result);
     print(result);
 
-    if(isSuccessed) {
+    if(isSuccessed && result['paid_amount'] != null) {
       updatePoint(result, context);
     }
 
