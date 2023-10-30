@@ -24,7 +24,9 @@ void main() async {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(fontFamily: 'NotoSansKR'),
+        theme: ThemeData(
+          fontFamily: 'Noto_Serif_KR', // 폰트 패밀리 이름을 지정
+        ),
         home: MyApp(),
         routes: {
           '/result': (context) => Result(), // '/result' 경로와 연결된 페이지
