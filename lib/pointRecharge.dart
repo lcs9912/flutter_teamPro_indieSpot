@@ -53,6 +53,7 @@ class _PointRechargeState extends State<PointRecharge> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: Colors.grey[300],
       drawer: MyDrawer(),
       appBar: AppBar(
@@ -231,7 +232,7 @@ class _PointRechargeState extends State<PointRecharge> {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.zero
               ),
-              suffix: Text('포인트', style: TextStyle(fontSize: 20),),
+              suffix: Text('P', style: TextStyle(fontSize: 20),),
             ),
             onChanged: (value) {
               // 입력값이 변경될 때마다 서식을 적용하여 업데이트

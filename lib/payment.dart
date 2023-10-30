@@ -22,6 +22,7 @@ class _PaymentState extends State<Payment> {
   int? _pointBalance;
   int? _amountPayment;
   String? _userName;
+  String? _userEmail;
 
   Future<void> pointBalanceSearch() async {
     DocumentSnapshot documentSnapshot = await fs.collection('userList').doc(_userId).get();
@@ -29,6 +30,7 @@ class _PaymentState extends State<Payment> {
     if (documentSnapshot.exists) {
       Map<String, dynamic> data = documentSnapshot.data() as Map<String, dynamic>;
       _userName = data['name'];
+      _userEmail = data['email'];
     } else {
       print('문서가 존재하지 않습니다.');
     }
@@ -180,7 +182,7 @@ class _PaymentState extends State<Payment> {
                 ),
                 title: Text('신용카드'),
                 onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentText({'pg' : 'danal_tpay', 'amountPayment' : _amountPayment, 'name' : _userName}),));
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentText({'pg' : 'kicc', 'amountPayment' : _amountPayment, 'name' : _userName, 'email' : _userEmail, 'point' : widget.payment}),));
                 },
               ),
             ),
@@ -195,7 +197,7 @@ class _PaymentState extends State<Payment> {
                 ),
                 title: Text('카카오페이'),
                 onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentText({'pg' : 'kakaopay', 'amountPayment' : _amountPayment, 'name' : _userName}),));
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentText({'pg' : 'kakaopay', 'amountPayment' : _amountPayment, 'name' : _userName, 'email' : _userEmail, 'point' : widget.payment}),));
                 },
               ),
             ),
@@ -210,7 +212,7 @@ class _PaymentState extends State<Payment> {
                 ),
                 title: Text('토스페이'),
                 onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentText({'pg' : 'tosspay', 'amountPayment' : _amountPayment, 'name' : _userName}),));
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentText({'pg' : 'tosspay', 'amountPayment' : _amountPayment, 'name' : _userName, 'email' : _userEmail, 'point' : widget.payment}),));
                 },
               ),
             ),
@@ -337,7 +339,7 @@ class PaymentText extends StatelessWidget {
           amount: _info['amountPayment'],                                               // 결제금액
           buyerName: _info['name'],                                            // 구매자 이름
           buyerTel: '01012345678',                                     // 구매자 연락처
-          buyerEmail: 'example@naver.com',                             // 구매자 이메일
+          buyerEmail: _info['email'],                             // 구매자 이메일
           buyerAddr: '서울시 강남구 신사동 661-16',                         // 구매자 주소
           buyerPostcode: '06018',                                      // 구매자 우편번호
           appScheme: 'example',                                        // 앱 URL scheme
@@ -345,10 +347,15 @@ class PaymentText extends StatelessWidget {
       ),
       /* [필수입력] 콜백 함수 */
       callback: (Map<String, String> result) {
+        Map<String, String> info = {
+          'paid_amount' : _info['amountPayment'].toString(),
+          'point' : _info['point'],
+        };
+        List<Map<String, String>> list = [result, info];
         Navigator.pushReplacementNamed(
           context,
           '/result',
-          arguments: result,
+          arguments: list,
         );
       },
     );

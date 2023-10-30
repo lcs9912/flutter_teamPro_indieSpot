@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:indie_spot/baseBar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:indie_spot/pointHistory.dart';
 import 'package:indie_spot/pointRecharge.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:provider/provider.dart';
@@ -119,9 +120,9 @@ class _PointDetailedState extends State<PointDetailed> {
                     ),
                     children: <TextSpan>[
                       TextSpan(
-                        text: '포인트',
+                        text: 'P',
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: 20,
                           color: Colors.black,
                         ),
                       ),
@@ -192,7 +193,9 @@ class _PointDetailedState extends State<PointDetailed> {
               )
           ),
           TextButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => PointHistory(),));
+              },
               child: Column(
                 children: [
                   Icon(Icons.list_alt, size: 40, color: Color(0xFF392F31),),
