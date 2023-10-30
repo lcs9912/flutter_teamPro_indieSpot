@@ -45,6 +45,7 @@ class _MyDrawerState extends State<MyDrawer> {
       child: ListView(
         children: <Widget>[
           DrawerHeader(
+            decoration: BoxDecoration(color: Colors.black12),
             child: Row(
               children: [
                 Padding(
@@ -52,7 +53,7 @@ class _MyDrawerState extends State<MyDrawer> {
                   child: Container(
                     child: CircleAvatar(
                       radius: 40,
-                      backgroundImage: AssetImage('iu.jpg'), // 프로필 이미지
+                      backgroundImage: AssetImage('assets/기본.jpg'), // 프로필 이미지
                     ),
                   ),
                 ),
@@ -66,7 +67,6 @@ class _MyDrawerState extends State<MyDrawer> {
                 ),
               ],
             ),
-            decoration: BoxDecoration(color: Colors.black12),
           ),
 
           ExpansionTile(
