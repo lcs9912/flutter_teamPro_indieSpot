@@ -182,7 +182,7 @@ class _PaymentState extends State<Payment> {
                 ),
                 title: Text('신용카드'),
                 onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentText({'pg' : 'payco', 'amountPayment' : _amountPayment, 'name' : _userName, 'email' : _userEmail}),));
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentText({'pg' : 'kcp', 'amountPayment' : _amountPayment, 'name' : _userName, 'email' : _userEmail}),));
                 },
               ),
             ),
