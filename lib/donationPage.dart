@@ -194,16 +194,21 @@ class _DonationPageState extends State<DonationPage> {
                  children: [
                    for(int price in _price)
                      Padding(
-                       padding: const EdgeInsets.all(8.0),
+                       padding: const EdgeInsets.all(5.0),
                        child: ElevatedButton(
                            onPressed: (){
+                             int userPointBalance = userPoint?['pointBalance'];
                              setState(() {
-                               _donationAmount.text = _numberFormat.format(price);
+                               if(price > userPointBalance){
+                                 _donationAmount.text = _numberFormat.format(userPointBalance);
+                               }else{
+                                 _donationAmount.text = _numberFormat.format(price);
+                               }
                                amount = "원";
                                amountInput = 1;
                              });
                            },
-                           child: Text("+${_numberFormat.format(price)}")
+                           child: Text("${_numberFormat.format(price)}원")
                        ),
                      ),
                    Padding(
@@ -308,6 +313,21 @@ class _DonationPageState extends State<DonationPage> {
                 setState(() {
                   userInput = 2;
                 });
+              }
+              String amount1 = _donationAmount.text.replaceAll(',', '');
+              if(int.parse(amount1) < 1000){
+                showDialog(context: context, builder: (context) {
+                  return AlertDialog(
+                    title: Text("최소 1,000원부터 후원 가능합니다."),
+                    actions: [
+                      ElevatedButton(onPressed: (){
+                        Navigator.of(context).pop();
+
+                      }, child: Text("확인"))
+                    ],
+                  );
+                },);
+                return;
               }
               if(_donationAmount.text.isNotEmpty&&_donationMessage.text.isNotEmpty){
                 showDialog(context: context, builder: (context) {
