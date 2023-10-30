@@ -152,6 +152,15 @@ class _MyAppState extends State<MyApp> {
                 Column(
                   children: [
                     IconButton(
+                        onPressed: (){},
+                        icon: Icon(Icons.person)
+                    ),
+                    Text("아티스트"),
+                  ],
+                ),
+                Column(
+                  children: [
+                    IconButton(
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -160,17 +169,7 @@ class _MyAppState extends State<MyApp> {
                       },
                       icon: Icon(Icons.person),
                     ),
-                    Text("아티스트"),
-                  ],
-
-                ),
-                Column(
-                  children: [
-                    IconButton(
-                        onPressed: (){},
-                        icon: Icon(Icons.pages)
-                    ),
-                    Text("페이지"),
+                    Text("마이페지"),
                   ],
                 ),
                 Column(
