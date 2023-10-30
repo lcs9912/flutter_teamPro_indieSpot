@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -14,6 +15,8 @@ class _UserEditState extends State<UserEdit> {
   TextEditingController _userIdController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
   TextEditingController _nicknameController = TextEditingController();
+  TextEditingController _birthdayController = TextEditingController();
+  TextEditingController _introductionController = TextEditingController();
 
   String? _userId;
 
@@ -72,6 +75,16 @@ class _UserEditState extends State<UserEdit> {
       // 이메일 값이 비어 있지 않다면 업데이트합니다.
       if (_userIdController.text.isNotEmpty) {
         updatedData['email'] = _userIdController.text;
+      }
+
+      if (_introductionController.text.isNotEmpty) {
+        updatedData['introduction'] = _introductionController.text;
+      }
+
+
+      // 생일 값이 비어 있지 않다면 업데이트합니다.
+      if (_birthdayController.text.isNotEmpty) {
+        updatedData['birthday'] = _userIdController.text;
       }
 
       // 비밀번호 값이 비어 있지 않다면 업데이트합니다.
@@ -148,7 +161,8 @@ class _UserEditState extends State<UserEdit> {
   @override
   Widget build(BuildContext context) {
     return Material(
-      child: Column(
+      child: SingleChildScrollView(
+        child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         // Align children to the start (left)
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -203,6 +217,35 @@ class _UserEditState extends State<UserEdit> {
               ),
             ),
           ),
+          Text("생일", style: TextStyle(fontSize: 16),),
+          SizedBox(height: 20),
+          TextField(
+            controller: _birthdayController,
+            keyboardType: TextInputType.number, // 숫자 키패드를 띄웁니다.
+            inputFormatters: <TextInputFormatter>[
+              FilteringTextInputFormatter.allow(RegExp(r'[0-9]')), // 숫자만 허용합니다.
+            ],
+            decoration: InputDecoration(
+              labelText: 'YYYY-MM-DD',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+            ),
+          ),
+
+          SizedBox(height: 30),
+          Text("자기소개", style: TextStyle(fontSize: 16),),
+          SizedBox(height: 20),
+          TextField(
+            controller: _introductionController,
+            decoration: InputDecoration(
+              labelText: '소개',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+            ),
+          ),
+
           SizedBox(height: 30),
           Center(
             child: Container(
@@ -227,6 +270,7 @@ class _UserEditState extends State<UserEdit> {
 
         ],
       ),
+      )
     );
   }
 }
