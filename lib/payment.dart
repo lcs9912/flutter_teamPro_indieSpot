@@ -349,7 +349,7 @@ class PaymentText extends StatelessWidget {
       callback: (Map<String, String> result) {
         Map<String, String> info = {
           'paid_amount' : _info['amountPayment'].toString(),
-          'point' : _info['point']
+          'point' : _info['point'],
         };
         List<Map<String, String>> list = [result, info];
         Navigator.pushReplacementNamed(
