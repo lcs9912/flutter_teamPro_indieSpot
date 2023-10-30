@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/join.dart';
 import 'package:indie_spot/login.dart';
 import 'package:indie_spot/pointDetailed.dart';
@@ -9,11 +8,9 @@ import 'package:indie_spot/userEdit.dart';
 import 'package:indie_spot/userModel.dart';
 import 'buskingList.dart';
 import 'buskingReservation.dart';
-import 'concertDetails.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'baseBar.dart';
-import 'package:indie_spot/userModel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,10 +24,13 @@ void main() async {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(fontFamily: 'NotoSansKR'),
+        theme: ThemeData(
+          fontFamily: 'Noto_Serif_KR', // 폰트 패밀리 이름을 지정
+        ),
         home: MyApp(),
         routes: {
           '/result': (context) => Result(), // '/result' 경로와 연결된 페이지
+          '/pointDetailed': (context) => PointDetailed()
           // 다른 경로와 페이지 설정
         },
       ),
@@ -167,7 +167,7 @@ class _MyAppState extends State<MyApp> {
                           MaterialPageRoute(builder: (context) => UserEdit()),
                         );
                       },
-                      icon: Icon(Icons.person),
+                      icon: Icon(Icons.pages),
                     ),
                     Text("마이페지"),
                   ],

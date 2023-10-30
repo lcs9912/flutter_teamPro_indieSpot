@@ -271,6 +271,13 @@ class _JoinState extends State<Join> {
         'pointBalance': 0,
       });
 
+      await _fs.collection('userList').doc(userID).collection('follower').add({
+        'count': 0,
+      });
+      await _fs.collection('userList').doc(userID).collection('following').add({
+        'count': 0,
+      });
+
       // 가입 성공 메시지
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('가입되었음!!')),

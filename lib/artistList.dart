@@ -77,8 +77,6 @@ class _ArtistListState extends State<ArtistList> {
                         .collection("image")
                         .get(),
                     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> imgSnap) {
-                      print('방금 배운거임 exists=> ${doc.exists}'); // doc 의 값이 있는지 없는지 확인
-                      print('대혁이가 알려준거임 hasData=> ${imgSnap.hasData}'); // snapShot에 값이 있는지 없는지 확인
                       if (imgSnap.hasData) {
                         var img = imgSnap.data!.docs.first;
                         if(data['followerCnt'] != null){
@@ -87,6 +85,7 @@ class _ArtistListState extends State<ArtistList> {
                           cnt = 0;
                         }
                         return ListTile(
+
                           leading: Image.network(
                             img['path'],
                             width: 100,
@@ -109,10 +108,12 @@ class _ArtistListState extends State<ArtistList> {
                           isThreeLine: true,
                           trailing: Icon(Icons.chevron_right),
                           onTap: () {
+                            String artistImg = img['path'];
+                            print(artistImg);
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => ArtistInfo(doc: doc),
+                                builder: (context) => ArtistInfo(doc, artistImg),
                               ),
                             );
                           },
