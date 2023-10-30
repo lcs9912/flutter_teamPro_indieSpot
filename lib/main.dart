@@ -167,7 +167,7 @@ class _MyAppState extends State<MyApp> {
                           MaterialPageRoute(builder: (context) => UserEdit()),
                         );
                       },
-                      icon: Icon(Icons.person),
+                      icon: Icon(Icons.pages),
                     ),
                     Text("마이페지"),
                   ],
