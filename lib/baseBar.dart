@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:indie_spot/buskingList.dart';
 import 'package:indie_spot/buskingSpotList.dart';
 import 'package:indie_spot/donationArtistList.dart';
+import 'package:indie_spot/donationList.dart';
 import 'package:indie_spot/donationPage.dart';
 
 import 'artistList.dart';
@@ -93,6 +94,12 @@ class _MyDrawerState extends State<MyDrawer> {
                 title: Text('후원내역조회'),
                 onTap: () {
 
+                },
+              ),
+              ListTile(
+                title: Text('받은 후원 내역'),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => DonationList(),));
                 },
               ),
               ListTile(
