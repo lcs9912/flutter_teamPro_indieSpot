@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 class DonationList extends StatefulWidget {
 
+  DocumentSnapshot artistDoc;
+
+  DonationList({required this.artistDoc});
   @override
   State<DonationList> createState() => _DonationListState();
 }
@@ -9,6 +12,7 @@ class DonationList extends StatefulWidget {
 class _DonationListState extends State<DonationList> {
   @override
   Widget build(BuildContext context) {
+    print("id : ${widget.artistDoc.id}");
     return Scaffold(
       appBar: AppBar(),
       body: Column(
@@ -21,7 +25,7 @@ class _DonationListState extends State<DonationList> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Image.asset("assets/coin.png",width: 20,),
+                      Image.asset("assets/point.png"),
                       Text("40000")
                     ],
                   )
