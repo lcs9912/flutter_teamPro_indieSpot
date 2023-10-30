@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:indie_spot/userEdit.dart';
 
 class Profile extends StatefulWidget {
   final TextEditingController nicknameController;
@@ -38,7 +39,7 @@ class _ProfileState extends State<Profile> {
 
         if (snapshot.exists) {
           var nick = snapshot.data()!['nick'];
-          var introduction = snapshot.data()!['INTRODUCTION'];
+          var introduction = snapshot.data()!['introduction'];
           setState(() {
             _nickFromFirestore = nick;
             _introductionFromFirestore = introduction;
@@ -128,6 +129,7 @@ class _ProfileState extends State<Profile> {
       print('문서 업데이트 중 오류 발생: $e');
     }
   }
+
   Future<void> getIntroductionFromFirestore() async {
     try {
       if (widget.userId != null) {
@@ -193,63 +195,88 @@ class _ProfileState extends State<Profile> {
             SizedBox(height: 20),
             Row(
               children: [
-                GestureDetector(
-                  onTap: () {
-                    // When the edit icon is tapped, show a dialog to edit the introduction
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        TextEditingController introductionController = TextEditingController();
-                        introductionController.text = _introductionFromFirestore ?? '';
-                        return AlertDialog(
-                          title: Text('자기소개 수정'),
-                          content: TextField(
-                            controller: introductionController,
-                            decoration: InputDecoration(
-                              hintText: '새로운 자기소개를 입력하세요',
-                            ),
-                          ),
-                          actions: <Widget>[
-                            TextButton(
-                              child: Text('취소'),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                            TextButton(
-                              child: Text('저장'),
-                              onPressed: () {
-                                // Update the introduction
-                                setState(() {
-                                  _introductionFromFirestore = introductionController.text;
-                                });
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                          ],
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        // When the edit icon is tapped, show a dialog to edit the introduction
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            TextEditingController introductionController = TextEditingController();
+                            introductionController.text = _introductionFromFirestore ?? '';
+                            return AlertDialog(
+                              title: Text('자기소개 수정'),
+                              content: TextField(
+                                controller: introductionController,
+                                decoration: InputDecoration(
+                                  hintText: '새로운 자기소개를 입력하세요',
+                                ),
+                              ),
+                              actions: <Widget>[
+                                TextButton(
+                                  child: Text('취소'),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                                TextButton(
+                                  child: Text('저장'),
+                                  onPressed: () {
+                                    // Update the introduction
+                                    setState(() {
+                                      _introductionFromFirestore = introductionController.text;
+                                    });
+                                    Navigator.of(context).pop();
+
+                                    // Update Firestore
+                                    updateFirestore(context);
+                                  },
+                                ),
+                              ],
+                            );
+                          },
                         );
                       },
-                    );
-                  },
-                  child: Icon(Icons.edit), // 연필 아이콘 추가
+                      child: Icon(Icons.edit),
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      '자기소개',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    ),
+                  ],
                 ),
-                SizedBox(width: 8),
                 Text(
-                  '자기소개',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  _introductionFromFirestore ?? '외않돼',
+                  style: TextStyle(fontSize: 16),
                 ),
-              ],
-            ),
-            Text(
-              _introductionFromFirestore ?? '', // Use ?? to provide a default value if it's null
-              style: TextStyle(fontSize: 16),
-            ),
 
-            SizedBox(height: 20),
+
+
+                SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                // Navigate to userEdit.dart
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => UserEdit()),
+                );
+              },
+              child: Text(
+                'Edit User',
+                style: TextStyle(color: Colors.white), // Set text color to blue
+              ),
+              style: ElevatedButton.styleFrom(
+                primary: Color(0xFF392F31), // Set button color to your custom color
+              ),
+            ),
 
           ],
         ),
+     ]
       ),
+    )
     );
   }
 }
