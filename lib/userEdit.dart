@@ -1,5 +1,7 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:indie_spot/profile.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -33,9 +35,8 @@ class _UserEditState extends State<UserEdit> {
     // Firestore에서 이메일 값을 가져오는 함수 호출
     getEmailFromFirestore();
 
-
-
   }
+
   Future<void> showLoginDialog(BuildContext context) async {
     return showDialog<void>(
       context: context,
@@ -245,12 +246,40 @@ class _UserEditState extends State<UserEdit> {
               ),
             ),
           ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Profile(
+                    nicknameController: _nicknameController,
+                    introductionController: _introductionController,
+                    userId: _userId,
+                  ),
+                ),
+              );
+            },
+            child: Text('프로필 페이지로 이동'),
+          ),
 
           SizedBox(height: 30),
           Center(
             child: Container(
-              width: 200, // Set the desired width
+              width: 200, //
+
+
+
+
+            ),
+          ),
+          Center(
+            child: Container(
+              width: 200, //
+
+
               child: ElevatedButton(
+
+
                 onPressed: () {
                   // 버튼이 눌렸을 때 수행될 동작을 여기에 추가하세요.
                   updateFirestore();
@@ -265,8 +294,15 @@ class _UserEditState extends State<UserEdit> {
                 ),
               ),
 
+
             ),
-          )
+          ),
+
+
+
+
+
+
 
         ],
       ),
