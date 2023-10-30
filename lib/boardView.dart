@@ -105,10 +105,19 @@ class _BoardViewState extends State<BoardView> {
                   height: 30,
                 ),
                 SizedBox(height: 8),
-                Text(
-                  '${data['CONTENT']}',
-                  style: TextStyle(
-                      fontSize: 16
+                Container(
+                  constraints: BoxConstraints(
+                    minHeight: 80,
+                    maxHeight: 180,
+                  ),
+                  child: SingleChildScrollView(
+                    physics: BouncingScrollPhysics(),
+                    child: Text(
+                      '${data['CONTENT']}',
+                      style: TextStyle(
+                          fontSize: 16
+                      ),
+                    ),
                   ),
                 ),
                 SizedBox(height: 14),
@@ -148,14 +157,17 @@ class _BoardViewState extends State<BoardView> {
                 Expanded(
                     child: _listComments()
                 ),
-                TextFlg ? TextField(
-                  maxLines: 6,
+                TextFlg ? Container(
+                  height: 180,
+                    child : TextField(
+                  maxLines: 4,
                   controller: _comment,
                   decoration: InputDecoration(
                     labelText: "댓글 입력",
                     border: OutlineInputBorder(),
                   ),
-                ) : Container()
+                    )
+                ) : Container(height: 60)
               ],
             ),
           ],

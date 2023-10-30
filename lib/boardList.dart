@@ -76,7 +76,56 @@ class BoardList extends StatefulWidget {
   _BoardListState createState() => _BoardListState();
 }
 
-class _BoardListState extends State<BoardList> {
+class _BoardListState extends State<BoardList> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  String selectedCategory = "전체";
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 4, vsync: this);
+
+    // 탭이 변경될 때마다 선택된 카테고리 업데이트
+    _tabController.addListener(() {
+      updateSelectedCategory(_tabController.index);
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  // 게시글을 필터링하는 함수
+  List<DocumentSnapshot> filterPostsByCategory(List<DocumentSnapshot> posts) {
+    if (selectedCategory == "전체") {
+      return posts; // 전체 카테고리면 모든 게시글 반환
+    } else {
+      return posts.where((post) => post["CATEGORY"] == selectedCategory).toList();
+    }
+  }
+
+  // 선택된 카테고리 업데이트 함수
+  void updateSelectedCategory(int tabIndex) {
+    setState(() {
+      switch (tabIndex) {
+        case 0:
+          selectedCategory = "전체";
+          break;
+        case 1:
+          selectedCategory = "자유";
+          break;
+        case 2:
+          selectedCategory = "팀모집";
+          break;
+        case 3:
+          selectedCategory = "함께연주";
+          break;
+      // 다른 카테고리에 대한 case 추가
+      }
+    });
+  }
 
   Widget _listBoard() {
     return StreamBuilder(
@@ -86,6 +135,7 @@ class _BoardListState extends State<BoardList> {
         if (!snap.hasData) {
           return Center(child: CircularProgressIndicator());
         }
+        List<DocumentSnapshot> filteredPosts = filterPostsByCategory(snap.data!.docs);
 
         return ListView.builder(
             itemCount: snap.data!.docs.length,
@@ -159,15 +209,32 @@ class _BoardListState extends State<BoardList> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            SizedBox(height: 20),
-            Expanded(
-              child: _listBoard(),
-            )
-          ],
-        ),
+      padding: EdgeInsets.all(20.0),
+      child: Column(
+        children: [
+          SizedBox(height: 20),
+          TabBar(
+            controller: _tabController,
+            tabs: [
+              Tab(text: "전체"),
+              Tab(text: "자유"),
+              Tab(text: "팀모집"),
+              Tab(text: "함께연주"),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _listBoard(),
+                _listBoard(),
+                _listBoard(),
+                _listBoard(),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
