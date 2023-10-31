@@ -6,49 +6,26 @@ import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+
+
 class ConcertDetails extends StatefulWidget {
   final DocumentSnapshot document;
-  ConcertDetails({required this.document});
+  final String artistId;
+
+
+  ConcertDetails({required this.document, required this.artistId});
+
   @override
   _ConcertDetailsState createState() => _ConcertDetailsState();
 }
 
-TextEditingController _review = TextEditingController();
-double rating = 0.0;
-String? _userId;
-@override
-void initState() {
-  initState();
-  _review.text = 'Initial text'; // Set your initial text here
-}
 class _ConcertDetailsState extends State<ConcertDetails> {
-  Map<String, dynamic>? buskingData; // 받아온 버스킹 데이터를 저장할 변수
+  Map<String, dynamic>? buskingData;
 
 
-  Future<DocumentSnapshot<Map<String, dynamic>>> getBuskingDetails(String buskingID) async {
-    return await FirebaseFirestore.instance.collection('busking').doc(buskingID).get();
-  }
-
-  Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>> getBuskingImages(String buskingID) async {
-    return await FirebaseFirestore.instance.collection('busking').doc(buskingID).collection('image').get().then((snapshot) {
-      return snapshot.docs;
-    });
-  }
-
-  List<QueryDocumentSnapshot<Map<String, dynamic>>>? buskingImages;
-
-  Future<void> loadBuskingImages() async {
-    buskingImages = await getBuskingImages(widget.document.id);
-    setState(() {});
-
-    // 각 이미지의 NAME 필드 값을 출력합니다.
-    if (buskingImages != null) {
-      for (var image in buskingImages!) {
-        print('이미지 이름: ${image['path']}');
-      }
-    }
-  }
-
+  TextEditingController _review = TextEditingController();
+  double rating = 0.0;
+  String? _userId;
 
   Future<void> loadBuskingData() async {
     buskingData = null;
@@ -56,9 +33,9 @@ class _ConcertDetailsState extends State<ConcertDetails> {
     setState(() {
       buskingData = buskingSnapshot.data();
     });
-
-    await loadBuskingImages(); // loadBuskingImages를 호출합니다.
   }
+
+
 
   @override
   void initState() {
@@ -67,11 +44,13 @@ class _ConcertDetailsState extends State<ConcertDetails> {
     loadBuskingImages();
     loadBuskingReview();
 
+
     _userId = Provider.of<UserModel>(context, listen: false).userId;
     print('real  ${_userId}');
+
   }
   //----------------------------------------------------두번째 탭 영역--------------------------------------------------------------------
-  double rating = 0.0; // 필요한 경우 초기값 설정
+ // 필요한 경우 초기값 설정
 
   void onRatingChanged(double newRating) {
     setState(() {
@@ -94,7 +73,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
           .collection('review')
           .add(reviewData);
     } catch (e) {
-      print('리뷰 추가 중 오류 발생: $e');
+
     }
   }
 
@@ -108,11 +87,22 @@ class _ConcertDetailsState extends State<ConcertDetails> {
 
   Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>> getBuskingReview(String buskingID) async {
     return await FirebaseFirestore.instance.collection('busking').doc(buskingID).collection('review').get().then((snapshot) {
-      print('리뷰 스냅샷 ${snapshot.docs}');
+
       return snapshot.docs;
     });
   }
+  List<QueryDocumentSnapshot<Map<String, dynamic>>>? buskingImages;
+  Future<void> loadBuskingImages() async {
+    buskingImages = await getBuskingImages(widget.document.id);
+    setState(() {});
 
+    // 각 이미지의 NAME 필드 값을 출력합니다.
+    if (buskingImages != null) {
+      for (var image in buskingImages!) {
+
+      }
+    }
+  }
 
   Future<void> loadBuskingReview() async {
     List<QueryDocumentSnapshot<Map<String, dynamic>>> review = await getBuskingReview(widget.document.id);
@@ -122,7 +112,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
   }
   List<QueryDocumentSnapshot<Map<String, dynamic>>>? buskingReview;
 
-  TextEditingController _review = TextEditingController();
+
   bool _isReviewEmpty = true;
 
   Future<List<Map<String, dynamic>>> getBuskingReviewNick(String buskingID) async {
@@ -135,10 +125,79 @@ class _ConcertDetailsState extends State<ConcertDetails> {
     return snapshot.docs.map((doc) => doc.data()).toList();
   }
 
+  Future<DocumentSnapshot<Map<String, dynamic>>> getBuskingDetails(String buskingID) async {
+    return await FirebaseFirestore.instance.collection('busking').doc(buskingID).get();
+  }
+
+  Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>> getBuskingImages(String buskingID) async {
+    return await FirebaseFirestore.instance.collection('busking').doc(buskingID).collection('image').get().then((snapshot) {
+      return snapshot.docs;
+    });
+  }
+
+  DocumentSnapshot<Object?>? artistData;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    Object? artistIdObject = ModalRoute.of(context)?.settings.arguments;
+    String artistId = artistIdObject?.toString() ?? '';
+
+    // 다음에 해당 데이터를 불러옵니다.
+    loadArtistDataByArtistId(artistId);
+  }
+
+  Future<void> loadArtistDataByArtistId(String artistId) async {
+    try {
+      DocumentSnapshot artistDoc = await FirebaseFirestore.instance
+          .collection('artist')
+          .doc(buskingData?['artistId'])
+          .get();
+
+       artistId = buskingData?['artistId'];
+
+      if (artistDoc.exists) {
+        artistData = artistDoc; // 데이터를 artistData에 할당합니다.
+        print(artistDoc.data());
+      } else {
+        print('해당하는 아티스트를 찾을 수 없습니다.');
+      }
+    } catch (e) {
+      print('에러 발생: $e');
+    }
+  }
+
+  Future<void> getArtistData(String artistId) async {
+    print("아티스트 아이디 ===> $artistId");
+
+    try {
+      QuerySnapshot artistDocs = await FirebaseFirestore.instance
+          .collection('artist')
+          .where('artistId', isEqualTo: artistId)
+          .get();
+
+      if (artistDocs.docs.isNotEmpty) {
+        DocumentSnapshot artistDoc = artistDocs.docs[0];
+        Map<String, dynamic>? artistData = artistDoc.data() as Map<String, dynamic>;
+
+        if (artistData != null) {
+          print(artistData);
+        } else {
+          print('해당하는 아티스트를 찾을 수 없습니다.');
+        }
+      } else {
+        print('해당하는 아티스트를 찾을 수 없습니다.');
+      }
+    } catch (e) {
+      print('에러 발생: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    print(widget.document.id);
+
+    print(buskingData?['artistId']);
+  print(widget.document.id);
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -209,9 +268,10 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  ' ${buskingData?['aritistId']}',
+                                  '아티스트 ${artistData?['artistName']}',
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
+
                                 SizedBox(height: 30),
                                 Container(
                                   height: 1.0,
