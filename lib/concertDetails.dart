@@ -12,7 +12,6 @@ class ConcertDetails extends StatefulWidget {
   final DocumentSnapshot document;
   final String spotName;
 
-
   ConcertDetails({required this.document, required this.spotName});
 
   @override
@@ -58,9 +57,6 @@ class _ConcertDetailsState extends State<ConcertDetails> {
     loadBuskingImages();
     loadBuskingReview();
 
-
-    _userId = Provider.of<UserModel>(context, listen: false).userId;
-    print('real  ${_userId}');
 
   }
   //----------------------------------------------------두번째 탭 영역--------------------------------------------------------------------
@@ -466,7 +462,6 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                             },
                             decoration: InputDecoration(
                               labelText: '리뷰를 작성하세요...',
-                              errorText: _isReviewEmpty ? '리뷰를 입력해주세요' : null,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10.0),
                               ),
