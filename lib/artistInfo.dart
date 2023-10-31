@@ -32,7 +32,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
       for (QueryDocumentSnapshot membersDoc in membersQuerySnapshot.docs)  {
         // 팀 멤버 문서를 반복 처리합니다.
         // 여기에서 위젯을 만들고 memberWidgets 목록에 추가할 수 있습니다.
-        
+
         // userList 접근하는 쿼리문
         final userListJoin = await fs
             .collection("userList")
@@ -43,7 +43,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
         if(userListJoin.docs.isNotEmpty){
           for(QueryDocumentSnapshot userDoc in userListJoin.docs){
             String userName = userDoc['name']; // 이름
-            
+
             final userImage = await fs
                 .collection('userList')
                 .doc(userDoc.id)
@@ -81,7 +81,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
 
 
   }
-  
+
   // 아티스트 소개 탭
   Widget tab1() {
     return Column(
@@ -137,8 +137,8 @@ class _ArtistInfoState extends State<ArtistInfo> {
                 style: TextStyle(fontSize: 15),
               ),
               Text(
-                  '${widget.doc['donationAmount']} 원',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                '${widget.doc['donationAmount']} 원',
+                style: TextStyle(fontWeight: FontWeight.w600),
               )
             ],
           ),
@@ -153,7 +153,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
 
     );
   }
-  
+
 
   ////////////////////////////////아티스트 클립////////////////////////////////
 
@@ -163,7 +163,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
 //////////////////////////////아티스트 공연 일정//////////////////////////////////
 
 
-  
+
 
   @override
   Widget build(BuildContext context) {
@@ -237,38 +237,38 @@ class _ArtistInfoState extends State<ArtistInfo> {
         body: TabBarView(
 
           children: [
-           ListView(
-             children: [
-               Container(
-                 child: FutureBuilder(
-                   future: _artistDetails(),
-                   builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-                     if (snapshot.connectionState == ConnectionState.waiting) {
-                       return Container();
-                     } else if (snapshot.hasError) {
-                       return Text('Error: ${snapshot.error}');
-                     } else {
-                       return Column(
-                         crossAxisAlignment: CrossAxisAlignment.end,
-                         mainAxisAlignment: MainAxisAlignment.end,
-                         children: [
-                           tab1(),
-                           Container(
-                             padding: EdgeInsets.only(top: 10),
-                             margin: EdgeInsets.all(20),
-                             child: Column(
-                               children: snapshot.data ?? [Container()],
-                             ),
-                           ),
-                         ],
-                       );
-                     }
-                   },
-                 ),
+            ListView(
+              children: [
+                Container(
+                  child: FutureBuilder(
+                    future: _artistDetails(),
+                    builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Container();
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            tab1(),
+                            Container(
+                              padding: EdgeInsets.only(top: 10),
+                              margin: EdgeInsets.all(20),
+                              child: Column(
+                                children: snapshot.data ?? [Container()],
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                    },
+                  ),
 
-               )
-             ],
-           ),
+                )
+              ],
+            ),
             Column( // 클립
               children: [
                 Text("클립"),
