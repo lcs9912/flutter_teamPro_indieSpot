@@ -14,11 +14,13 @@ class Profile extends StatefulWidget {
     required this.userId,
   });
 
+
   @override
   _ProfileState createState() => _ProfileState();
 }
 
 class _ProfileState extends State<Profile> {
+  List<String> imagePaths = []; // Define the list of image paths
   String? _nickFromFirestore; // Firestore에서 가져온 'nick' 값을 저장할 변수
   String? _introductionFromFirestore;
   String? _followerCount = '0'; // 기본값으로 0 설정
@@ -33,7 +35,8 @@ class _ProfileState extends State<Profile> {
   Future<void> getNickFromFirestore(String? userId) async {
     try {
       if (userId != null) {
-        DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance
+        DocumentSnapshot<
+            Map<String, dynamic>> snapshot = await FirebaseFirestore.instance
             .collection('userList')
             .doc(userId)
             .get();
@@ -51,11 +54,14 @@ class _ProfileState extends State<Profile> {
       print('Error fetching nick from Firestore: $e');
     }
   }
+
   Future<void> getFollowerFollowingCounts() async {
     try {
       if (widget.userId != null) {
         // Get follower count
-        DocumentSnapshot<Map<String, dynamic>> followerSnapshot = await FirebaseFirestore.instance
+        DocumentSnapshot<
+            Map<String, dynamic>> followerSnapshot = await FirebaseFirestore
+            .instance
             .collection('userList')
             .doc(widget.userId)
             .collection('follower')
@@ -69,7 +75,9 @@ class _ProfileState extends State<Profile> {
         }
 
         // Get following count
-        DocumentSnapshot<Map<String, dynamic>> followingSnapshot = await FirebaseFirestore.instance
+        DocumentSnapshot<
+            Map<String, dynamic>> followingSnapshot = await FirebaseFirestore
+            .instance
             .collection('userList')
             .doc(widget.userId)
             .collection('following')
@@ -84,6 +92,33 @@ class _ProfileState extends State<Profile> {
       }
     } catch (e) {
       print('Error fetching follower and following counts: $e');
+    }
+  }
+
+  Future<List<String>> getImageData() async {
+    try {
+      List<String> imagePaths = [];
+
+      if (widget.userId != null) {
+        // Get image paths
+        QuerySnapshot<
+            Map<String, dynamic>> imageSnapshot = await FirebaseFirestore
+            .instance
+            .collection('userList')
+            .doc(widget.userId)
+            .collection('image')
+            .get();
+
+        // Process the image paths
+        imagePaths =
+            imageSnapshot.docs.map((doc) => doc.data()['path'].toString())
+                .toList();
+      }
+
+      return imagePaths;
+    } catch (e) {
+      print('Error fetching image paths: $e');
+      return []; // Return an empty list in case of an error
     }
   }
 
@@ -109,6 +144,7 @@ class _ProfileState extends State<Profile> {
       print('Error fetching introduction from Firestore: $e');
     }
   }
+
   List<Widget> generateIntroductionWidgets(String introductionText) {
     const int maxCharactersPerLine = 25;
 
@@ -123,7 +159,6 @@ class _ProfileState extends State<Profile> {
     }
     return widgets;
   }
-
 
 
   @override
@@ -141,7 +176,10 @@ class _ProfileState extends State<Profile> {
               children: [
                 CircleAvatar(
                   radius: 50,
-                  backgroundImage: AssetImage('assets/기본.jpg'),
+                  backgroundImage: imagePaths.isNotEmpty
+                      ? AssetImage(
+                      imagePaths[0]) // Assuming you want to use the first image from the list
+                      : AssetImage('assets/기본.jpg'),
                 ),
                 Text(
                   '   Follower: $_followerCount    ',
@@ -158,12 +196,6 @@ class _ProfileState extends State<Profile> {
               '닉네임: $_nickFromFirestore',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
-
-
-
-
-
-
             SizedBox(height: 20),
             Row(
               children: [
@@ -171,7 +203,8 @@ class _ProfileState extends State<Profile> {
                   flex: 3, // 텍스트가 차지할 비율
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: generateIntroductionWidgets(_introductionFromFirestore ?? '외않돼'),
+                    children: generateIntroductionWidgets(
+                        _introductionFromFirestore ?? '외않돼'),
                   ),
                 ),
                 Expanded(
@@ -212,17 +245,12 @@ class _ProfileState extends State<Profile> {
               ),
               style: ElevatedButton.styleFrom(
                 primary: Color(0xFF392F31), // 버튼 배경색
-                fixedSize:Size.fromWidth(500), // 가로로 꽉 차도록 설정
+                fixedSize: Size.fromWidth(500), // 가로로 꽉 차도록 설정
               ),
             ),
-
-
-
-          ]
-
-
+          ],
+        ),
       ),
-    )
     );
   }
 }

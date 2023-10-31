@@ -5,6 +5,7 @@ import 'package:indie_spot/donationArtistList.dart';
 import 'package:indie_spot/donationList.dart';
 import 'package:indie_spot/donationPage.dart';
 import 'package:indie_spot/login.dart';
+import 'package:indie_spot/userDonationHistory.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -322,7 +323,7 @@ class _MyDrawerState extends State<MyDrawer> {
               ListTile(
                 title: Text('후원내역조회'),
                 onTap: () {
-
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => UserDonationHistory(),));
                 },
               ),
               ListTile(

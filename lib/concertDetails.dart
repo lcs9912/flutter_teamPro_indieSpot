@@ -10,10 +10,9 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 class ConcertDetails extends StatefulWidget {
   final DocumentSnapshot document;
-  final String artistId;
+  final String spotName;
 
-
-  ConcertDetails({required this.document, required this.artistId});
+  ConcertDetails({required this.document, required this.spotName});
 
   @override
   _ConcertDetailsState createState() => _ConcertDetailsState();
@@ -23,23 +22,31 @@ class _ConcertDetailsState extends State<ConcertDetails> {
   Map<String, dynamic>? buskingData;
   // 변수 추가( 기존에 artistData 있어서 2붙임 일단)
   Map<String, dynamic>? artistData2;
-
+  List<QueryDocumentSnapshot<Map<String, dynamic>>>? artistImages;
 
   TextEditingController _review = TextEditingController();
   double rating = 0.0;
   String? _userId;
-
+  String? _artistId;
+  String? _path;
   Future<void> loadBuskingData() async {
     buskingData = null;
     DocumentSnapshot<Map<String, dynamic>> buskingSnapshot = await getBuskingDetails(widget.document.id);
     // artistId로 검색 추가
     DocumentSnapshot<Map<String, dynamic>> artistSnapshot = await getArtist(buskingSnapshot.data()?['artistId']);
+
     setState(() {
       buskingData = buskingSnapshot.data();
       // 추가(뿌리는 부분에서 artistData => artistData2로 변경)
       artistData2 = artistSnapshot.data();
+      print(artistData2);
+      _artistId = buskingSnapshot.data()?['artistId'];
+      getArtistImages(buskingSnapshot.data()?['artistId']);
     });
   }
+
+
+
 
 
 
@@ -50,9 +57,6 @@ class _ConcertDetailsState extends State<ConcertDetails> {
     loadBuskingImages();
     loadBuskingReview();
 
-
-    _userId = Provider.of<UserModel>(context, listen: false).userId;
-    print('real  ${_userId}');
 
   }
   //----------------------------------------------------두번째 탭 영역--------------------------------------------------------------------
@@ -83,13 +87,101 @@ class _ConcertDetailsState extends State<ConcertDetails> {
     }
   }
 
+  // artistData2
+  List<Widget> getImageWidgets() {
+    List<Widget> imageWidgets = [];
+
+    for (var index = 0; index < buskingImages!.length; index++) {
+      var imagePath = buskingImages![index]['path'];
+
+      // 이미지 URL이 유효한지 확인
+      if (Uri.parse(imagePath).isAbsolute) {
+        // 유효한 URL일 경우 Image.network 사용
+        imageWidgets.add(
+          Image.network(
+            imagePath,
+            height: 130,
+            width: double.infinity,
+            fit: BoxFit.cover,
+          ),
+        );
+      } else {
+        // 잘못된 URL이면 에러 핸들링 또는 대체 이미지를 사용할 수 있습니다.
+        imageWidgets.add(
+          Placeholder(
+            fallbackHeight: 130,
+            fallbackWidth: double.infinity,
+          ),
+        );
+      }
+    }
+
+    return imageWidgets;
+  }
+
+  Future<void> getArtistImages(String artistId) async {
+    QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance
+        .collection('artist')
+        .doc(artistId)
+        .collection('image')
+        .limit(1)
+        .get();
+
+    String path = '';
+
+    if(snapshot.docs.isNotEmpty){
+      var firstImageDocument = snapshot.docs.first;
+      var data = firstImageDocument.data();
+      print('111111111');
+      print('${data['path']}');
+      path = data['path'];
+    }
+    setState(() {
+      _path = path;
+    });
+  }
+
+  List<Widget> getArtistImageWidgets() {
+    List<Widget> imageWidgets = [];
+    if (artistImages != null) { // artistImages가 null인지 확인합니다.
+      for (var index = 0; index < artistImages!.length; index++) {
+        var imagePath = artistImages![index]['path'];
+
+        // 이미지 URL이 유효한지 확인
+        if (Uri.parse(imagePath).isAbsolute) {
+          // 유효한 URL일 경우 Image.network 사용
+          imageWidgets.add(
+            Image.network(
+              imagePath,
+              height: 130,
+              width: double.infinity,
+              fit: BoxFit.cover,
+
+            ),
+          );
+          print(artistImages![index]['path']);
+        } else {
+          // 잘못된 URL이면 에러 핸들링 또는 대체 이미지를 사용할 수 있습니다.
+          imageWidgets.add(
+            Placeholder(
+              fallbackHeight: 130,
+              fallbackWidth: double.infinity,
+            ),
+          );
+          print(artistImages![index]['path']);
+        }
+      }
+    }
+
+    return imageWidgets;
+  }
+
   Future<void> submitReview(String buskingID, double userRating) async {
     if (!_isReviewEmpty) {
       await addReview(buskingID, _review.text, userRating);
       _review.clear();
     }
   }
-
 
   Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>> getBuskingReview(String buskingID) async {
     return await FirebaseFirestore.instance.collection('busking').doc(buskingID).collection('review').get().then((snapshot) {
@@ -165,7 +257,6 @@ class _ConcertDetailsState extends State<ConcertDetails> {
           .get();
 
        artistId = buskingData?['artistId'];
-
       if (artistDoc.exists) {
         artistData = artistDoc; // 데이터를 artistData에 할당합니다.
         print(artistDoc.data());
@@ -206,8 +297,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
   @override
   Widget build(BuildContext context) {
 
-    print(buskingData?['artistId']);
-  print(widget.document.id);
+
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -229,13 +319,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     // 상단 이미지
-                    for (var index = 0; index < buskingImages!.length; index++)
-                      Image.asset(
-                        '${buskingImages![index]['path']}',
-                        height: 130,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
+                    ...getImageWidgets(),
                     SizedBox(height: 30), // 간격 추가
                     Text(
                       ' ${buskingData?['description']}',
@@ -265,23 +349,30 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: [
+
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 20),
-                              child: Image.asset(
-                                'assets/기본.jpg',
-                                height: 120,
-                                fit: BoxFit.cover,
+
+
+                                child: ClipOval(
+                                  child: Image.network(
+                                    _path ?? '',
+                                    height: 120,
+                                    fit: BoxFit.cover,
+
+                                  ),
+                                ),
                               ),
-                            ),
+
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
+
                                 Text(
-                                  '아티스트 ${artistData2?['artistName']}',
+                                  ' ${artistData2?['artistName']}',
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
-
                                 SizedBox(height: 30),
                                 Container(
                                   height: 1.0,
@@ -290,38 +381,27 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                 ),
                                 SizedBox(height: 20),
                                 Text(
-                                  '장소 ${buskingData?['spotId']}',
+                                  '장소 ${widget.spotName}', // widget을 사용하여 spotName에 접근합니다.
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
                                 SizedBox(height: 20),
                                 Text(
-                                  '버스킹시간 ${buskingData?['buskingStart']}',
+                                  '버스킹시간 ${DateFormat('yyyy-MM-dd').format(buskingData?['buskingStart'].toDate())}',
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
                                 Text(
-                                  "출연          musision",
-                                  style: TextStyle(fontSize: 15),
-                                ),
-                                Text(
-                                  "장르          rock",
-                                  style: TextStyle(fontSize: 15),
+                                  '장르 ${artistData2?['genre']}',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
+
                           ],
                         ),
                       ),
                     ),
                     SizedBox(height: 20),
-                    Container(
-                      width: double.infinity,
-                      child: Row(
-                        children: [
 
-
-                        ],
-                      ),
-                    ),
                     SizedBox(height: 10),
 
                   ],
@@ -337,9 +417,8 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                   children: [
                     // 상단 이미지
                     for (var index = 0; index < buskingImages!.length; index++)
-                      Image.asset(
-                        '${buskingImages![index]['path']}',
-
+                      Image.network(
+                        buskingImages![index]['path'],
                         height: 130,
                         width: double.infinity,
                         fit: BoxFit.cover,
@@ -383,7 +462,6 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                             },
                             decoration: InputDecoration(
                               labelText: '리뷰를 작성하세요...',
-                              errorText: _isReviewEmpty ? '리뷰를 입력해주세요' : null,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10.0),
                               ),

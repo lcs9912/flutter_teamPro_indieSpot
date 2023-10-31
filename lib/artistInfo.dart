@@ -17,11 +17,8 @@ class ArtistInfo extends StatefulWidget {
 class _ArtistInfoState extends State<ArtistInfo> {
   FirebaseFirestore fs = FirebaseFirestore.instance;
 
-
-
-
-
-
+////////////////////////////////아이스트 소개/////////////////////////////////////////
+  // 아티스트 소개 데이터호출 위젯
   Future<List<Widget>> _artistDetails() async {
     final membersQuerySnapshot = await fs
         .collection('artist')
@@ -32,11 +29,10 @@ class _ArtistInfoState extends State<ArtistInfo> {
     List<Widget> memberWidgets = [];
 
     if(membersQuerySnapshot.docs.isNotEmpty){
-
       for (QueryDocumentSnapshot membersDoc in membersQuerySnapshot.docs)  {
         // 팀 멤버 문서를 반복 처리합니다.
         // 여기에서 위젯을 만들고 memberWidgets 목록에 추가할 수 있습니다.
-        
+
         // userList 접근하는 쿼리문
         final userListJoin = await fs
             .collection("userList")
@@ -47,7 +43,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
         if(userListJoin.docs.isNotEmpty){
           for(QueryDocumentSnapshot userDoc in userListJoin.docs){
             String userName = userDoc['name']; // 이름
-            
+
             final userImage = await fs
                 .collection('userList')
                 .doc(userDoc.id)
@@ -75,10 +71,10 @@ class _ArtistInfoState extends State<ArtistInfo> {
 
 
       }
-      print('잘넘어오는중 = >$memberWidgets');
+      print('잘넘어오는중');
       return memberWidgets;
     } else {
-      print('안넘어오는중 = >$memberWidgets');
+      print('안넘어오는중');
       return [Container()];
     }
 
@@ -86,13 +82,19 @@ class _ArtistInfoState extends State<ArtistInfo> {
 
   }
 
+  // 아티스트 소개 탭
   Widget tab1() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Stack(
+        Stack( // 이부분만 따로 묶어서 관리하기
           children: [
-            Image.network(widget.artistImg),
+            Image.network(
+              widget.artistImg,
+              width: double.infinity, // 화면에 가로로 꽉 차게 하려면 width를 화면 너비로 설정합니다.
+              height: 300, // 원하는 높이로 설정합니다.
+              fit: BoxFit.fill, // 이미지를 화면에 맞게 채우도록 설정합니다.
+            ),
             Positioned(
                 left: 5,
                 bottom: 5,
@@ -110,8 +112,8 @@ class _ArtistInfoState extends State<ArtistInfo> {
                   children: [
                     Stack(
                       children: [
-                        Text("0"),
-                        IconButton(onPressed: (){}, icon: Icon(Icons.favorite_border)),
+                        Text(widget.doc['followerCnt'].toString()),
+                        IconButton(onPressed: (){}, icon: Icon(Icons.person_add_alt)),
                       ],
                     )
 
@@ -130,11 +132,18 @@ class _ArtistInfoState extends State<ArtistInfo> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('기본공연비(공연시간 30분기준)'),
-              Text('${widget.doc['donationAmount']} 원'.toString())
+              Text(
+                '기본공연비(공연시간 30분기준)',
+                style: TextStyle(fontSize: 15),
+              ),
+              Text(
+                '${widget.doc['donationAmount']} 원',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              )
             ],
           ),
         ),
+        Divider(thickness: 1, height: 1,color: Colors.grey),
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: Text("멤버",style: TextStyle(fontSize: 20),),
@@ -144,6 +153,17 @@ class _ArtistInfoState extends State<ArtistInfo> {
 
     );
   }
+
+
+  ////////////////////////////////아티스트 클립////////////////////////////////
+
+
+
+
+//////////////////////////////아티스트 공연 일정//////////////////////////////////
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -217,40 +237,38 @@ class _ArtistInfoState extends State<ArtistInfo> {
         body: TabBarView(
 
           children: [
-           ListView(
-             children: [
-               Container(
-                 child: FutureBuilder(
-                   future: _artistDetails(),
-                   builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-                     if (snapshot.connectionState == ConnectionState.waiting) {
-                       return Container();
-                     } else if (snapshot.hasError) {
-                       print('ㅣㅏㄹ미롬ㄴ$snapshot');
-                       // AsyncSnapshot<List<Widget>>(ConnectionState.done, null, Bad state: field does not exist within the DocumentSnapshotPlatform, #0      DocumentSnapshotPlatform.get._findKeyValueInMap
-                       return Text('Error: ${snapshot.error}');
-                     } else {
-                       return Column(
-                         crossAxisAlignment: CrossAxisAlignment.end,
-                         mainAxisAlignment: MainAxisAlignment.end,
-                         children: [
-                           tab1(),
-                           Container(
-                             padding: EdgeInsets.only(top: 10),
-                             margin: EdgeInsets.all(20),
-                             child: Column(
-                               children: snapshot.data ?? [Container()],
-                             ),
-                           ),
-                         ],
-                       );
-                     }
-                   },
-                 ),
+            ListView(
+              children: [
+                Container(
+                  child: FutureBuilder(
+                    future: _artistDetails(),
+                    builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Container();
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            tab1(),
+                            Container(
+                              padding: EdgeInsets.only(top: 10),
+                              margin: EdgeInsets.all(20),
+                              child: Column(
+                                children: snapshot.data ?? [Container()],
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                    },
+                  ),
 
-               )
-             ],
-           ),
+                )
+              ],
+            ),
             Column( // 클립
               children: [
                 Text("클립"),

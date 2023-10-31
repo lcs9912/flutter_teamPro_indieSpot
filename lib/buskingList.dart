@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:indie_spot/baseBar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
+
 
 import 'concertDetails.dart';
 class BuskingList extends StatefulWidget{
@@ -21,7 +23,7 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
 
   Widget _buskingList() {
     return StreamBuilder(
-      stream: FirebaseFirestore.instance.collection("busking").snapshots(),
+      stream: FirebaseFirestore.instance.collection("busking").orderBy("buskingStart").snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
         if (!snap.hasData) {
           return Container();
@@ -111,24 +113,30 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
                                 }
                                 if (imageSnapshot.hasData) {
                                   var firstImage = imageSnapshot.data!.docs.first ;
+                                  Timestamp timeStamp = data['buskingStart'];
+                                  DateTime date = timeStamp.toDate();
+                                  String formattedDate = DateFormat('yyyy-MM-dd HH:mm').format(date);
                                   return Padding(
                                     padding: const EdgeInsets.all(10.0),
                                     child: ListTile(
                                       title: Text(
-                                          '${artistData['artistName']}'),
+                                          '${data['title']}'),
                                       subtitle: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text('일시 : ${data['buskingStart']}'),
+                                          Text('일시 : $formattedDate'),
                                           Text('장소: ${spotData['spotName']}')
                                         ],
                                       ),
                                       /*leading: Image.asset('assets/기본.jpg'),*/
-                                      leading: Image.network(firstImage['path'],width: 100,),
+                                      leading: Container(
+                                        width: 100,
+                                          child: Image.network(firstImage['path'],fit: BoxFit.fill,)
+                                      ),
                                       onTap: () {
                                         Navigator.push(context,
                                             MaterialPageRoute(
-                                              builder: (context) =>ConcertDetails(document: doc, artistId: '',),));
+                                              builder: (context) =>ConcertDetails(document: doc, spotName : spotData['spotName']),));
                                       },
                                     ),
                                   );

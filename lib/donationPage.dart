@@ -87,7 +87,7 @@ class _DonationPageState extends State<DonationPage> {
     FirebaseFirestore.instance.collection("artist").doc(widget.document.id).collection("donation_details").add(
         {
           'amount' : int.parse(amount1),
-          'user' : _donationUser.text,
+          'user' : _userId,
           'message' : _donationMessage.text,
           'date' : FieldValue.serverTimestamp()
         }
@@ -96,13 +96,11 @@ class _DonationPageState extends State<DonationPage> {
         {
           'amount' : int.parse(amount1),
           'date' : FieldValue.serverTimestamp(),
+          'message' : _donationMessage.text,
+          'artistId' : widget.document.id,
           'type' : "후원"
         }
     );
-  }
-  void _addDonation() async{
-
-
   }
   @override
   Widget build(BuildContext context) {
