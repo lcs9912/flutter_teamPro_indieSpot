@@ -6,6 +6,7 @@ import 'package:indie_spot/pointDetailed.dart';
 import 'package:indie_spot/result.dart';
 import 'package:indie_spot/userEdit.dart';
 import 'package:indie_spot/userModel.dart';
+import 'package:indie_spot/videoList.dart';
 import 'buskingList.dart';
 import 'buskingReservation.dart';
 import 'firebase_options.dart';
@@ -87,7 +88,7 @@ class _MyAppState extends State<MyApp> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("공연일정",style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+                Text("공연일정",style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold, fontFamily: 'Noto_Serif_KR',),),
 
                 TextButton(
                     onPressed: (){
@@ -102,7 +103,6 @@ class _MyAppState extends State<MyApp> {
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Container(
-
                   child: Row(
                     children: [
                       for(int i= 0; i<6; i++ )
@@ -414,7 +414,9 @@ class _MyAppState extends State<MyApp> {
             Column(
               children: [
                 IconButton(
-                    onPressed: (){},
+                    onPressed: (){
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => VideoList(),));
+                    },
                     icon: Icon(Icons.smart_display)
                 ),
                 Text("애니메이션"),

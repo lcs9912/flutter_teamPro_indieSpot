@@ -19,6 +19,8 @@ class _PointHistoryState extends State<PointHistory> {
   int _totalRecharge = 0;
   List<Widget> _pointsDetailsList = [];
   int _num = 30;
+  String? _selectedItem;
+  List<String> _items = [];
 
   Future<void> pointBalanceSearch() async {
     QuerySnapshot pointSnapshot = await fs.collection('userList').doc(_userId)
@@ -46,6 +48,22 @@ class _PointHistoryState extends State<PointHistory> {
       _userId = userModel.userId;
       pointBalanceSearch();
     }
+
+    DateTime currentDate = DateTime.now();
+    _selectedItem = '${currentDate.year}년 ${currentDate.month}월';
+    DateTime lastYear = currentDate.subtract(Duration(days: 365));
+
+// 중복 항목을 방지하기 위한 Set을 사용합니다.
+    Set<String> uniqueMonths = {};
+
+    while (currentDate.isAfter(lastYear)) {
+      String month = '${currentDate.year}년 ${currentDate.month}월';
+      uniqueMonths.add(month);
+      currentDate = DateTime(currentDate.year, currentDate.month - 1, currentDate.day);
+    }
+
+// Set을 리스트로 변환합니다.
+    _items = uniqueMonths.toList();
   }
 
   @override
@@ -99,7 +117,7 @@ class _PointHistoryState extends State<PointHistory> {
             color: Colors.white,
             child: Container(
               child: FutureBuilder<List<Widget>>(
-                future: _pointsDetails(_num),
+                future: _pointsDetails(_num, _selectedItem),
                 builder: (context, snapshot) {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,7 +125,7 @@ class _PointHistoryState extends State<PointHistory> {
                       _container() ,
                       Container(
                         padding: EdgeInsets.only(left: 20, top: 30),
-                        child: Text(_num == 30 ? '최근 1개월' : '최근 3개월', style: TextStyle(fontSize: 17,)),
+                        child: Text(_num == 30 ? '최근 1개월' : _num == 90 ? '최근 3개월' : '$_selectedItem', style: TextStyle(fontSize: 17,)),
                       ),
                       Container(color: Colors.black12, height: 15,),
                       Container(
@@ -173,9 +191,9 @@ class _PointHistoryState extends State<PointHistory> {
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          margin: EdgeInsets.only(right: 15),
                           child: ElevatedButton(
                             onPressed: (){
                               setState(() {
@@ -207,6 +225,35 @@ class _PointHistoryState extends State<PointHistory> {
                               child: Text('최근 3개월'),
                             )
                         ),
+                        Container(
+                          height: 46,
+                          padding: EdgeInsets.only(left: 13),
+                          decoration: BoxDecoration(
+                            border: Border.all(width: 1, color: _num == 0 ? Colors.white : Colors.black),
+                            color: Color(0xFF634F52)
+                          ),
+                          child: DropdownButton<String>(
+                            underline: Container(
+                            ),
+                            icon: Icon(Icons.keyboard_arrow_down, color: Colors.white60,),
+                            value: _selectedItem,
+                            items: _items.map((item) {
+                              return DropdownMenuItem<String>(
+                                value: item,
+                                child: Container(
+                                  padding: EdgeInsets.only(right: 25),
+                                  child: Text(item)
+                                )
+                              );
+                            }).toList(),
+                            onChanged:(value) {
+                              setState(() {
+                                _selectedItem = value!;
+                                _num = 0;
+                              });
+                            },
+                          ),
+                        )
                       ],
                     ),
                   ],
@@ -219,22 +266,43 @@ class _PointHistoryState extends State<PointHistory> {
     );
   }
 
-  Future<List<Widget>> _pointsDetails(int day) async {
+  Future<List<Widget>> _pointsDetails(int day, sMonth) async {
     var userDocRef = fs.collection('userList').doc(_userId);
     var querySnapshot = await userDocRef.collection('point').limit(1).get();
     if (querySnapshot.docs.isNotEmpty) {
       var firstPointDocument = querySnapshot.docs.first;
       var list = <Widget>[];
-      // 현재 날짜를 가져옵니다.
-      final DateTime now = DateTime.now();
-      // 1개월 전의 날짜를 계산합니다.
-      final DateTime oneMonthAgo = now.subtract(Duration(days: day));
 
       var pointsDetailsRef = firstPointDocument.reference.collection('points_details');
-      var pointsDetailsQuerySnapshot = await pointsDetailsRef.orderBy('date', descending: true)
-          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(oneMonthAgo))
-          .where('date', isLessThanOrEqualTo: Timestamp.fromDate(now))
-          .get();
+      var pointsDetailsQuerySnapshot;
+
+      if(day == 30 || day == 90) {
+        _totalRecharge = 0;
+        final DateTime now = DateTime.now();
+        final DateTime oneMonthAgo = now.subtract(Duration(days: day));
+
+        pointsDetailsQuerySnapshot = await pointsDetailsRef.orderBy('date', descending: true)
+            .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(oneMonthAgo))
+            .where('date', isLessThanOrEqualTo: Timestamp.fromDate(now))
+            .get();
+      } else {
+        _totalRecharge = 0;
+        String strippedInput = sMonth.replaceAll('년', '').replaceAll('월', '');
+        List<String> parts = strippedInput.split(' ');
+
+        int year = int.parse(parts[0]);
+        int month = int.parse(parts[1]);
+
+        DateTime selectedDate = DateTime(year, month); // 선택한 월 (예: 2023년 10월)
+        DateTime firstDayOfMonth = DateTime(selectedDate.year, selectedDate.month, 1);
+        DateTime lastDayOfMonth = DateTime(selectedDate.year, selectedDate.month + 1, 0);
+
+        pointsDetailsQuerySnapshot = await pointsDetailsRef
+            .orderBy('date', descending: true)
+            .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(firstDayOfMonth))
+            .where('date', isLessThanOrEqualTo: Timestamp.fromDate(lastDayOfMonth))
+            .get();
+      }
 
       if(pointsDetailsQuerySnapshot.docs.isEmpty){
         list.add( Row(

@@ -163,140 +163,142 @@ class _UserEditState extends State<UserEdit> {
   Widget build(BuildContext context) {
     return Material(
       child: SingleChildScrollView(
-        child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        // Align children to the start (left)
-        crossAxisAlignment: CrossAxisAlignment.start,
-        // Align children to the start (left)
-        children: [
-          SizedBox(height: 30),
-          Row(
-            children: [
-              IconButton(
-                icon: Icon(Icons.arrow_back),
-                onPressed: () {
-                  Navigator.pop(context); // This will navigate back
-                },
-              ),
-              Text("기본정보 수정",style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),),
-            ],
-          ),
-          SizedBox(height: 30),
-          Text("이메일", style: TextStyle(fontSize: 16),),
-          SizedBox(height: 20),
-          TextField(
-            controller: _userIdController,
-            decoration: InputDecoration(
-              labelText: '이메일',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.0),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          // Align children to the start (left)
+          crossAxisAlignment: CrossAxisAlignment.start,
+          // Align children to the start (left)
+          children: [
+            SizedBox(height: 30),
+            Row(
+              children: [
+                IconButton(
+                  icon: Icon(Icons.arrow_back),
+                  onPressed: () {
+                    Navigator.pop(context); // This will navigate back
+                  },
+                ),
+                Text("기본정보 수정",style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),),
+              ],
+            ),
+            SizedBox(height: 30),
+            Text("이메일", style: TextStyle(fontSize: 16),),
+            SizedBox(height: 20),
+            TextField(
+              controller: _userIdController,
+              decoration: InputDecoration(
+                labelText: '이메일',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
               ),
             ),
-          ),
-          SizedBox(height: 30),
-          Text("비밀번호", style: TextStyle(fontSize: 16),),
-          SizedBox(height: 20),
-          TextField(
-            controller: _passwordController,
-            decoration: InputDecoration(
-              labelText: '비밀번호',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.0),
+            SizedBox(height: 30),
+            Text("비밀번호", style: TextStyle(fontSize: 16),),
+            SizedBox(height: 20),
+            TextField(
+              controller: _passwordController,
+              decoration: InputDecoration(
+                labelText: '비밀번호',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+              ),
+              obscureText: true,
+            ),
+            SizedBox(height: 30),
+            Text("닉네임", style: TextStyle(fontSize: 16),),
+            SizedBox(height: 20),
+            TextField(
+              controller: _nicknameController,
+              decoration: InputDecoration(
+                labelText: '닉네임',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
               ),
             ),
-            obscureText: true,
-          ),
-          SizedBox(height: 30),
-          Text("닉네임", style: TextStyle(fontSize: 16),),
-          SizedBox(height: 20),
-          TextField(
-            controller: _nicknameController,
-            decoration: InputDecoration(
-              labelText: '닉네임',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.0),
+            Text("생일", style: TextStyle(fontSize: 16),),
+            SizedBox(height: 20),
+            TextField(
+              controller: _birthdayController,
+              keyboardType: TextInputType.number, // 숫자 키패드를 띄웁니다.
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9]')), // 숫자만 허용합니다.
+              ],
+              decoration: InputDecoration(
+                labelText: 'YYYY-MM-DD',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
               ),
             ),
-          ),
-          Text("생일", style: TextStyle(fontSize: 16),),
-          SizedBox(height: 20),
-          TextField(
-            controller: _birthdayController,
-            keyboardType: TextInputType.number, // 숫자 키패드를 띄웁니다.
-            inputFormatters: <TextInputFormatter>[
-              FilteringTextInputFormatter.allow(RegExp(r'[0-9]')), // 숫자만 허용합니다.
-            ],
-            decoration: InputDecoration(
-              labelText: 'YYYY-MM-DD',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-            ),
-          ),
 
-          SizedBox(height: 30),
-          Text("자기소개", style: TextStyle(fontSize: 16),),
-          SizedBox(height: 20),
-          TextField(
-            controller: _introductionController,
-            decoration: InputDecoration(
-              labelText: '소개',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.0),
+            SizedBox(height: 30),
+            Text("자기소개", style: TextStyle(fontSize: 16),),
+            SizedBox(height: 20),
+            TextField(
+              controller: _introductionController,
+              decoration: InputDecoration(
+                labelText: '소개',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
               ),
             ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => Profile(
-                    nicknameController: _nicknameController,
-                    introductionController: _introductionController,
-                    userId: _userId,
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => Profile(
+                      nicknameController: _nicknameController,
+                      introductionController: _introductionController,
+                      userId: _userId,
+                    ),
+                  ),
+                );
+              },
+              child: Text('프로필 페이지로 이동'),
+            ),
+
+            SizedBox(height: 30),
+            Center(
+              child: Container(
+                width: 200, //
+
+
+
+
+              ),
+            ),
+            Center(
+              child: Container(
+                width: 200, //
+
+
+                child: ElevatedButton(
+
+
+                  onPressed: () {
+                    // 버튼이 눌렸을 때 수행될 동작을 여기에 추가하세요.
+                    updateFirestore();
+                  },
+                  child: Text(
+                    '저장',
+                    style: TextStyle(fontSize: 20), // Adjust the font size
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 16), // Adjust the vertical padding
+                    primary: Color(0xFF392F31), // Set the button color here
                   ),
                 ),
-              );
-            },
-            child: Text('프로필 페이지로 이동'),
-          ),
-
-          SizedBox(height: 30),
-          Center(
-            child: Container(
-              width: 200, //
 
 
-
-
-            ),
-          ),
-          Center(
-            child: Container(
-              width: 200, //
-
-
-              child: ElevatedButton(
-
-
-                onPressed: () {
-                  // 버튼이 눌렸을 때 수행될 동작을 여기에 추가하세요.
-                  updateFirestore();
-                },
-                child: Text(
-                  '저장',
-                  style: TextStyle(fontSize: 20), // Adjust the font size
-                ),
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 16), // Adjust the vertical padding
-                  primary: Color(0xFF392F31), // Set the button color here
-                ),
               ),
-
-
             ),
-          ),
 
 
 
@@ -304,8 +306,9 @@ class _UserEditState extends State<UserEdit> {
 
 
 
-        ],
+          ],
       ),
+        ),
       )
     );
   }

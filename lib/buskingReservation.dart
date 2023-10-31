@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:indie_spot/main.dart';
 import 'package:indie_spot/userModel.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
@@ -78,8 +79,30 @@ class _BuskingReservationState extends State<BuskingReservation> {
   void _addBusking() async{
     FocusScope.of(context).unfocus();
     if (_image == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('사진을 등록해주세요')));
       return; // 이미지가 없으면 업로드하지 않음
+    } else if(_titleControl.text == null || _titleControl.text == ''){
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('공연명을 입력해주세요')));
+      return;
+    } else if(_descriptionControl.text == null || _descriptionControl.text == ''){
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('공연소개를 입력해주세요')));
+      return;
+    } else if (_selectedDate == null || _selectedTime == null){
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('공연 시작 시간을 선택해주세요')));
+      return;
+    } else if (_spotId == null){
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('공연 장소를 선택해주세요')));
+      return;
     }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return LoadingScreen();
+      },
+      barrierDismissible: false, // 사용자가 화면을 탭해서 닫는 것을 막습니다.
+    );
+
 
     String name = generateUniqueFileName(_imageName!);
     _path = await uploadImage(name);
@@ -88,15 +111,27 @@ class _BuskingReservationState extends State<BuskingReservation> {
     FirebaseFirestore fs = FirebaseFirestore.instance;
     CollectionReference busking = fs.collection('busking');
 
+// _selectedDate와 _selectedTime을 합쳐서 DateTime 객체를 생성
+    DateTime selectedDateTime = DateTime(
+      _selectedDate!.year,
+      _selectedDate!.month,
+      _selectedDate!.day,
+      _selectedTime!.hour,
+      _selectedTime!.minute,
+    );
+
+    Timestamp timestamp = Timestamp.fromDate(selectedDateTime);
+
+
     await busking
       .add({
         'artistId' : _artisId,
-        'buskingStart' : '${DateFormat('yyyy-MM-dd').format(_selectedDate!)} ${_selectedTime!.format(context)}',
+        'buskingStart' : timestamp,
         'title' : _titleControl.text,
         'description' : _descriptionControl.text,
         'spotId' : _spotId,
         'createDate' : FieldValue.serverTimestamp(),
-        'uDateTime' : FieldValue.serverTimestamp(),
+        'uDateTime' : FieldValue.serverTimestamp()
       })
       .then((DocumentReference document){
         document.collection('image')
@@ -109,6 +144,8 @@ class _BuskingReservationState extends State<BuskingReservation> {
             'cDateTime' : FieldValue.serverTimestamp(),
           });
       });
+    if(!context.mounted) return;
+    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => MyApp(),));
   }
 
   Future<void> _artisNameSearch() async{
@@ -116,14 +153,14 @@ class _BuskingReservationState extends State<BuskingReservation> {
 
     final artistDoc = await fs.collection('artist').doc('$_artisId').get();
     if (artistDoc.exists) {
-      // 문서가 존재하는 경우
-      // 'fieldName'은 필드의 이름으로 변경해야 합니다.
       var fieldValue = artistDoc.get('artistName');
       setState(() {
         _artisName = fieldValue;
       });
     } else {
       print('해당 아티스트 문서가 존재하지 않습니다.');
+      if(!context.mounted) return;
+      Navigator.of(context).pop();
     }
   }
 
@@ -135,7 +172,6 @@ class _BuskingReservationState extends State<BuskingReservation> {
     _spotName = widget._receivingSpotName;
     _userId = Provider.of<UserModel>(context, listen: false).userId;
     _artisId = Provider.of<UserModel>(context, listen: false).artistId;
-
     _artisNameSearch();
   }
 
@@ -277,7 +313,20 @@ class _BuskingReservationState extends State<BuskingReservation> {
               padding: EdgeInsets.symmetric(horizontal: 16.0), // Add horizontal padding if needed
               child: ElevatedButton(
                 onPressed: (){
-                  _addBusking();
+                  showDialog(context: context, builder: (context) {
+                    return AlertDialog(
+                      content: Text('등록하시겠습니까?'),
+                      actions: [
+                        TextButton(onPressed: (){
+                          Navigator.of(context).pop();
+                        }, child: Text('취소', style: TextStyle(color: Color(0xFF392F31)),)),
+                        TextButton(onPressed: (){
+                          Navigator.of(context).pop();
+                          _addBusking();
+                        }, child: Text('등록', style: TextStyle(color: Color(0xFF392F31)),)),
+                      ],
+                    );
+                  },);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF392F31), // 392F31 색상
@@ -471,6 +520,19 @@ class _BuskingZoneListScreenState extends State<BuskingZoneListScreen> {
           ),
           body: _spotList()
       )
+    );
+  }
+}
+
+
+class LoadingScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white.withOpacity(0.7), // 배경을 반투명하게 하고 하얀색으로 설정
+      body: Center(
+        child: CircularProgressIndicator(), // 로딩 표시 방법을 원하는 대로 수정 가능
+      ),
     );
   }
 }
