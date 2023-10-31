@@ -21,6 +21,8 @@ class ConcertDetails extends StatefulWidget {
 
 class _ConcertDetailsState extends State<ConcertDetails> {
   Map<String, dynamic>? buskingData;
+  // 변수 추가( 기존에 artistData 있어서 2붙임 일단)
+  Map<String, dynamic>? artistData2;
 
 
   TextEditingController _review = TextEditingController();
@@ -30,8 +32,12 @@ class _ConcertDetailsState extends State<ConcertDetails> {
   Future<void> loadBuskingData() async {
     buskingData = null;
     DocumentSnapshot<Map<String, dynamic>> buskingSnapshot = await getBuskingDetails(widget.document.id);
+    // artistId로 검색 추가
+    DocumentSnapshot<Map<String, dynamic>> artistSnapshot = await getArtist(buskingSnapshot.data()?['artistId']);
     setState(() {
       buskingData = buskingSnapshot.data();
+      // 추가(뿌리는 부분에서 artistData => artistData2로 변경)
+      artistData2 = artistSnapshot.data();
     });
   }
 
@@ -127,6 +133,10 @@ class _ConcertDetailsState extends State<ConcertDetails> {
 
   Future<DocumentSnapshot<Map<String, dynamic>>> getBuskingDetails(String buskingID) async {
     return await FirebaseFirestore.instance.collection('busking').doc(buskingID).get();
+  }
+
+  Future<DocumentSnapshot<Map<String, dynamic>>> getArtist(String artistId) async {
+    return await FirebaseFirestore.instance.collection('artist').doc(artistId).get();
   }
 
   Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>> getBuskingImages(String buskingID) async {
@@ -268,7 +278,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  '아티스트 ${artistData?['artistName']}',
+                                  '아티스트 ${artistData2?['artistName']}',
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
 
