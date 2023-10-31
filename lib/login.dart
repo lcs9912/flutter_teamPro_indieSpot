@@ -169,6 +169,14 @@ class _LoginPageState extends State<LoginPage> {
        return;
     }
 
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return LoadingScreen();
+      },
+      barrierDismissible: false, // 사용자가 화면을 탭해서 닫는 것을 막습니다.
+    );
+
     final userDocs = await _fs.collection('userList')
         .where('email', isEqualTo: email)
         .where('pwd', isEqualTo: password).get();
@@ -224,5 +232,17 @@ class _LoginPageState extends State<LoginPage> {
         ),
       );
     }
+  }
+}
+
+class LoadingScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white.withOpacity(0.7), // 배경을 반투명하게 하고 하얀색으로 설정
+      body: Center(
+        child: CircularProgressIndicator(), // 로딩 표시 방법을 원하는 대로 수정 가능
+      ),
+    );
   }
 }
