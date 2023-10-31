@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:indie_spot/pointDetailed.dart';
 import 'package:indie_spot/userEdit.dart';
 
 class Profile extends StatefulWidget {
@@ -13,11 +14,13 @@ class Profile extends StatefulWidget {
     required this.userId,
   });
 
+
   @override
   _ProfileState createState() => _ProfileState();
 }
 
 class _ProfileState extends State<Profile> {
+  List<String> imagePaths = []; // Define the list of image paths
   String? _nickFromFirestore; // Firestore에서 가져온 'nick' 값을 저장할 변수
   String? _introductionFromFirestore;
   String? _followerCount = '0'; // 기본값으로 0 설정
@@ -32,7 +35,8 @@ class _ProfileState extends State<Profile> {
   Future<void> getNickFromFirestore(String? userId) async {
     try {
       if (userId != null) {
-        DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance
+        DocumentSnapshot<
+            Map<String, dynamic>> snapshot = await FirebaseFirestore.instance
             .collection('userList')
             .doc(userId)
             .get();
@@ -50,11 +54,14 @@ class _ProfileState extends State<Profile> {
       print('Error fetching nick from Firestore: $e');
     }
   }
+
   Future<void> getFollowerFollowingCounts() async {
     try {
       if (widget.userId != null) {
         // Get follower count
-        DocumentSnapshot<Map<String, dynamic>> followerSnapshot = await FirebaseFirestore.instance
+        DocumentSnapshot<
+            Map<String, dynamic>> followerSnapshot = await FirebaseFirestore
+            .instance
             .collection('userList')
             .doc(widget.userId)
             .collection('follower')
@@ -68,7 +75,9 @@ class _ProfileState extends State<Profile> {
         }
 
         // Get following count
-        DocumentSnapshot<Map<String, dynamic>> followingSnapshot = await FirebaseFirestore.instance
+        DocumentSnapshot<
+            Map<String, dynamic>> followingSnapshot = await FirebaseFirestore
+            .instance
             .collection('userList')
             .doc(widget.userId)
             .collection('following')
@@ -85,50 +94,34 @@ class _ProfileState extends State<Profile> {
       print('Error fetching follower and following counts: $e');
     }
   }
-  Future<void> updateFirestore(BuildContext context) async {
+
+  Future<List<String>> getImageData() async {
     try {
-      DocumentReference documentReference = FirebaseFirestore.instance
-          .collection('userList')
-          .doc(widget.userId);
+      List<String> imagePaths = [];
 
-      Map<String, dynamic> updatedData = {};
+      if (widget.userId != null) {
+        // Get image paths
+        QuerySnapshot<
+            Map<String, dynamic>> imageSnapshot = await FirebaseFirestore
+            .instance
+            .collection('userList')
+            .doc(widget.userId)
+            .collection('image')
+            .get();
 
-      if (widget.nicknameController.text.isNotEmpty) {
-        updatedData['nick'] = widget.nicknameController.text;
+        // Process the image paths
+        imagePaths =
+            imageSnapshot.docs.map((doc) => doc.data()['path'].toString())
+                .toList();
       }
 
-      if (widget.introductionController.text.isNotEmpty) {
-        updatedData['introduction'] = widget.introductionController.text;
-      }
-
-      if (updatedData.isNotEmpty) {
-        await documentReference.update(updatedData);
-
-        print('Data Updated: $updatedData');
-
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('수정 완료'),
-              content: Text('정보가 업데이트되었습니다.'),
-              actions: [
-                TextButton(
-                  child: Text('확인'),
-                  onPressed: () async {
-                    Navigator.of(context).pop();
-                    getNickFromFirestore(widget.userId);
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
+      return imagePaths;
     } catch (e) {
-      print('문서 업데이트 중 오류 발생: $e');
+      print('Error fetching image paths: $e');
+      return []; // Return an empty list in case of an error
     }
   }
+
 
   Future<void> getIntroductionFromFirestore() async {
     try {
@@ -152,6 +145,20 @@ class _ProfileState extends State<Profile> {
     }
   }
 
+  List<Widget> generateIntroductionWidgets(String introductionText) {
+    const int maxCharactersPerLine = 25;
+
+    List<Widget> widgets = [];
+    for (int i = 0; i < introductionText.length; i += maxCharactersPerLine) {
+      int endIndex = i + maxCharactersPerLine;
+      if (endIndex > introductionText.length) {
+        endIndex = introductionText.length;
+      }
+      String line = introductionText.substring(i, endIndex);
+      widgets.add(Text(line, style: TextStyle(fontSize: 16)));
+    }
+    return widgets;
+  }
 
 
   @override
@@ -169,7 +176,10 @@ class _ProfileState extends State<Profile> {
               children: [
                 CircleAvatar(
                   radius: 50,
-                  backgroundImage: AssetImage('assets/기본.jpg'),
+                  backgroundImage: imagePaths.isNotEmpty
+                      ? AssetImage(
+                      imagePaths[0]) // Assuming you want to use the first image from the list
+                      : AssetImage('assets/기본.jpg'),
                 ),
                 Text(
                   '   Follower: $_followerCount    ',
@@ -186,97 +196,61 @@ class _ProfileState extends State<Profile> {
               '닉네임: $_nickFromFirestore',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
-
-
-
-
-
-
             SizedBox(height: 20),
             Row(
               children: [
-                Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        // When the edit icon is tapped, show a dialog to edit the introduction
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            TextEditingController introductionController = TextEditingController();
-                            introductionController.text = _introductionFromFirestore ?? '';
-                            return AlertDialog(
-                              title: Text('자기소개 수정'),
-                              content: TextField(
-                                controller: introductionController,
-                                decoration: InputDecoration(
-                                  hintText: '새로운 자기소개를 입력하세요',
-                                ),
-                              ),
-                              actions: <Widget>[
-                                TextButton(
-                                  child: Text('취소'),
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                ),
-                                TextButton(
-                                  child: Text('저장'),
-                                  onPressed: () {
-                                    // Update the introduction
-                                    setState(() {
-                                      _introductionFromFirestore = introductionController.text;
-                                    });
-                                    Navigator.of(context).pop();
-
-                                    // Update Firestore
-                                    updateFirestore(context);
-                                  },
-                                ),
-                              ],
-                            );
-                          },
+                Expanded(
+                  flex: 3, // 텍스트가 차지할 비율
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: generateIntroductionWidgets(
+                        _introductionFromFirestore ?? '외않돼'),
+                  ),
+                ),
+                Expanded(
+                  flex: 1, // 버튼이 차지할 비율
+                  child: Align(
+                    alignment: Alignment.topRight,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Navigate to userEdit.dart
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => UserEdit()),
                         );
                       },
-                      child: Icon(Icons.edit),
+                      child: Text(
+                        '계정 수정',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        primary: Color(0xFF392F31),
+                      ),
                     ),
-                    SizedBox(width: 8),
-                    Text(
-                      '자기소개',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                    ),
-                  ],
+                  ),
                 ),
-                Text(
-                  _introductionFromFirestore ?? '외않돼',
-                  style: TextStyle(fontSize: 16),
-                ),
-
-
-
-                SizedBox(height: 20),
+              ],
+            ),
+            SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                // Navigate to userEdit.dart
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => UserEdit()),
+                  MaterialPageRoute(builder: (context) => PointDetailed()),
                 );
               },
               child: Text(
-                'Edit User',
-                style: TextStyle(color: Colors.white), // Set text color to blue
+                '포인트 상세',
+                style: TextStyle(color: Colors.white),
               ),
               style: ElevatedButton.styleFrom(
-                primary: Color(0xFF392F31), // Set button color to your custom color
+                primary: Color(0xFF392F31), // 버튼 배경색
+                fixedSize: Size.fromWidth(500), // 가로로 꽉 차도록 설정
               ),
             ),
-
           ],
         ),
-     ]
       ),
-    )
     );
   }
 }

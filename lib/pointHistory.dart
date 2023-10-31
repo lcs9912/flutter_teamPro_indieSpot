@@ -191,9 +191,9 @@ class _PointHistoryState extends State<PointHistory> {
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          margin: EdgeInsets.only(right: 15),
                           child: ElevatedButton(
                             onPressed: (){
                               setState(() {
@@ -226,7 +226,6 @@ class _PointHistoryState extends State<PointHistory> {
                             )
                         ),
                         Container(
-                          margin: EdgeInsets.only(left: 20),
                           height: 46,
                           padding: EdgeInsets.only(left: 13),
                           decoration: BoxDecoration(
@@ -255,7 +254,6 @@ class _PointHistoryState extends State<PointHistory> {
                             },
                           ),
                         )
-
                       ],
                     ),
                   ],
