@@ -143,7 +143,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
     Object? artistIdObject = ModalRoute.of(context)?.settings.arguments;
     String artistId = artistIdObject?.toString() ?? '';
 
-    // 다음에 해당 데이터를 불러옵니다.
+    // 다음에 해당 데이터를 불러옵니ㄴㄴ다.
     loadArtistDataByArtistId(artistId);
   }
 
