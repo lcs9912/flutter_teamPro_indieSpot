@@ -385,7 +385,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                 ),
                                 SizedBox(height: 20),
                                 Text(
-                                  '장소 ${buskingData?['description']}',
+                                  '장소 ${widget.spotName}', // widget을 사용하여 spotName에 접근합니다.
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
                                 SizedBox(height: 20),
@@ -395,7 +395,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                 ),
                                 Text(
                                   '장르 ${artistData2?['genre']}',
-                                  style: TextStyle(fontSize: 15),
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
