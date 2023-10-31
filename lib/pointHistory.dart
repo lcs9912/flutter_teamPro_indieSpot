@@ -194,6 +194,7 @@ class _PointHistoryState extends State<PointHistory> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
+                          margin: EdgeInsets.only(right: 5),
                           child: ElevatedButton(
                             onPressed: (){
                               setState(() {
@@ -228,6 +229,7 @@ class _PointHistoryState extends State<PointHistory> {
                         Container(
                           height: 46,
                           padding: EdgeInsets.only(left: 13),
+                          margin: EdgeInsets.only(left: 5),
                           decoration: BoxDecoration(
                             border: Border.all(width: 1, color: _num == 0 ? Colors.white : Colors.black),
                             color: Color(0xFF634F52)
@@ -242,7 +244,7 @@ class _PointHistoryState extends State<PointHistory> {
                                 value: item,
                                 child: Container(
                                   padding: EdgeInsets.only(right: 25),
-                                  child: Text(item)
+                                  child: Text(item, style: TextStyle(color: Colors.white),)
                                 )
                               );
                             }).toList(),
