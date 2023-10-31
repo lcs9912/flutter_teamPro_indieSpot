@@ -10,10 +10,10 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 class ConcertDetails extends StatefulWidget {
   final DocumentSnapshot document;
-  final String artistId;
+  final String spotName;
 
 
-  ConcertDetails({required this.document, required this.artistId});
+  ConcertDetails({required this.document, required this.spotName});
 
   @override
   _ConcertDetailsState createState() => _ConcertDetailsState();

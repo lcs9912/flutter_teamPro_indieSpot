@@ -136,7 +136,7 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
                                       onTap: () {
                                         Navigator.push(context,
                                             MaterialPageRoute(
-                                              builder: (context) =>ConcertDetails(document: doc, artistId: '',),));
+                                              builder: (context) =>ConcertDetails(document: doc, spotName : spotData['spotName']),));
                                       },
                                     ),
                                   );
