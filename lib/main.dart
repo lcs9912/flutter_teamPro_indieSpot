@@ -14,6 +14,7 @@ import 'package:provider/provider.dart';
 import 'baseBar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +27,14 @@ void main() async {
           ChangeNotifierProvider(create: (_) => UserModel())
         ],
         child: MaterialApp(
+          localizationsDelegates: [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: [
+            const Locale('ko', 'KR'), // 한국어
+            const Locale('en', ''), // 다른 언어도 지원하려면 추가
+          ],
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
             fontFamily: 'Noto_Serif_KR', // 폰트 패밀리 이름을 지정
@@ -69,7 +78,6 @@ class _MyAppState extends State<MyApp> {
       for (QueryDocumentSnapshot buskingDoc in buskingQuerySnapshot.docs)  {
         int reviewCnt;
         int busLikeCnt;
-        String docId = buskingDoc.id;
         // 공연제목
         String title = buskingDoc['title'];
         // 공연설명
