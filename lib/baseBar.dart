@@ -5,7 +5,6 @@ import 'package:indie_spot/donationArtistList.dart';
 import 'package:indie_spot/donationList.dart';
 import 'package:indie_spot/donationPage.dart';
 import 'package:indie_spot/login.dart';
-import 'package:indie_spot/test.dart';
 import 'package:indie_spot/userDonationHistory.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:provider/provider.dart';
@@ -302,7 +301,6 @@ class _MyDrawerState extends State<MyDrawer> {
               ListTile(
                 title: Text('공지사항'),
                 onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => Test(),));
 
                 },
               ),

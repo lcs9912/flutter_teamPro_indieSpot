@@ -18,10 +18,6 @@ class _ArtistInfoState extends State<ArtistInfo> {
   FirebaseFirestore fs = FirebaseFirestore.instance;
 
 
-
-
-
-
   Future<List<Widget>> _artistDetails() async {
     final membersQuerySnapshot = await fs
         .collection('artist')
@@ -32,7 +28,6 @@ class _ArtistInfoState extends State<ArtistInfo> {
     List<Widget> memberWidgets = [];
 
     if(membersQuerySnapshot.docs.isNotEmpty){
-
       for (QueryDocumentSnapshot membersDoc in membersQuerySnapshot.docs)  {
         // 팀 멤버 문서를 반복 처리합니다.
         // 여기에서 위젯을 만들고 memberWidgets 목록에 추가할 수 있습니다.
@@ -110,8 +105,8 @@ class _ArtistInfoState extends State<ArtistInfo> {
                   children: [
                     Stack(
                       children: [
-                        Text("0"),
-                        IconButton(onPressed: (){}, icon: Icon(Icons.favorite_border)),
+                        Text(widget.doc['followerCnt'].toString()),
+                        IconButton(onPressed: (){}, icon: Icon(Icons.person_add_alt)),
                       ],
                     )
 
@@ -226,8 +221,6 @@ class _ArtistInfoState extends State<ArtistInfo> {
                      if (snapshot.connectionState == ConnectionState.waiting) {
                        return Container();
                      } else if (snapshot.hasError) {
-                       print('ㅣㅏㄹ미롬ㄴ$snapshot');
-                       // AsyncSnapshot<List<Widget>>(ConnectionState.done, null, Bad state: field does not exist within the DocumentSnapshotPlatform, #0      DocumentSnapshotPlatform.get._findKeyValueInMap
                        return Text('Error: ${snapshot.error}');
                      } else {
                        return Column(
