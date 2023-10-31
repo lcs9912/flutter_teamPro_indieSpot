@@ -164,10 +164,10 @@ class _MyAppState extends State<MyApp> {
         }
 
       }
-      print('잘넘어오는중');
+      print('버스킹 잘넘어오는중');
       return buskingWidgets;
     } else {
-      print('안넘어오는중');
+      print('버스킹 안넘어오는중');
       return [Container()];
     }
 
@@ -666,15 +666,16 @@ class _MyAppState extends State<MyApp> {
                           title: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              ClipRRect(
-                                    borderRadius: BorderRadius.circular(10), // 모서리 둥글게
-                                    child: Container(
-                                      width: 100,
-                                      height: 100,
-                                      child: Image.network(img),
-                                    ),
-                                  ),
-                                  SizedBox(width: 16), // 이미지와 텍스트 사이의 간격 조절
+                              Row(
+                                children: [
+                                  ClipRRect(
+                                        borderRadius: BorderRadius.circular(10), // 모서리 둥글게
+                                        child: Container(
+                                          width: 100,
+                                          height: 100,
+                                          child: Image.network(img),
+                                        ),
+                                      ),
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
@@ -689,6 +690,9 @@ class _MyAppState extends State<MyApp> {
                                       Text('공연팀:  $artistName',style: TextStyle(fontSize: 13),),
                                     ],
                                   ),
+                                ],
+                              ),
+
                                   Column(
                                     children: [
                                       Text(date),
@@ -696,9 +700,6 @@ class _MyAppState extends State<MyApp> {
                                       Text(endTime), //  오버플로우 가 표시되는 부분
                                     ],
                                   ),
-
-
-
                             ],
                           ),
 

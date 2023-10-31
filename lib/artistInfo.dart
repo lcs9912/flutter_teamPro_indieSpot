@@ -17,7 +17,8 @@ class ArtistInfo extends StatefulWidget {
 class _ArtistInfoState extends State<ArtistInfo> {
   FirebaseFirestore fs = FirebaseFirestore.instance;
 
-
+////////////////////////////////아이스트 소개/////////////////////////////////////////
+  // 아티스트 소개 데이터호출 위젯
   Future<List<Widget>> _artistDetails() async {
     final membersQuerySnapshot = await fs
         .collection('artist')
@@ -70,24 +71,30 @@ class _ArtistInfoState extends State<ArtistInfo> {
 
 
       }
-      print('잘넘어오는중 = >$memberWidgets');
+      print('잘넘어오는중');
       return memberWidgets;
     } else {
-      print('안넘어오는중 = >$memberWidgets');
+      print('안넘어오는중');
       return [Container()];
     }
 
 
 
   }
-
+  
+  // 아티스트 소개 탭
   Widget tab1() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Stack(
+        Stack( // 이부분만 따로 묶어서 관리하기
           children: [
-            Image.network(widget.artistImg),
+            Image.network(
+              widget.artistImg,
+              width: double.infinity, // 화면에 가로로 꽉 차게 하려면 width를 화면 너비로 설정합니다.
+              height: 300, // 원하는 높이로 설정합니다.
+              fit: BoxFit.fill, // 이미지를 화면에 맞게 채우도록 설정합니다.
+            ),
             Positioned(
                 left: 5,
                 bottom: 5,
@@ -125,11 +132,18 @@ class _ArtistInfoState extends State<ArtistInfo> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('기본공연비(공연시간 30분기준)'),
-              Text('${widget.doc['donationAmount']} 원'.toString())
+              Text(
+                '기본공연비(공연시간 30분기준)',
+                style: TextStyle(fontSize: 15),
+              ),
+              Text(
+                  '${widget.doc['donationAmount']} 원',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+              )
             ],
           ),
         ),
+        Divider(thickness: 1, height: 1,color: Colors.grey),
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: Text("멤버",style: TextStyle(fontSize: 20),),
@@ -139,6 +153,17 @@ class _ArtistInfoState extends State<ArtistInfo> {
 
     );
   }
+  
+
+  ////////////////////////////////아티스트 클립////////////////////////////////
+
+
+
+
+//////////////////////////////아티스트 공연 일정//////////////////////////////////
+
+
+  
 
   @override
   Widget build(BuildContext context) {
