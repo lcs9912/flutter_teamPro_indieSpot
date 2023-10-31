@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:indie_spot/baseBar.dart';
+import 'package:indie_spot/userModel.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class BoardView extends StatefulWidget {
   final DocumentSnapshot document;
@@ -18,6 +20,8 @@ class _BoardViewState extends State<BoardView> {
   bool TextFlg = false;
 
   void _addComment() async {
+    String? userId = Provider.of<UserModel>(context, listen: false).userId;
+
     if (_comment.text.isNotEmpty) {
       CollectionReference comments = FirebaseFirestore.instance
           .collection('posts')
@@ -25,6 +29,7 @@ class _BoardViewState extends State<BoardView> {
           .collection('comments');
 
       await comments.add({
+        'USER_ID' : userId,
         'COMMENT': _comment.text,
         'CREATEDATE': FieldValue.serverTimestamp(),
       });
@@ -81,24 +86,38 @@ class _BoardViewState extends State<BoardView> {
                   children: [
                     SizedBox(height: 60),
                     Text(
-                      "[" + data['CATEGORY'] + "]",
+                      "[" + data['CATEGORY'] + "] ",
                       style: TextStyle(
                           fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey[600]
+                          fontWeight: FontWeight.bold
                       ),
                     ),
                     SizedBox(width: 6),
                     Text(
                       data['TITLE'],
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
-                Text('작성일 : ${data['CREATEDATE'].toDate().toString().substring(0, 16)}'),
+                Text(
+                    '${data['USER_ID']}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                    '${data['CREATEDATE'].toDate().toString().substring(0, 16)}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.black54
+                  ),
+                ),
                 Divider(
                   color: Colors.grey[400],
                   thickness: 1,
@@ -243,6 +262,7 @@ class _BoardViewState extends State<BoardView> {
 
             // DateTime createdDate = (commentData['CREATEDATE'] as Timestamp).toDate();
             // String formatDate = DateFormat('yyyy/MM/dd HH:mm').format(createdDate);
+
             Timestamp? createdDateTimestamp = commentData['CREATEDATE'];
             DateTime? createdDate;
             if (createdDateTimestamp != null) {
@@ -256,9 +276,29 @@ class _BoardViewState extends State<BoardView> {
             return Column(
               children: [
                 ListTile(
-                  title: Text(commentData['COMMENT']),
-                  subtitle: Text(
-                    formatDate,
+                  title: Text(
+                      commentData['USER_ID'] ?? 'Unknown User',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black
+                    ),
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        commentData['COMMENT'],
+                        style: TextStyle(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 16,
+                          color: Colors.black
+                        ),
+                      ),
+                      Text(
+                        formatDate,
+                      ),
+                    ],
                   ),
                   trailing: Column(
                       children:[
