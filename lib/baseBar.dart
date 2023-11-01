@@ -8,6 +8,7 @@ import 'package:indie_spot/login.dart';
 import 'package:indie_spot/main.dart';
 import 'package:indie_spot/userDonationHistory.dart';
 import 'package:indie_spot/userModel.dart';
+import 'package:indie_spot/videoAdd.dart';
 import 'package:indie_spot/videoList.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -347,7 +348,7 @@ class _MyDrawerState extends State<MyDrawer> {
               ListTile(
                 title: Text('사업자 등록'),
                 onTap: () {
-
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => YoutubeAdd(),));
                 },
               ),
             ],
