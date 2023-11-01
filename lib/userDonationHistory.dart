@@ -12,7 +12,7 @@ class UserDonationHistory extends StatefulWidget {
 }
 
 class _UserDonationHistoryState extends State<UserDonationHistory> {
-  int _num = 0;
+  int _num = 30;
   String? _selectedItem;
   List<String> _items = [];
   String? _userId;
@@ -29,7 +29,7 @@ class _UserDonationHistoryState extends State<UserDonationHistory> {
     } else {
       _userId = userModel.userId;
     }
-
+    totalPoint();
     DateTime currentDate = DateTime.now();
     _selectedItem = '${currentDate.year}년 ${currentDate.month}월';
     DateTime lastYear = currentDate.subtract(const Duration(days: 365));
@@ -46,36 +46,81 @@ class _UserDonationHistoryState extends State<UserDonationHistory> {
     // Set을 리스트로 변환합니다.
     _items = uniqueMonths.toList();
   }
+  void totalPoint() async {
+    List<Map<String, dynamic>> donationData = await getDonationData(_num, _selectedItem);
+    totalDonationPoint = 0; 
+    for (var data in donationData) {
+      totalDonationPoint = data['total'] as int;
+    }
+    setState(() {
+      totalDonationPoint;
+    });
+  }
 
-  Future<List<Map<String, dynamic>>> getDonationData() async {
-    QuerySnapshot userSnap = await fs.collection("userList").doc(_userId).collection("point").get();
+  Future<List<Map<String, dynamic>>> getDonationData(int day, sMonth) async {
+    QuerySnapshot userSnap = await fs.collection("userList").doc(_userId).collection("point").limit(1).get();
     if (userSnap.docs.isNotEmpty) {
       String userPointDocId = userSnap.docs.first.id;
-      QuerySnapshot userPointSnap = await fs.collection("userList")
-          .doc(_userId).collection("point")
-          .doc(userPointDocId)
-          .collection("points_details")
-          .where("type", isEqualTo: "후원")
-          .get();
+      QuerySnapshot userPointSnap;
+      if(_num == 30 || _num == 90) {
+        totalDonationPoint = 0;
+        final DateTime now = DateTime.now();
+        final DateTime oneMonthAgo = now.subtract(Duration(days: day));
+        userPointSnap = await fs
+            .collection("userList")
+            .doc(_userId).collection("point")
+            .doc(userPointDocId)
+            .collection("points_details")
+            .orderBy('date', descending: true)
+            .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(oneMonthAgo))
+            .where('date', isLessThanOrEqualTo: Timestamp.fromDate(now))
+            .get();
+      }else{
+        totalDonationPoint = 0;
+        String strippedInput = sMonth.replaceAll('년', '').replaceAll('월', '');
+        List<String> parts = strippedInput.split(' ');
+
+        int year = int.parse(parts[0]);
+        int month = int.parse(parts[1]);
+
+        DateTime selectedDate = DateTime(year, month); // 선택한 월 (예: 2023년 10월)
+        DateTime firstDayOfMonth = DateTime(selectedDate.year, selectedDate.month, 1);
+        DateTime lastDayOfMonth = DateTime(selectedDate.year, selectedDate.month + 1, 0).add(Duration(days: 1));
+        userPointSnap = await fs
+            .collection("userList")
+            .doc(_userId).collection("point")
+            .doc(userPointDocId)
+            .collection("points_details")
+            .orderBy('date', descending: true)
+            .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(firstDayOfMonth))
+            .where('date', isLessThanOrEqualTo: Timestamp.fromDate(lastDayOfMonth))
+            .get();
+      }
       if (userPointSnap.docs.isNotEmpty) {
         List<Map<String, dynamic>> data = [];
         int total = 0;
         for (int index = 0; index < userPointSnap.docs.length; index++) {
           Map<String, dynamic> _pointData = userPointSnap.docs[index].data() as Map<String, dynamic>;
-          String artistId = _pointData['artistId'];
-          DocumentSnapshot artistSnap = await fs.collection("artist").doc(artistId).get();
-          Map<String, dynamic> artistData = artistSnap.data() as Map<String, dynamic>;
-          data.add({
-            'date': _pointData['date'],
-            'formattedDate': DateFormat('yyyy-MM-dd').format(_pointData['date'].toDate()),
-            'formattedHour': DateFormat('HH:mm').format(_pointData['date'].toDate()),
-            'artistName': artistData['artistName'],
-            'amount': _numberFormat.format(_pointData['amount']),
-            'message': _pointData['message'],
-          });
-          total += _pointData['amount'] as int;
+          if(_pointData['type'] == "후원") {
+            String artistId = _pointData['artistId'];
+            DocumentSnapshot artistSnap = await fs.collection("artist").doc(
+                artistId).get();
+            Map<String, dynamic> artistData = artistSnap.data() as Map<
+                String,
+                dynamic>;
+            data.add({
+              'date': _pointData['date'],
+              'formattedDate': DateFormat('yyyy-MM-dd').format(
+                  _pointData['date'].toDate()),
+              'formattedHour': DateFormat('HH:mm').format(
+                  _pointData['date'].toDate()),
+              'artistName': artistData['artistName'],
+              'amount': _numberFormat.format(_pointData['amount']),
+              'message': _pointData['message'],
+              "total": total += _pointData['amount'] as int,
+            });
+          }
         }
-        totalDonationPoint = total;
         return data;
       }
     }
@@ -129,6 +174,7 @@ class _UserDonationHistoryState extends State<UserDonationHistory> {
                                   setState(() {
                                     _num = 30;
                                   });
+                                  totalPoint();
                                 },
                                 style: ButtonStyle(
                                   shape: MaterialStateProperty.all(RoundedRectangleBorder(
@@ -147,6 +193,7 @@ class _UserDonationHistoryState extends State<UserDonationHistory> {
                                   setState(() {
                                     _num = 90;
                                   });
+                                  totalPoint();
                                 },
                                 style: ButtonStyle(
                                   shape: MaterialStateProperty.all(RoundedRectangleBorder(
@@ -186,6 +233,7 @@ class _UserDonationHistoryState extends State<UserDonationHistory> {
                                       _selectedItem = value!;
                                       _num = 0;
                                     });
+                                    totalPoint();
                                   },
                                 ),
                               ),
@@ -228,7 +276,7 @@ class _UserDonationHistoryState extends State<UserDonationHistory> {
             ),
           ),
           FutureBuilder<List<Map<String, dynamic>>>(
-            future: getDonationData(),
+            future: getDonationData(_num, _selectedItem),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
