@@ -7,6 +7,7 @@ import 'package:indie_spot/donationPage.dart';
 import 'package:indie_spot/login.dart';
 import 'package:indie_spot/userDonationHistory.dart';
 import 'package:indie_spot/userModel.dart';
+import 'package:indie_spot/videoList.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'artistList.dart';
@@ -441,12 +442,12 @@ class _MyBottomBarState extends State<MyBottomBar> {
             child: Icon(Icons.home_outlined,color: Colors.black54,),
           ),
           InkWell(
-            /*onTap: () {
+            onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => ),
+                          MaterialPageRoute(builder: (context) => VideoList()),
                         );
-                      },*/
+                      },
             child: Icon(Icons.play_circle_outline,color: Colors.black54,),
           ),
           InkWell(
