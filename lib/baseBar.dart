@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:indie_spot/announcementList.dart';
 import 'package:indie_spot/buskingList.dart';
 import 'package:indie_spot/buskingSpotList.dart';
 import 'package:indie_spot/donationArtistList.dart';
@@ -303,7 +304,7 @@ class _MyDrawerState extends State<MyDrawer> {
               ListTile(
                 title: Text('공지사항'),
                 onTap: () {
-
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => AnnouncementList(),));
                 },
               ),
               ListTile(

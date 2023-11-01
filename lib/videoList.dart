@@ -140,7 +140,7 @@ class _VideoListState extends State<VideoList> {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => VideoDetailed(videoDetailData, id),));
+          builder: (context) => VideoDetailed(videoDetailData, id),)).then((value) => setState(() {}));
       },
       child: Container(
         height: 370,

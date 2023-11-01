@@ -27,11 +27,14 @@ class _VideoDetailedState extends State<VideoDetailed> {
   final _commentControl = TextEditingController();
   FirebaseFirestore fs = FirebaseFirestore.instance;
   String? _userId;
+  bool _editflg = false;
+  String? _commentId;
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
-
+    _updateCnt();
     _controller = YoutubePlayerController(
       initialVideoId: widget.videoDetailData['url'], // YouTube 동영상의 ID를 여기에 입력
       flags: YoutubePlayerFlags(
@@ -46,7 +49,29 @@ class _VideoDetailedState extends State<VideoDetailed> {
       _userId = userModel.userId;
     }
   }
-  
+
+  Future<void> _updateCnt() async {
+    CollectionReference videoCollection = fs.collection('video');
+    DocumentReference videoDocRef = videoCollection.doc(widget.videoId);
+
+    try {
+      DocumentSnapshot document = await videoDocRef.get();
+      if (document.exists) {
+
+        var data = document.data() as Map<String, dynamic>;
+        int currentCount = data?['cnt'] ?? 0;
+
+        // 값을 1 증가시킴
+        int newCount = currentCount + 1;
+
+        // 'cnt' 필드 업데이트
+        await videoDocRef.update({'cnt': newCount});
+      }
+    } catch (e) {
+      print('에러 발생: $e');
+    }
+  }
+
   Future<void> addComment() async{
     final userModel = Provider.of<UserModel>(context, listen: false);
     if(!userModel.isLogin){
@@ -64,11 +89,19 @@ class _VideoDetailedState extends State<VideoDetailed> {
         );
       },);
     } else {
-      fs.collection('video').doc(widget.videoId).collection('comment').add({
-        'userId' : userModel.userId,
-        'comment' : _commentControl.text,
-        'cDateTime' : FieldValue.serverTimestamp()
-      });
+      if(_editflg) {
+        fs.collection('video').doc(widget.videoId).collection('comment').doc(_commentId).update({
+          'comment' : _commentControl.text,
+          'edit' : '수정됨'
+        });
+      } else {
+        fs.collection('video').doc(widget.videoId).collection('comment').add({
+          'userId' : userModel.userId,
+          'comment' : _commentControl.text,
+          'cDateTime' : FieldValue.serverTimestamp()
+        });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('댓글이 등록되었습니다.')));
+      }
       setState(() {
       });
     }
@@ -77,7 +110,7 @@ class _VideoDetailedState extends State<VideoDetailed> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xFFC4C4C4),
       drawer: MyDrawer(),
       appBar: AppBar(
         actions: [
@@ -130,6 +163,7 @@ class _VideoDetailedState extends State<VideoDetailed> {
             },
           ),
           Container(
+            color: Colors.white,
             height: 300,
             padding: EdgeInsets.all(20),
             child: Column(
@@ -150,12 +184,12 @@ class _VideoDetailedState extends State<VideoDetailed> {
             ),
           ),
           Container(
-            color: Colors.black12,
             padding: const EdgeInsets.all(20.0),
             child: Column(
               children: [
                 TextField(
                   controller: _commentControl,
+                  focusNode: _focusNode,
                   decoration: InputDecoration(
                       hintText: '댓글을 남겨주세요',
                   ),
@@ -180,7 +214,7 @@ class _VideoDetailedState extends State<VideoDetailed> {
                                     crossAxisAlignment: CrossAxisAlignment.center,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Text('해당 기간에 충전한 내역이 없습니다.'),
+                                      Text('댓글이 없습니다 댓글을 남겨주세요'),
                                     ],
                                   )
                                 ],
@@ -215,6 +249,7 @@ class _VideoDetailedState extends State<VideoDetailed> {
           var date = pointDetailData['cDateTime'].toDate();
           var comment = pointDetailData['comment'];
           var id = pointDetailData['userId'];
+          bool edit = pointDetailData['edit'] != null;
           var userDocRef = fs.collection('userList').doc(id);
           var userSnapshot = await userDocRef.get();
           var userNick = userSnapshot.data()!['nick'];
@@ -227,14 +262,121 @@ class _VideoDetailedState extends State<VideoDetailed> {
               String userPath = firstImageDocument.data()['PATH'];
 
               var listItem = Container(
-                margin: EdgeInsets.only(bottom: 20),
+                margin: EdgeInsets.only(bottom: 10),
                 child: ListTile(
+                  contentPadding: EdgeInsets.all(0), // 기본 패딩을 제거합니다
+                  visualDensity: VisualDensity(horizontal: -4, vertical: -4), // leading과 title 사이의 간격을 조절
                   leading: ClipOval(
-                    child: Image.network(userPath, width: 50, height: 50, fit: BoxFit.cover,)
+                      child: Image.network(userPath, width: 30, height: 30, fit: BoxFit.cover),
                   ),
-                  title: Text(userNick, style: TextStyle(color: Colors.black54, fontFamily: 'Noto_Serif_KR',),),
-                  subtitle: Text(comment, style: TextStyle(color: Colors.black, fontSize: 17),),
-                  trailing: Text(DateFormat('yyyy-MM-dd').format(date)),
+                  title: Row(
+                    children: [
+                      Text('$userNick ', style: TextStyle(color: Colors.black54, fontFamily: 'Noto_Serif_KR', fontSize: 15),),
+                      Text('${DateFormat('MM-dd').format(date)} ${edit ? '(수정됨)' : ''}', style: TextStyle(color: Colors.black54, fontFamily: 'Noto_Serif_KR', fontSize: 11),),
+                    ],
+                  ),
+                  subtitle: Text(comment, style: TextStyle(color: Colors.black87, fontSize: 17),),
+                  trailing: Visibility(
+                    visible: _userId == id,
+                    child: IconButton(
+                      onPressed: (){
+                        showModalBottomSheet(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(27)
+                            )
+                          ),
+                          context: context,
+                          builder: (context) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Center(
+                                  child: Container(
+                                    margin: EdgeInsets.only(top: 10, bottom: 20),
+                                    width: 50,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(width: 2, color: Colors.black54),
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                  ),
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Padding(
+                                        padding: EdgeInsets.only(left: 10),
+                                        child: TextButton(
+                                          onPressed: (){
+                                            Navigator.of(context).pop();
+                                            _editComment(pointDetailDocument.id, vedioDocRef, comment);
+                                          },
+                                          style: ButtonStyle(
+                                            alignment: Alignment.centerLeft
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.only(right: 15),
+                                                child: Icon(Icons.edit, color: Color(0xFF634F52),),
+                                              ),
+                                              Text('수정', style: TextStyle(color: Color(0xFF634F52)),)
+                                            ],
+                                          )
+                                        ),
+                                      )
+                                    )
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                        child: Padding(
+                                          padding: EdgeInsets.only(left: 10),
+                                          child: TextButton(
+                                              onPressed: ()=> showDialog(context: context, builder: (context) {
+                                                return AlertDialog(
+                                                  title: Text('댓글 삭제'),
+                                                  content: Text('댓글을 완전히 삭제할까요?'),
+                                                  actions: [
+                                                    TextButton(onPressed: ()=> Navigator.of(context).pop(), child: Text('취소')),
+                                                    TextButton(onPressed: (){
+                                                      _deleteComment(pointDetailDocument.id, vedioDocRef);
+                                                      Navigator.of(context).pop();
+                                                      setState(() {
+                                                      });
+                                                    }, child: Text('삭제')),
+                                                  ],
+                                                );
+                                              },).then((value) => Navigator.of(context).pop()),
+                                              style: ButtonStyle(
+                                                  alignment: Alignment.centerLeft
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Padding(
+                                                    padding: const EdgeInsets.only(right: 15),
+                                                    child: Icon(Icons.delete, color: Color(0xFF634F52),),
+                                                  ),
+                                                  Text('삭제', style: TextStyle(color: Color(0xFF634F52)),)
+                                                ],
+                                              )
+                                          ),
+                                        )
+                                    )
+                                  ],
+                                )
+                              ],
+                            );
+                          },
+                        );
+                      },
+                      icon: Icon(Icons.more_vert, color: Colors.black54, size: 17,),
+                    ),
+                  ),
                   // 다른 필드 및 스타일을 추가할 수 있습니다.
                 ),
               );
@@ -251,5 +393,18 @@ class _VideoDetailedState extends State<VideoDetailed> {
       print('Error fetching data: $e');
       return <Widget>[];
     }
+  }
+
+  Future<void> _deleteComment(String id, DocumentReference<Map<String, dynamic>> vedioDocRef) async {
+    await vedioDocRef.collection('comment').doc(id).delete();
+  }
+
+  Future<void> _editComment(String id, DocumentReference<Map<String, dynamic>> vedioDocRef, comment) async {
+    _commentControl.text = comment;
+    setState(() {
+      _editflg = true;
+      _commentId = id;
+    });
+    FocusScope.of(context).requestFocus(_focusNode);
   }
 }

@@ -231,21 +231,18 @@ class _PointHistoryState extends State<PointHistory> {
                           padding: EdgeInsets.only(left: 13),
                           margin: EdgeInsets.only(left: 5),
                           decoration: BoxDecoration(
-                            border: Border.all(width: 1, color: _num == 0 ? Colors.white : Colors.black),
-                            color: Color(0xFF634F52)
+                              border: Border.all(width: 1, color: _num == 0 ? Colors.white : Colors.black),
+                              color: Color(0xFF634F52)
                           ),
                           child: DropdownButton<String>(
-                            underline: Container(
-                            ),
+                            dropdownColor: Color(0xFF634F52),
+                            underline: Container(),
                             icon: Icon(Icons.keyboard_arrow_down, color: Colors.white60,),
                             value: _selectedItem,
                             items: _items.map((item) {
                               return DropdownMenuItem<String>(
-                                value: item,
-                                child: Container(
-                                  padding: EdgeInsets.only(right: 25),
-                                  child: Text(item, style: TextStyle(color: Colors.white),)
-                                )
+                                  value: item,
+                                  child: Text(item, style: TextStyle(color: Colors.white,),)
                               );
                             }).toList(),
                             onChanged:(value) {
@@ -297,7 +294,7 @@ class _PointHistoryState extends State<PointHistory> {
 
         DateTime selectedDate = DateTime(year, month); // 선택한 월 (예: 2023년 10월)
         DateTime firstDayOfMonth = DateTime(selectedDate.year, selectedDate.month, 1);
-        DateTime lastDayOfMonth = DateTime(selectedDate.year, selectedDate.month + 1, 0);
+        DateTime lastDayOfMonth = DateTime(selectedDate.year, selectedDate.month + 1, 0).add(Duration(days: 1));
 
         pointsDetailsQuerySnapshot = await pointsDetailsRef
             .orderBy('date', descending: true)
