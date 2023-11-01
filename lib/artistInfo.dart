@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'userModel.dart';
 import 'package:provider/provider.dart';
+
 class ArtistInfo extends StatefulWidget {
   final DocumentSnapshot doc;
   final String artistImg;
@@ -23,7 +24,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
   bool _followerFlg = false; // 팔로우 했는지!
   String? _userId;
   bool flg = false;
-
+  int? folCnt; // 팔로워
   //////////////세션 확인//////////
   @override
   void initState() {
@@ -37,9 +38,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
       _followCheck();
     }
   }
-
-
-
+// 팔로워 카운트 artistList 파일에서 로드한거라 바로적용안됨 이페이지에서 다시 출력
 
   //////////////팔로우 확인/////////////
   void _followCheck() async {
@@ -55,42 +54,56 @@ class _ArtistInfoState extends State<ArtistInfo> {
     } else {
       _followerFlg = false;
     }
-    print('Flg $_followerFlg');
-  }
 
+  }
+  
+  ///// 팔로우 하기
   void _followAdd() async{
     CollectionReference followAdd = fs
         .collection('artist')
         .doc(widget.doc.id)
         .collection('follower');
 
+
     await followAdd.add({
       'userId' : _userId,
     });
+
+    DocumentReference artistDoc = fs.collection('artist').doc(widget.doc.id);
+    artistDoc.update({
+      'followerCnt': FieldValue.increment(1), // 1을 증가시킵니다.
+    });
+
     _followCheck();
+
   }
 
-  void _followdelete() async{
-    final followersnap = await fs
+  // 팔로우 취소
+  void _followDelete() async {
+    CollectionReference followDelete = fs
         .collection('artist')
         .doc(widget.doc.id)
-        .collection('follower').get();
-    if(followersnap.docs.isNotEmpty){
-      for(QueryDocumentSnapshot followDoc in followersnap.docs){
-        String docId = followDoc.id;
-        CollectionReference followDelete = fs
-            .collection('artist')
-            .doc(widget.doc.id)
-            .collection('follower');
+        .collection('follower');
 
-        print('로그인 세션$_userId');
-        await followDelete.doc(docId).delete();
-        _followCheck();
+    // 팔로우 관계를 삭제합니다.
+    QuerySnapshot querySnapshot = await followDelete
+        .where('userId', isEqualTo: _userId)
+        .get();
+    if (querySnapshot.docs.isNotEmpty) {
+      for (QueryDocumentSnapshot document in querySnapshot.docs) {
+        // 해당 사용자와 관련된 문서를 삭제합니다.
+        await document.reference.delete();
       }
     }
 
+    DocumentReference artistDoc = fs.collection('artist').doc(widget.doc.id);
+    artistDoc.update({
+      'followerCnt': FieldValue.increment(-1), // 1을 감소시킵니다.
+    });
+
 
   }
+
 
 
   /////////////////상세 타이틀///////////////
@@ -124,9 +137,8 @@ class _ArtistInfoState extends State<ArtistInfo> {
                     if(_followerFlg)
                     IconButton(
                         onPressed: (){
-                          _followdelete();
                           setState(() {
-
+                            _followDelete();
                           });
 
                         },
@@ -137,9 +149,8 @@ class _ArtistInfoState extends State<ArtistInfo> {
                     if(!_followerFlg)
                     IconButton(
                         onPressed: (){
-                          _followAdd();
                           setState(() {
-
+                            _followAdd();
                           });
 
                         },
