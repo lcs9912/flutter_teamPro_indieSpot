@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:indie_spot/join.dart';
 import 'package:indie_spot/login.dart';
 import 'package:indie_spot/pointDetailed.dart';
 import 'package:indie_spot/result.dart';
@@ -16,6 +15,7 @@ import 'baseBar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_image/flutter_image.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,114 +62,128 @@ class _MyAppState extends State<MyApp> {
   FirebaseFirestore fs = FirebaseFirestore.instance;
   bool iconFlg = false; // 아이콘 리스트 플러그
   bool loginFlg = false;
+  static const int maxAttempt = 3;
+  static const Duration attemptTimeout = Duration(seconds: 2);
 
   Future<List<Widget>> _busKinList() async {
     // 버스킹 컬렉션 호출
-    final buskingQuerySnapshot = await fs
-        .collection('busking').limit(6).get();
+    final buskingQuerySnapshot = await fs.collection('busking').limit(6).get();
 
-    List<Widget> buskingWidgets = [];
+    List<Future<Widget>> buskingWidgetsFutures = [];
 
     // 호출에 성공하면 실행
-    if(buskingQuerySnapshot.docs.isNotEmpty){
-      for (QueryDocumentSnapshot buskingDoc in buskingQuerySnapshot.docs)  {
-        int reviewCnt;
-        int busLikeCnt;
-        // 공연제목
-        String title = buskingDoc['title'];
-        // 공연설명
-        String description = buskingDoc['description'];
-
-
-        // 버스킹 좋아요 컬렉션
-        final busLikeSnapshot = await fs
-            .collection('busking')
-            .doc(buskingDoc.id)
-            .collection('busLike').get();
-
-        // 버스킹 리뷰 컬렉션
-        final busReviewSnapshot = await fs
-            .collection('busking')
-            .doc(buskingDoc.id)
-            .collection('review').get();
-
-        // 버스킹스팟 컬렉션
-        final busSpotSnapshot = await fs
-            .collection('busking')
-            .doc(buskingDoc.id)
-            .collection('review').get();
-        if(busSpotSnapshot.docs.isNotEmpty){
-          reviewCnt = buskingDoc['reviewCnt'];
-        } else{
-          reviewCnt = 0;
-        }
-
-        if(busLikeSnapshot.docs.isNotEmpty){
-          busLikeCnt = buskingDoc['busLikeCnt'];
-        } else{
-          busLikeCnt = 0;
-        }
-
-        // busking -> image
-        final buskingImg = await fs
-            .collection("busking")
-            .doc(buskingDoc.id)
-            .collection('image')
-            .get();
-
-        if(buskingImg.docs.isNotEmpty){
-          for (QueryDocumentSnapshot buskingImgDoc in buskingImg.docs){
-
-            // 버스킹 이미지 호출
-            String busImg = buskingImgDoc['path'];
-
-            // 예시: ListTile을 사용하여 팀 멤버 정보를 보여주는 위젯을 만듭니다.
-            // 이미지 busImg 제목 title 내용 description 좋아요 busLikeCnt.toString() 리뷰 reviewCnt.toString()
-            Widget buskingWidget = GestureDetector(
-              onTap: () {
-                // 이미지를 클릭했을 때 실행할 코드를 여기에 추가
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => ConcertDetails(document: buskingDoc, spotName: '',)) // 상세페이지로 이동
-                );
-              },
-              child: Row(
-                children: [
-                  Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ClipRRect( // 이미지 테두리 둥글게 만들기
-                            borderRadius: BorderRadius.circular(16.0),
-                            child: Image.network(busImg, width: 150, height: 150, fit: BoxFit.cover)
-                        ),
-                        SizedBox(height: 10,),
-                        Text(title),
-                        Text(description),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Icon(Icons.favorite,size: 15,), // 관심, 하트 클릭
-                            Text(busLikeCnt.toString()),
-                            SizedBox(width: 70,),
-                            Text('${reviewCnt.toString()}리뷰')
-                          ],
-                        ),
-                        SizedBox(height: 10,),
-                      ]
-                  ),
-                  SizedBox(width: 20,),
-                ],
-              ),
-            );
-            buskingWidgets.add(buskingWidget);
-          }
-        }
-
+    if (buskingQuerySnapshot.docs.isNotEmpty) {
+      for (QueryDocumentSnapshot buskingDoc in buskingQuerySnapshot.docs) {
+        // 각 버스킹 아이템에 대한 비동기 작업 병렬화
+        final buskingWidgetFuture = _buildBuskingWidget(buskingDoc);
+        buskingWidgetsFutures.add(buskingWidgetFuture);
       }
+      // 병렬로 모든 위젯 작업을 기다린 다음 반환
+      final buskingWidgets = await Future.wait(buskingWidgetsFutures);
       return buskingWidgets;
     } else {
       return [Container()];
     }
+  }
+
+  Future<Widget> _buildBuskingWidget(QueryDocumentSnapshot buskingDoc) async {
+    // 필요한 데이터를 비동기로 가져오는 함수
+    int reviewCnt = 0;
+    int busLikeCnt = 0;
+
+    // 버스킹 리뷰 컬렉션
+    final busReviewSnapshot = await fs
+        .collection('busking')
+        .doc(buskingDoc.id)
+        .collection('review')
+        .get();
+
+    if (busReviewSnapshot.docs.isNotEmpty) {
+      reviewCnt = busReviewSnapshot.docs.length;
+    }
+
+    // 버스킹 좋아요 컬렉션
+    final busLikeSnapshot = await fs
+        .collection('busking')
+        .doc(buskingDoc.id)
+        .collection('busLike')
+        .get();
+
+    if (busLikeSnapshot.docs.isNotEmpty) {
+      busLikeCnt = busLikeSnapshot.docs.length;
+    }
+
+    // 버스킹 이미지 호출
+    final buskingImg = await fs
+        .collection("busking")
+        .doc(buskingDoc.id)
+        .collection('image')
+        .get();
+
+    if (buskingImg.docs.isNotEmpty) {
+      String busImg = buskingImg.docs[0]['path'];
+
+      // 예시: ListTile을 사용하여 팀 멤버 정보를 보여주는 위젯을 만듭니다.
+      return GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ConcertDetails(document: buskingDoc, spotName: ''),
+            ),
+          );
+        },
+        child: Row(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16.0),
+                  child: Image(
+                    height: 150,
+                    width: 150,
+                    fit: BoxFit.cover,
+                    image: NetworkImageWithRetry(
+                      busImg,
+                      scale: 0.8,
+                      fetchStrategy: (Uri uri, FetchFailure? failure) async {
+                        final FetchInstructions fetchInstruction =
+                        FetchInstructions.attempt(
+                          uri: uri,
+                          timeout: attemptTimeout,
+                        );
+
+                        if (failure != null && failure.attemptCount > maxAttempt) {
+                          return FetchInstructions.giveUp(uri: uri);
+                        }
+
+                        return fetchInstruction;
+                      },
+                    ),
+                  ),
+                ),
+                SizedBox(height: 10),
+                Text(buskingDoc['title']),
+                Text(buskingDoc['description']),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Icon(Icons.favorite, size: 15),
+                    Text(busLikeCnt.toString()),
+                    SizedBox(width: 70),
+                    Text('$reviewCnt 리뷰'),
+                  ],
+                ),
+                SizedBox(height: 10),
+              ],
+            ),
+            SizedBox(width: 20),
+          ],
+        ),
+      );
+    }
+    return Container(); // 이미지가 없는 경우 빈 컨테이너 반환
   }
 
   @override
@@ -360,6 +374,31 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
+  Widget _iconToggle() {
+    return AnimatedSwitcher(
+      duration: Duration(milliseconds: 300), // 전환 애니메이션 지속 시간
+      child: iconFlg
+          ? IconButton(
+        key: Key('expand_less'), // 고유한 키를 제공하여 전환 시 식별 가능
+        onPressed: () {
+          setState(() {
+            iconFlg = false;
+          });
+        },
+        icon: Icon(Icons.expand_less),
+      )
+          : IconButton(
+        key: Key('expand_more'), // 고유한 키를 제공하여 전환 시 식별 가능
+        onPressed: () {
+          setState(() {
+            iconFlg = true;
+          });
+        },
+        icon: Icon(Icons.expand_more),
+      ),
+    );
+  }
+
   // 아이콘...
   Widget _iconAni(){
 
@@ -473,26 +512,7 @@ class _MyAppState extends State<MyApp> {
               ],
             ),
 
-            if(!iconFlg!)
-              IconButton(
-                  onPressed: (){
-                    setState(() {
-                      iconFlg = true;
-                    });
-                  },
-                  icon: Icon(Icons.expand_more)
-              ),
-
-            if(iconFlg)
-              IconButton(
-                  onPressed: (){
-                    setState(() {
-                      iconFlg = false;
-                    });
-                  },
-                  icon: Icon(Icons.expand_less)
-
-              ),
+            _iconToggle()
 
 
           ],
@@ -604,130 +624,113 @@ class _MyAppState extends State<MyApp> {
 
 
 
-  //상업공간 리스트 위젯
   Future<List<Widget>> _commercialListWidget() async {
-    String _id;
-    final commerQuerySnapshot = await fs
-        .collection('commercial_space').limit(3).get();
+    final commerQuerySnapshot = await fs.collection('commercial_space').limit(3).get();
 
-    List<Widget> commerWidgets = [];
+    if (commerQuerySnapshot.docs.isEmpty) {
+      return [Container()];
+    }
 
-    if(commerQuerySnapshot.docs.isNotEmpty){
+    List<Future<Widget>> commerWidgets = [];
 
-      for(QueryDocumentSnapshot commerDoc in commerQuerySnapshot.docs){ // commercial_space 컬렉션 반복
-        _id = commerDoc.id; // 상업공간 아이디
-        String spaceName = commerDoc['spaceName'];
+    for (QueryDocumentSnapshot commerDoc in commerQuerySnapshot.docs) {
+      final spaceName = commerDoc['spaceName'];
+      final _id = commerDoc.id;
 
-        // 서브커넥션 rental 접근
-        final commerRentalQuerySnapshot = await fs
-            .collection('commercial_space')
-            .doc(_id)
-            .collection('rental')
-            .get();
-        if(commerRentalQuerySnapshot.docs.isNotEmpty){
-          for(QueryDocumentSnapshot rentalDoc in commerRentalQuerySnapshot.docs){ // rental 컬렉션 반복
-            // yyyy-MM-dd HH:mm:ss
+      final commerRentalQuerySnapshot =
+      await fs.collection('commercial_space').doc(_id).collection('rental').get();
 
-            String date = DateFormat('MM-dd').format(rentalDoc['startTime'].toDate());
-            String startTime = DateFormat('HH:mm').format(rentalDoc['startTime'].toDate());
-            String endTime = DateFormat('HH:mm').format(rentalDoc['endTime'].toDate());
+      if (commerRentalQuerySnapshot.docs.isNotEmpty) {
+        final rentalDocs = commerRentalQuerySnapshot.docs;
 
-            final artistQuerySnapshot = await fs
-                .collection('artist')
-                .where(FieldPath.documentId, isEqualTo: rentalDoc['artistId']).get();
+        for (QueryDocumentSnapshot rentalDoc in rentalDocs) {
+          final date = DateFormat('MM-dd').format(rentalDoc['startTime'].toDate());
+          final startTime = DateFormat('HH:mm').format(rentalDoc['startTime'].toDate());
+          final endTime = DateFormat('HH:mm').format(rentalDoc['endTime'].toDate());
+          final artistId = rentalDoc['artistId'];
 
-            if(artistQuerySnapshot.docs.isNotEmpty){
-              for(QueryDocumentSnapshot artistDoc in artistQuerySnapshot.docs){
-                String artistName =  artistDoc['artistName'];
+          final artistDoc = await fs.collection('artist').doc(artistId).get();
 
-                // image 컬렉션 접근
-                final commerImgQuerySnapshot = await fs
-                    .collection('commercial_space')
-                    .doc(_id)
-                    .collection('image')
-                    .get();
+          if (artistDoc.exists) {
+            final artistName = artistDoc['artistName'];
 
-                if(commerImgQuerySnapshot.docs.isNotEmpty){
-                  for(QueryDocumentSnapshot imageDoc in commerImgQuerySnapshot.docs) {
-                    String img = imageDoc['path'];
+            final imageDoc = await fs
+                .collection('commercial_space')
+                .doc(_id)
+                .collection('image')
+                .get();
 
-                    // addr 컬렉션 접근
-                    final commerAddrQuerySnapshot = await fs
-                        .collection('commercial_space')
-                        .doc(_id)
-                        .collection('addr')
-                        .get();
+            if (imageDoc.docs.isNotEmpty) {
+              final img = imageDoc.docs.first['path'];
 
-                    if(commerAddrQuerySnapshot.docs.isNotEmpty) {
-                      for (QueryDocumentSnapshot addrDoc in commerAddrQuerySnapshot.docs) {
-                        String addr =  addrDoc['addr'];
+              final addrDoc = await fs
+                  .collection('commercial_space')
+                  .doc(_id)
+                  .collection('addr')
+                  .get();
 
+              if (addrDoc.docs.isNotEmpty) {
+                final addr = addrDoc.docs.first['addr'];
 
-                        var listItem = ListTile(
-                          contentPadding: EdgeInsets.all(0),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
+                final listItem = ListTile(
+                  contentPadding: EdgeInsets.all(0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  tileColor: Colors.white,
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Container(
+                              width: 100,
+                              height: 100,
+                              child: Image.network(
+                                img,
+                                scale: 0.8,
+                              ),
+                            ),
                           ),
-                          tileColor: Colors.white,
-                          title: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(10), // 모서리 둥글게
-                                    child: Container(
-                                      width: 100,
-                                      height: 100,
-                                      child: Image.network(img),
-                                    ),
-                                  ),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        spaceName,
-                                        style: TextStyle(
-                                          fontSize: 18.0,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      Text(addr),
-                                      Text('공연팀:  $artistName',style: TextStyle(fontSize: 13),),
-                                    ],
-                                  ),
-                                ],
+                              Text(
+                                spaceName,
+                                style: TextStyle(
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-
-                              Column(
-                                children: [
-                                  Text(date),
-                                  Text(startTime),
-                                  Text(endTime), //  오버플로우 가 표시되는 부분
-                                ],
-                              ),
+                              Text(addr),
+                              Text('공연팀: $artistName', style: TextStyle(fontSize: 13)),
                             ],
                           ),
-
-                          onTap: () {
-                            // 상업공간 공연 상세페이지
-                          },
-                        );
-                        commerWidgets.add(listItem);
-
-                      }
-                    }
-                  }
-                }
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          Text(date),
+                          Text(startTime),
+                          Text(endTime),
+                        ],
+                      ),
+                    ],
+                  ),
+                  onTap: () {
+                    // 상업공간 공연 상세페이지
+                  },
+                );
+                commerWidgets.add(Future.value(listItem));
               }
             }
-
           }
         }
       }
-      return commerWidgets;
-    }else{
-      return [Container()];
     }
+
+    return Future.wait(commerWidgets);
   }
 }
