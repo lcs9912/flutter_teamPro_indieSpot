@@ -6,6 +6,7 @@ import 'package:indie_spot/pointDetailed.dart';
 import 'package:indie_spot/result.dart';
 import 'package:indie_spot/userEdit.dart';
 import 'package:indie_spot/userModel.dart';
+import 'package:indie_spot/videoList.dart';
 import 'buskingList.dart';
 import 'buskingReservation.dart';
 import 'concertDetails.dart';
@@ -15,6 +16,7 @@ import 'baseBar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,7 +28,12 @@ void main() async {
         providers: [
           ChangeNotifierProvider(create: (_) => UserModel())
         ],
-        child: MaterialApp(
+        child: ScreenUtilInit(
+          designSize: Size(393, 808),
+          minTextAdapt: true,
+          splitScreenMode: true,
+
+          child: MaterialApp(
           localizationsDelegates: [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
@@ -46,6 +53,7 @@ void main() async {
             // 다른 경로와 페이지 설정
           },
         ),
+       )
       )
   );
 }
@@ -186,6 +194,8 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: MyAppBar(),
       drawer: MyDrawer(),
@@ -254,7 +264,7 @@ class _MyAppState extends State<MyApp> {
                                       child: Image.asset(
                                         'busking/bus_sample6.jpg',
                                         fit: BoxFit.cover,
-                                        width: 190,
+                                        width: screenWidth * 0.45,
                                         height: 90,
                                       ),
                                     )
@@ -295,7 +305,7 @@ class _MyAppState extends State<MyApp> {
                                       child: Image.asset(
                                         'busking/bus_sample3.jpg',
                                         fit: BoxFit.cover,
-                                        width: 190,
+                                        width: screenWidth * 0.45,
                                         height: 90,
                                       ),
                                     )
@@ -523,7 +533,12 @@ class _MyAppState extends State<MyApp> {
               Column(
                 children: [
                   IconButton(
-                      onPressed: (){},
+                      onPressed: (){
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => VideoList()) // 상세페이지로 넘어갈것
+                        );
+                      },
                       icon: Icon(Icons.smart_display)
                   ),
                   Text("애니메이션"),
