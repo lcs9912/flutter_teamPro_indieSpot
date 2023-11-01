@@ -19,7 +19,7 @@ class ArtistInfo extends StatefulWidget {
 class _ArtistInfoState extends State<ArtistInfo> {
   FirebaseFirestore fs = FirebaseFirestore.instance;
 
-  String? _test;
+
 
   /////////////////상세 타이틀///////////////
   Widget _infoTitle(){
@@ -49,7 +49,11 @@ class _ArtistInfoState extends State<ArtistInfo> {
                 Stack(
                   children: [
                     Text(widget.doc['followerCnt'].toString()),
-                    IconButton(onPressed: (){}, icon: Icon(Icons.person_add_alt)),
+                    IconButton(
+                        onPressed: (){
+                          _commerSchedule();
+                        },
+                        icon: Icon(Icons.person_add_alt)),
                   ],
                 )
 
@@ -85,7 +89,6 @@ class _ArtistInfoState extends State<ArtistInfo> {
         if(userListJoin.docs.isNotEmpty){
           for(QueryDocumentSnapshot userDoc in userListJoin.docs){
             String userName = userDoc['name']; // 이름
-            _test = userDoc['nick'];
             final userImage = await fs
                 .collection('userList')
                 .doc(userDoc.id)
@@ -138,7 +141,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
                 style: TextStyle(fontSize: 15),
               ),
               Text(
-                '${widget.doc['donationAmount']} 원',
+                '${widget.doc['basicPrice']} 원',
                 style: TextStyle(fontWeight: FontWeight.w600),
               )
             ],
@@ -166,7 +169,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
   // 버스킹 공연일정
   Future<List<Widget>> _buskingSchedule() async {
     List<Widget> buskingScheduleWidgets = []; // 출력한 위젯 담을 변수
-
+    double screenWidth = MediaQuery.of(context).size.width;
     // 버스킹 일정 확인
     final buskingScheduleSnapshot = await fs
         .collection('busking')
@@ -177,7 +180,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
       for(QueryDocumentSnapshot buskingSchedule in buskingScheduleSnapshot.docs){
         String title = buskingSchedule['title'];
         // yyyy-MM-dd HH:mm:ss
-        String date = DateFormat('yyyy-MM-dd(EEEE) HH:mm', 'ko_KR').format(buskingSchedule['buskingStart'].toDate());
+        String date = DateFormat('MM-dd(EEEE) HH:mm', 'ko_KR').format(buskingSchedule['buskingStart'].toDate());
         final buskingImage = await fs
             .collection('busking')
             .doc(buskingSchedule.id)
@@ -192,25 +195,70 @@ class _ArtistInfoState extends State<ArtistInfo> {
             for(QueryDocumentSnapshot buskingSpot in buskingSpotSnapshot.docs){
               String addr = buskingSpot['spotName'];
 
+              // Widget buskingScheduleWidget = Card(
+              //   child: Container(
+              //     width: screenWidth * 0.383,
+              //     child: Column(
+              //       children: [
+              //         Image.network(
+              //           img,
+              //           fit: BoxFit.cover,
+              //         ),
+              //         ListTile(
+              //           title: Text(title),
+              //           subtitle: Column(
+              //             crossAxisAlignment: CrossAxisAlignment.start,
+              //             children: [
+              //               Text(
+              //                 addr,
+              //                 style: TextStyle(fontSize: 13),
+              //               ),
+              //               Text(
+              //                 date,
+              //                 style: TextStyle(fontSize: 11),
+              //               ),
+              //             ],
+              //           ),
+              //         ),
+              //         // 다른 정보를 표시하려면 여기에 추가하세요.
+              //       ],
+              //     ),
+              //   ),
+              // );
+
+
+
+              // 예비예비예삥
               Widget buskingScheduleWidget = Card(
                 child: Column(
-                  children: [
-                    Image.network(img,fit: BoxFit.cover,),
-                    ListTile(
-                      title: Text(title),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(addr),
-                          Text(date),
-                        ],
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Image.network(img, width: 150, height: 150, fit: BoxFit.cover),
+                      SizedBox(height: 10,),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              addr,
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            Text(
+                              date,
+                              style: TextStyle(fontSize: 11),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    // 다른 정보를 표시하려면 여기에 추가하세요.
-                  ],
+
+                    ]
                 ),
               );
-
               buskingScheduleWidgets.add(buskingScheduleWidget);
             }
 
@@ -223,6 +271,39 @@ class _ArtistInfoState extends State<ArtistInfo> {
     } else {
       return [Container(child: Text("공연일정이 없습니다."),)];
     }
+  }
+
+
+  //상업공간 공연 일정
+  Future<List<Widget>> _commerSchedule() async {
+    List<Widget> buskingScheduleWidgets = []; // 출력한 위젯 담을 변수
+    double screenWidth = MediaQuery.of(context).size.width;
+
+    // 상업공간 컬렉션 접근
+    final commerSnapshot = await fs
+        .collection('commercial_space')
+        .get();
+    if(commerSnapshot.docs.isNotEmpty){
+      for(QueryDocumentSnapshot commerDoc in commerSnapshot.docs){
+
+        final commerScheduleSnapshot = await fs
+            .collection('commercial_space')
+            .doc(commerDoc.id)
+            .collection('rental')
+            .where('artistId', isEqualTo: widget.doc.id).get();
+
+        if(commerScheduleSnapshot.docs.isNotEmpty){
+          for(QueryDocumentSnapshot commerDoc in commerSnapshot.docs){
+            print(commerDoc['acceptYn']);
+            if(commerDoc['acceptYn'] == "y"){
+
+            }
+          }
+        }
+      }
+    }
+
+    return [Container()];
   }
 
   @override
@@ -351,13 +432,42 @@ class _ArtistInfoState extends State<ArtistInfo> {
                         return Column(
                           children: [
                             _infoTitle(),
-                            Container(
-                              padding: EdgeInsets.only(top: 10),
-                              margin: EdgeInsets.all(20),
-                              child: Column(
-                                children: scheduleSnap.data ?? [Container()],
-                              ),
+                            Row(
+                              //mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                    padding: EdgeInsets.only(top: 10),
+                                    margin: EdgeInsets.all(20),
+                                    child: Column(
+                                      children: [
+                                        Text("버스킹"),
+                                        Column(
+                                          children: scheduleSnap.data ?? [Container()],
+                                        ),
+                                      ],
+                                    )
+                                ),
+                                Container(
+                                    padding: EdgeInsets.only(top: 10),
+                                    margin: EdgeInsets.all(20),
+                                    child: Column(
+                                      children: [
+                                        Text("상업공간"),
+                                        Column(
+                                          children: scheduleSnap.data ?? [Container()],
+                                        ),
+                                      ],
+                                    )
+                                ),
+                              ],
                             ),
+                            // Container(
+                            //   padding: EdgeInsets.only(top: 10),
+                            //   margin: EdgeInsets.all(20),
+                            //   child: Column(
+                            //     children: scheduleSnap.data ?? [Container()],
+                            //   ),
+                            // ),
                           ],
                         );
                       }
