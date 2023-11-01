@@ -5,7 +5,8 @@ import 'package:indie_spot/artistInfo.dart';
 import 'baseBar.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-
+import 'userModel.dart';
+import 'package:provider/provider.dart';
 class ArtistInfo extends StatefulWidget {
   final DocumentSnapshot doc;
   final String artistImg;
@@ -19,6 +20,77 @@ class ArtistInfo extends StatefulWidget {
 class _ArtistInfoState extends State<ArtistInfo> {
   FirebaseFirestore fs = FirebaseFirestore.instance;
 
+  bool _followerFlg = false; // 팔로우 했는지!
+  String? _userId;
+  bool flg = false;
+
+  //////////////세션 확인//////////
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    final userModel = Provider.of<UserModel>(context, listen: false);
+    if (!userModel.isLogin) {
+
+    } else {
+      _userId = userModel.userId;
+      _followCheck();
+    }
+  }
+
+
+
+
+  //////////////팔로우 확인/////////////
+  void _followCheck() async {
+    final followYnSnapshot = await fs
+        .collection('artist')
+        .doc(widget.doc.id)
+        .collection('follower')
+        .where('userId',isEqualTo: _userId)
+        .get(); // 데이터를 검색하기 위해 get()를 사용합니다.
+
+    if(followYnSnapshot.docs.isNotEmpty){
+      _followerFlg = true;
+    } else {
+      _followerFlg = false;
+    }
+    print('Flg $_followerFlg');
+  }
+
+  void _followAdd() async{
+    CollectionReference followAdd = fs
+        .collection('artist')
+        .doc(widget.doc.id)
+        .collection('follower');
+
+    await followAdd.add({
+      'userId' : _userId,
+    });
+    _followCheck();
+  }
+
+  void _followdelete() async{
+    final followersnap = await fs
+        .collection('artist')
+        .doc(widget.doc.id)
+        .collection('follower').get();
+    if(followersnap.docs.isNotEmpty){
+      for(QueryDocumentSnapshot followDoc in followersnap.docs){
+        String docId = followDoc.id;
+        CollectionReference followDelete = fs
+            .collection('artist')
+            .doc(widget.doc.id)
+            .collection('follower');
+
+        print('로그인 세션$_userId');
+        await followDelete.doc(docId).delete();
+        _followCheck();
+      }
+    }
+
+
+  }
 
 
   /////////////////상세 타이틀///////////////
@@ -49,11 +121,31 @@ class _ArtistInfoState extends State<ArtistInfo> {
                 Stack(
                   children: [
                     Text(widget.doc['followerCnt'].toString()),
+                    if(_followerFlg)
                     IconButton(
                         onPressed: (){
-                          _commerSchedule();
+                          _followdelete();
+                          setState(() {
+
+                          });
+
                         },
-                        icon: Icon(Icons.person_add_alt)),
+
+                        icon: Icon(Icons.person_add)
+                    ),
+
+                    if(!_followerFlg)
+                    IconButton(
+                        onPressed: (){
+                          _followAdd();
+                          setState(() {
+
+                          });
+
+                        },
+
+                        icon: Icon(Icons.person_add_alt)
+                    ),
                   ],
                 )
 
@@ -112,10 +204,8 @@ class _ArtistInfoState extends State<ArtistInfo> {
           }
         }
       }
-      print('잘넘어오는중');
       return memberWidgets;
     } else {
-      print('안넘어오는중');
       return [Container()];
     }
 
@@ -170,6 +260,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
   Future<List<Widget>> _buskingSchedule() async {
     List<Widget> buskingScheduleWidgets = []; // 출력한 위젯 담을 변수
     double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
     // 버스킹 일정 확인
     final buskingScheduleSnapshot = await fs
         .collection('busking')
@@ -195,70 +286,45 @@ class _ArtistInfoState extends State<ArtistInfo> {
             for(QueryDocumentSnapshot buskingSpot in buskingSpotSnapshot.docs){
               String addr = buskingSpot['spotName'];
 
-              // Widget buskingScheduleWidget = Card(
-              //   child: Container(
-              //     width: screenWidth * 0.383,
-              //     child: Column(
-              //       children: [
-              //         Image.network(
-              //           img,
-              //           fit: BoxFit.cover,
-              //         ),
-              //         ListTile(
-              //           title: Text(title),
-              //           subtitle: Column(
-              //             crossAxisAlignment: CrossAxisAlignment.start,
-              //             children: [
-              //               Text(
-              //                 addr,
-              //                 style: TextStyle(fontSize: 13),
-              //               ),
-              //               Text(
-              //                 date,
-              //                 style: TextStyle(fontSize: 11),
-              //               ),
-              //             ],
-              //           ),
-              //         ),
-              //         // 다른 정보를 표시하려면 여기에 추가하세요.
-              //       ],
-              //     ),
-              //   ),
-              // );
 
 
-
-              // 예비예비예삥
               Widget buskingScheduleWidget = Card(
-                child: Column(
+                child: Container(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Image.network(img, width: 150, height: 150, fit: BoxFit.cover),
-                      SizedBox(height: 10,),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              title,
-                              style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              addr,
-                              style: TextStyle(fontSize: 13),
-                            ),
-                            Text(
-                              date,
-                              style: TextStyle(fontSize: 11),
-                            ),
-                          ],
+                      Image.network(img, width: screenWidth * 0.2, height: screenHeight * 0.1, fit: BoxFit.cover),
+                      SizedBox(width: 10),
+                      Container(
+
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                title,
+                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(height: 10,),
+                              Text(
+                                addr,
+                                style: TextStyle(fontSize: 13),
+                              ),
+                              Text(
+                                date,
+                                style: TextStyle(fontSize: 11),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
 
-                    ]
+                    ],
+                  ),
                 ),
               );
+
               buskingScheduleWidgets.add(buskingScheduleWidget);
             }
 
@@ -278,6 +344,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
   Future<List<Widget>> _commerSchedule() async {
     List<Widget> buskingScheduleWidgets = []; // 출력한 위젯 담을 변수
     double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
 
     // 상업공간 컬렉션 접근
     final commerSnapshot = await fs
@@ -293,10 +360,80 @@ class _ArtistInfoState extends State<ArtistInfo> {
             .where('artistId', isEqualTo: widget.doc.id).get();
 
         if(commerScheduleSnapshot.docs.isNotEmpty){
-          for(QueryDocumentSnapshot commerDoc in commerSnapshot.docs){
-            print(commerDoc['acceptYn']);
-            if(commerDoc['acceptYn'] == "y"){
+          for(QueryDocumentSnapshot commerScheduleDoc in commerScheduleSnapshot.docs){
 
+            if(commerScheduleDoc['acceptYn'] == "y"){
+              String startDate = DateFormat('MM-dd(EEEE) HH:mm', 'ko_KR').format(commerScheduleDoc['startTime'].toDate());
+              String endDate = DateFormat(' ~ HH:mm').format(commerScheduleDoc['endTime'].toDate());
+              String spaceName = commerDoc['spaceName'];
+              
+              final commerImageSnapshot = await fs
+                  .collection('commercial_space')
+                  .doc(commerDoc.id)
+                  .collection('image').get();
+
+              if(commerImageSnapshot.docs.isNotEmpty){
+                for(QueryDocumentSnapshot commerImageDoc in commerImageSnapshot.docs){
+                  String cmmerImg = commerImageDoc['path'];
+
+                  final commerAddrSnapshot = await fs
+                      .collection('commercial_space')
+                      .doc(commerDoc.id)
+                      .collection('addr').get();
+                  if(commerAddrSnapshot.docs.isNotEmpty){
+                    for(QueryDocumentSnapshot commerAddrDoc in commerAddrSnapshot.docs){
+                      String addr = commerAddrDoc['addr'];
+
+                      Widget buskingScheduleWidget = Card(
+                        child: Container(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Image.network(cmmerImg, width: screenWidth * 0.2, height: screenHeight * 0.1, fit: BoxFit.cover),
+                              SizedBox(width: 10),
+                              Container(
+
+                                child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          spaceName,
+                                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                                        ),
+                                        SizedBox(height: 10,),
+                                        Text(
+                                          addr,
+                                          style: TextStyle(fontSize: 13),
+                                        ),
+                                        Text(
+                                          startDate + endDate,
+                                          style: TextStyle(fontSize: 11),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ),
+
+                            ],
+                          ),
+                        ),
+                      );
+
+
+                      buskingScheduleWidgets.add(buskingScheduleWidget);
+
+
+                    }
+                  }
+
+                }
+              }
+
+              return buskingScheduleWidgets;
+            } else{
+              return [Container()];
             }
           }
         }
@@ -306,6 +443,29 @@ class _ArtistInfoState extends State<ArtistInfo> {
     return [Container()];
   }
 
+
+  /////////////////////클립///////////////////////////
+  Future<List<Widget>> _artistCLips() async {
+    List<Widget> artistClipsWidget = []; // 출력한 위젯 담을 변수
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+
+    // 아티스트 클립이미지
+    final artistImagesSnapshot = await fs
+        .collection('artist')
+        .doc(widget.doc.id)
+        .collection('images')
+        .get();
+    if(artistImagesSnapshot.docs.isNotEmpty){
+      for(QueryDocumentSnapshot artistImagesDoc in artistImagesSnapshot.docs) {
+        String images = artistImagesDoc['path'];
+
+
+      }
+      return [Container()];
+    }
+    return [Container()];
+  }
   @override
   Widget build(BuildContext context) {
 
@@ -347,8 +507,8 @@ class _ArtistInfoState extends State<ArtistInfo> {
           bottom: TabBar(
             tabs: [
               Tab(text: '소개'),
-              Tab(text: '클립'),
               Tab(text: '공연일정'),
+              Tab(text: '클립'),
             ],
             onTap: (int index) {
               if (index == 0) {
@@ -377,7 +537,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
         body: TabBarView(
 
           children: [
-            ListView( // 소개 탭 
+            ListView( // 소개 탭
               children: [
                 Container(
                   child: FutureBuilder(
@@ -389,7 +549,6 @@ class _ArtistInfoState extends State<ArtistInfo> {
                         return Text('Error: ${snapshot.error}');
                       } else {
                         return Column(
-
                           children: [
                             _infoTitle(),
                             tab1(),
@@ -409,20 +568,12 @@ class _ArtistInfoState extends State<ArtistInfo> {
                 )
               ],
             ),
-            ///////////클립 탭/////////////
-            Column( ///////////클립 탭/////////////
-              children: [
-                _infoTitle(),
-                Text("클립"),
-
-              ],
-            ),
             //////////////공연 일정 탭////////////
             ListView(//////////////공연 일정 탭////////////
               children: [
                 Container(
                   child: FutureBuilder(
-                    future: _buskingSchedule(),
+                    future: flg ? _buskingSchedule() : _commerSchedule(),
                     builder: (BuildContext context, AsyncSnapshot<dynamic> scheduleSnap) {
                       if (scheduleSnap.connectionState == ConnectionState.waiting) {
                         return Container();
@@ -432,42 +583,44 @@ class _ArtistInfoState extends State<ArtistInfo> {
                         return Column(
                           children: [
                             _infoTitle(),
-                            Row(
-                              //mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Container(
-                                    padding: EdgeInsets.only(top: 10),
-                                    margin: EdgeInsets.all(20),
-                                    child: Column(
-                                      children: [
-                                        Text("버스킹"),
-                                        Column(
-                                          children: scheduleSnap.data ?? [Container()],
-                                        ),
-                                      ],
-                                    )
-                                ),
-                                Container(
-                                    padding: EdgeInsets.only(top: 10),
-                                    margin: EdgeInsets.all(20),
-                                    child: Column(
-                                      children: [
-                                        Text("상업공간"),
-                                        Column(
-                                          children: scheduleSnap.data ?? [Container()],
-                                        ),
-                                      ],
-                                    )
-                                ),
-                              ],
+                            Container(
+                              child: Row(
+                                children: [
+                                  Container(
+                                    child:Center(
+                                      child: TextButton(
+                                        onPressed: (){
+                                          setState(() {
+                                            flg = true;
+                                          });
+                                        },
+                                        child: Text("버스킹",style: TextStyle(color: Colors.grey),),
+                                      ),
+                                    ),
+                                  ),
+
+                                  Container(
+                                    child:Center(
+                                      child: TextButton(
+                                        onPressed: (){
+                                          setState(() {
+                                            flg = false;
+                                          });
+                                        },
+                                        child: Text("상업공간",style: TextStyle(color: Colors.grey),),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            // Container(
-                            //   padding: EdgeInsets.only(top: 10),
-                            //   margin: EdgeInsets.all(20),
-                            //   child: Column(
-                            //     children: scheduleSnap.data ?? [Container()],
-                            //   ),
-                            // ),
+                            Container(
+                              padding: EdgeInsets.only(top: 10),
+                              margin: EdgeInsets.all(20),
+                              child: Column(
+                                children: scheduleSnap.data ?? [Container()],
+                              ),
+                            ),
                           ],
                         );
                       }
@@ -475,6 +628,14 @@ class _ArtistInfoState extends State<ArtistInfo> {
                   ),
 
                 )
+              ],
+            ),
+            ///////////클립 탭/////////////
+            Column( ///////////클립 탭/////////////
+              children: [
+
+                Text("클립"),
+
               ],
             ),
           ],

@@ -675,13 +675,13 @@ class _MyAppState extends State<MyApp> {
                               Row(
                                 children: [
                                   ClipRRect(
-                                        borderRadius: BorderRadius.circular(10), // 모서리 둥글게
-                                        child: Container(
-                                          width: 100,
-                                          height: 100,
-                                          child: Image.network(img),
-                                        ),
-                                      ),
+                                    borderRadius: BorderRadius.circular(10), // 모서리 둥글게
+                                    child: Container(
+                                      width: 100,
+                                      height: 100,
+                                      child: Image.network(img),
+                                    ),
+                                  ),
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
@@ -699,13 +699,13 @@ class _MyAppState extends State<MyApp> {
                                 ],
                               ),
 
-                                  Column(
-                                    children: [
-                                      Text(date),
-                                      Text(startTime),
-                                      Text(endTime), //  오버플로우 가 표시되는 부분
-                                    ],
-                                  ),
+                              Column(
+                                children: [
+                                  Text(date),
+                                  Text(startTime),
+                                  Text(endTime), //  오버플로우 가 표시되는 부분
+                                ],
+                              ),
                             ],
                           ),
 

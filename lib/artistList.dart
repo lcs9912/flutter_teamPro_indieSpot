@@ -109,7 +109,6 @@ class _ArtistListState extends State<ArtistList> {
                           trailing: Icon(Icons.chevron_right),
                           onTap: () {
                             String artistImg = img['path'];
-                            print(artistImg);
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -155,7 +154,7 @@ class _ArtistListState extends State<ArtistList> {
                               onPressed: () {
                                 setState(() {
                                   selectGenre = genre;
-                                  print(selectGenre);
+
                                 });
 
                               },
