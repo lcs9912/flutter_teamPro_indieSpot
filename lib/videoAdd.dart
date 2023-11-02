@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/userModel.dart';
+import 'package:indie_spot/videoList.dart';
 import 'package:provider/provider.dart';
 import 'baseBar.dart';
 
@@ -282,6 +283,7 @@ class _YoutubeTestState extends State<YoutubeAdd> {
                 }
                 if(states1==0&&states2==0&&states3==0){
                   videoUpload();
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => VideoList(),));
                 }
               },
               child: Text("등록"),

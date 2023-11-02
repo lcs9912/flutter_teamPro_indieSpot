@@ -181,8 +181,15 @@ class _VideoListState extends State<VideoList> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(artistName?.get('artistName') ?? 'z'),
-                      Text('조회수 $cnt', style: TextStyle(fontSize: 12)),
+                      Row(
+                        children: [
+                          Text(artistName?.get('artistName') ?? 'z'),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 10),
+                            child: Text('조회수 $cnt', style: TextStyle(fontSize: 12)),
+                          ),
+                        ],
+                      ),
                       Text(DateFormat('yyyy-MM-dd').format(time.toDate()),
                           style: TextStyle(fontSize: 12)),
                     ],
