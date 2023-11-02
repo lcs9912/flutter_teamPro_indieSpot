@@ -139,11 +139,14 @@ class _VideoListState extends State<VideoList> {
     );
   }
 
-  Widget _buildVideoListItem(Map<String, dynamic> videoDetailData, String id) {
+  Widget _buildVideoListItem(Map<String, dynamic> videoDetailData, String id, Map<String, dynamic>? data) {
     String title = videoDetailData['title'];
     String url = videoDetailData['url'];
     int cnt = videoDetailData['cnt'];
     var time = videoDetailData['cDateTime'];
+    
+    
+    
     if (title.length > 30) {
       title = title.substring(0, 30) + "...";
     }
@@ -199,16 +202,18 @@ class _VideoListState extends State<VideoList> {
 
     if (videoDetailsQuerySnapshot.docs.isNotEmpty) {
       var list = <Widget>[];
-      videoDetailsQuerySnapshot.docs.forEach((videoDetailDocument) {
+      videoDetailsQuerySnapshot.docs.forEach((videoDetailDocument) async{
         var videoDetailData = videoDetailDocument.data();
         if (_searchControl != null && _searchControl.text.isNotEmpty) {
           // 검색어가 비어 있지 않고 title에 검색어가 포함되어 있으면 리스트에 아이템 추가
           if (videoDetailData['title'].contains(_searchControl.text)) {
-            list.add(_buildVideoListItem(videoDetailData, videoDetailDocument.id));
+            var artisDoc = await fs.collection('artis').doc(videoDetailData['artisId']).get();
+            list.add(_buildVideoListItem(videoDetailData, videoDetailDocument.id, artisDoc.data()));
           }
         } else {
           // 검색어가 비어있거나 null인 경우 모든 아이템 추가
-          list.add(_buildVideoListItem(videoDetailData, videoDetailDocument.id));
+          var artisDoc = await fs.collection('artis').doc(videoDetailData['artisId']).get();
+          list.add(_buildVideoListItem(videoDetailData, videoDetailDocument.id, artisDoc.data()));
         }
       });
       return list;
