@@ -272,8 +272,8 @@ class _JoinState extends State<Join> {
       });
 
       await _fs.collection('userList').doc(userID).update({
-        'follower': {'count': 0},
-        'following': {'count': 0},
+        'follower':  0,
+        'following': 0,
       });
       // 가입 성공 메시지
       ScaffoldMessenger.of(context).showSnackBar(
