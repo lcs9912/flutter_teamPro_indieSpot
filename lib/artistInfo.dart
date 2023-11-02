@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/artistInfo.dart';
 import 'package:indie_spot/login.dart';
+import 'package:indie_spot/videoDetailed.dart';
 import 'baseBar.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'donationPage.dart';
 import 'userModel.dart';
 import 'package:provider/provider.dart';
 
@@ -128,7 +130,6 @@ class _ArtistInfoState extends State<ArtistInfo> {
         .collection('follower');
 
     var myFollowingRef = fs.collection('userList').doc(_userId);
-    var artistIdToRemove = widget.doc.id;
 
     // 팔로우 관계를 삭제합니다.
     QuerySnapshot querySnapshot = await followDelete
@@ -145,24 +146,17 @@ class _ArtistInfoState extends State<ArtistInfo> {
         });
       }
 
-
-// 1. following 서브컬렉션에서 artistId와 일치하는 문서 제거
-      await myFollowingRef.collection('following').where('artistId', isEqualTo: artistIdToRemove).get().then((querySnapshot) {
+      await myFollowingRef.collection('following').where('artistId', isEqualTo: widget.doc.id).get().then((querySnapshot) {
         querySnapshot.docs.forEach((doc) {
           doc.reference.delete();
         });
       });
 
-// 2. userList 컬렉션의 followingCnt 필드 -1
       await myFollowingRef.update({
         'followingCnt': FieldValue.increment(-1),
       });
-
       _followCheck();
     }
-
-
-
 
   }
 
@@ -229,9 +223,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
                       IconButton(
                           onPressed: (){
                             _followDelete();
-                            setState(() {
-
-                            });
+                            setState(() {});
                           },
 
                           icon: Icon(Icons.person_add)
@@ -241,9 +233,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
                       IconButton(
                           onPressed: (){
                             _followAdd();
-                            setState(() {
-
-                            });
+                            setState(() {});
                           },
 
                           icon: Icon(Icons.person_add_alt)
@@ -254,6 +244,12 @@ class _ArtistInfoState extends State<ArtistInfo> {
                         child: Text(folCnt.toString())
                     ),
                   ],
+                ),
+                IconButton(
+                    onPressed: (){
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => DonationPage(artistId : widget.doc.id),));
+                    },
+                    icon: Icon(Icons.price_change),
                 )
               ],
             )
@@ -356,7 +352,6 @@ class _ArtistInfoState extends State<ArtistInfo> {
   }
 
 
-  ////////////////////////////////아티스트 클립////////////////////////////////
 
 
 
@@ -547,24 +542,8 @@ class _ArtistInfoState extends State<ArtistInfo> {
   }
 
 
-  /////////////////////클립///////////////////////////
-  Future<List<Widget>> _artistCLips() async {
-    List<Widget> artistClipsWidget = []; // 출력한 위젯 담을 변수
-    double screenWidth = MediaQuery.of(context).size.width;
-    double screenHeight = MediaQuery.of(context).size.height;
 
-    // 아티스트 동영상 리스트
-    final artistImagesSnapshot = await fs
-        .collection('video')
-        .doc(widget.doc.id)
-        .collection('images')
-        .get();
-    if(artistImagesSnapshot.docs.isNotEmpty){
 
-      return [Container()];
-    }
-    return [Container()];
-  }
   @override
   Widget build(BuildContext context) {
 
@@ -718,23 +697,37 @@ class _ArtistInfoState extends State<ArtistInfo> {
               ],
             ),
             ///////////클립 탭/////////////
-            Column( ///////////클립 탭/////////////
-              children: [
-                Row(
-                  children: [
-                    TextButton(
-                        onPressed: (){},
-                        child: Text("사진"),
-                    ),
-                    TextButton(
-                        onPressed: (){},
-                        child: Text("동영상"),
-                    ),
-                  ],
-                ),
+            StreamBuilder(
+                stream: fs.collection('video').where('artistId', isEqualTo: widget.doc.id).orderBy('cnt', descending: true).snapshots(),
+                builder: (context, AsyncSnapshot<QuerySnapshot> videoSnap){
+                  if(!videoSnap.hasData){
+                    return Center();
+                  }
+                  return GridView.builder(
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2, // 2개의 열을 가진 그리드
+                              crossAxisSpacing: 2,
+                              mainAxisSpacing: 2
+                          ),
+                      itemCount: videoSnap.data!.docs.length,
+                          itemBuilder: (context, index){
+                            DocumentSnapshot doc = videoSnap.data!.docs[index];
+                            Map<String,dynamic> data = doc.data() as Map<String, dynamic>;
+                            String url = data['url'];
+                            return GestureDetector(
+                              onTap: (){
+                                Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) => VideoDetailed(data, doc.id, widget.doc as DocumentSnapshot<Map<String, dynamic>>?))).then((value) => setState(() {}));
+                              },
+                                child: Image.network(
+                                    'https://img.youtube.com/vi/$url/0.jpg'
+                                        ,fit: BoxFit.cover,
+                                )
+                            );
+                          }
+                      );
 
-
-              ],
+                }
             ),
           ],
         ),
