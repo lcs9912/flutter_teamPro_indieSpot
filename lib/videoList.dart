@@ -144,7 +144,9 @@ class _VideoListState extends State<VideoList> {
     String url = videoDetailData['url'];
     int cnt = videoDetailData['cnt'];
     var time = videoDetailData['cDateTime'];
-
+    if (title.length > 30) {
+      title = title.substring(0, 30) + "...";
+    }
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(MaterialPageRoute(

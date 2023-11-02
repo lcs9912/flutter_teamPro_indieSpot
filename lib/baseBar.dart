@@ -348,7 +348,16 @@ class _MyDrawerState extends State<MyDrawer> {
               ListTile(
                 title: Text('사업자 등록'),
                 onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => YoutubeAdd(),));
+                  if(_userId != null) {
+                    if (_artistId != null) {
+                      Navigator.push(context, MaterialPageRoute(
+                        builder: (context) => YoutubeAdd(),));
+                    } else {
+                      showArtistRegistrationDialog(context);
+                    }
+                  }else{
+                    showUserRegistrationDialog(context);
+                  }
                 },
               ),
             ],
