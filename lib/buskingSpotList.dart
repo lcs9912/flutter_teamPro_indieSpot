@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
+import 'package:indie_spot/addBuskingSpot.dart';
 import 'package:indie_spot/baseBar.dart';
 import 'package:indie_spot/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -177,6 +178,13 @@ class _BuskingZoneListState extends State<BuskingZoneList> {
             ),
           body: _spotList(),
           bottomNavigationBar: MyBottomBar(),
+          floatingActionButton: FloatingActionButton(
+            backgroundColor: Color(0xFF392F31),
+            onPressed: (){
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddBuskingSpot(),)).then((value) => setState(() {}));
+            },
+            child: Icon(Icons.edit),
+          ),
         )
     );
   }
