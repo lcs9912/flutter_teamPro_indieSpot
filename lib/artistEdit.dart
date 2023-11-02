@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:indie_spot/artistList.dart';
 import 'package:indie_spot/lsjMain.dart';
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -14,7 +15,10 @@ import 'package:path/path.dart' as path;
 
 
 class ArtistEdit extends StatefulWidget {
-  const ArtistEdit({super.key});
+  final DocumentSnapshot doc;
+  final String artistImg;
+
+  ArtistEdit(this.doc, this.artistImg, {super.key});
 
   @override
   State<ArtistEdit> createState() => _ArtistEditState();
@@ -23,13 +27,24 @@ class _ArtistEditState extends State<ArtistEdit> {
 
   bool _isNameChecked = false;
   File? _selectedImage;
-
+  String _selectedGenre = ''; // 선택된 장르를 저장할 변수
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
   final TextEditingController _basicPrice = TextEditingController(); // 기본공연비(30분기준)
   final TextEditingController _artistName = TextEditingController();
   final TextEditingController _artistInfo = TextEditingController();
   final TextEditingController _mainPlace = TextEditingController();
   final TextEditingController _genre = TextEditingController();
+
+
+  @override
+    void initState() {
+      // TODO: implement initState
+      super.initState();
+      _basicPrice.text = widget.doc['basicPrice'].toString();
+      _artistInfo.text = widget.doc['artistInfo'];
+      _genre.text = widget.doc['genre'];
+      _mainPlace.text = widget.doc['mainPlace'];
+    }
 
   void _checkArtistName() async {
     // 활동명이 비어있는지 확인
@@ -60,6 +75,7 @@ class _ArtistEditState extends State<ArtistEdit> {
     final picker = ImagePicker();
     final pickedImage = await picker.pickImage(source: ImageSource.gallery);
 
+
     if(pickedImage != null){
       setState(() {
         _selectedImage = File(pickedImage.path);
@@ -75,7 +91,9 @@ class _ArtistEditState extends State<ArtistEdit> {
 
   Future<String> _uploadImage(File imageFile) async {
     try {
-      String fileName = path.basename(imageFile.path);
+
+        String fileName = path.basename(imageFile.path);
+
       Reference firebaseStorageRef = FirebaseStorage.instance.ref().child('image/$fileName');
 
       UploadTask uploadTask = firebaseStorageRef.putFile(imageFile);
@@ -89,8 +107,8 @@ class _ArtistEditState extends State<ArtistEdit> {
     }
   }
 
-  void _register() async {
-    print('기본 공연비${_basicPrice.text}');
+  void _artistEdit() async {
+    
     if(!_isNameChecked){
       showDialog(
         context: context,
@@ -115,43 +133,43 @@ class _ArtistEditState extends State<ArtistEdit> {
     if(_artistName.text.isEmpty ||
         _artistInfo.text.isEmpty ||
         _mainPlace.text.isEmpty ||
-        _genre.text.isEmpty ||
-        _selectedImage == null) {
+        _genre.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("모든 정보를 입력해주세요."))
       );
       return;
     }
-    final imageUrl = await _uploadImage(_selectedImage!);
-
+    final imageUrl = _selectedImage != null
+        ? await _uploadImage(_selectedImage!)
+        : widget.artistImg; // 이미지를 선택하지 않았을 때 widget.artistImg 사용
     try {
-      //등록처리
-      DocumentReference artistRef = await _fs.collection('artist').add(
+      //수정 처리
+      _fs.collection('artist').doc(widget.doc.id).update(
           {
             'artistName' : _artistName.text,
             'artistInfo' : _artistInfo.text,
-            'genre' : _genre.text,
+            'genre' : _selectedGenre,
             'mainPlace' : _mainPlace.text,
-            'createdate' : Timestamp.now(),
-            'donationAmount' : 0,
-            'udatetime' : " ",
-            "followerCnt" : 0,
-            "basicPrice" : _basicPrice.text != "" ?  _basicPrice.text : 0
-
+            'udatetime' : Timestamp.now(),
+            'basicPrice' : int.parse(_basicPrice.text)
           }
       );
-
-      String artistID = artistRef.id;
-
-      //서브 콜렉션에 이미지 추가
-      await _fs.collection('artist').doc(artistID).collection('image').add(
-          {
-            'deleteYn' : 'N',
-            'path' : imageUrl,
-          });
-
+      // 이미지 문서 아이디 구함
+      // final imageDocumentId = _fs.collection('artist')
+      //     .doc(widget.doc.id)
+      //     .collection('image')
+      //     .doc()
+      //     .id;
+      // print("이미지문서 아이디구함");
+      // print('이미지 아이디${imageDocumentId}');
+      // //서브 콜렉션에 이미지 추가
+      // await _fs.collection('artist').doc(widget.doc.id).collection('image').doc(imageDocumentId).update(
+      //     {
+      //       'path' : imageUrl,
+      //     });
+      print("이미지문서");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('등록되었습니다.')),
+        SnackBar(content: Text('수정되었습니다.')),
       );
 
       setState(() {
@@ -165,7 +183,7 @@ class _ArtistEditState extends State<ArtistEdit> {
       //등록 완료후 페이지 이동
       Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => MainPage())
+          MaterialPageRoute(builder: (context) => ArtistList())
       );
 
 
@@ -173,6 +191,7 @@ class _ArtistEditState extends State<ArtistEdit> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
+      print('Error: $e');
     }
   }
 
@@ -211,7 +230,7 @@ class _ArtistEditState extends State<ArtistEdit> {
             children: [
               SizedBox(height: 20),
               Text(
-                '아티스트 정보 입력',
+                '아티스트 정보 수정',
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 22
@@ -241,9 +260,10 @@ class _ArtistEditState extends State<ArtistEdit> {
               SizedBox(height: 14),
               _buildSelectedImage() ?? Container(
                 alignment: Alignment.center,
-                child: Image.asset(
-                  'assets/imgPick.png',
+                child: Image.network(
+                  widget.artistImg,
                   width: 360,
+                  height: 200,
 
                 ),
               ),
@@ -264,7 +284,7 @@ class _ArtistEditState extends State<ArtistEdit> {
                             backgroundColor: Colors.black
                         ),
                         onPressed: _change,
-                        child: Text('수정')
+                        child: Text('다시 입력')
                     )
                   else if(!_isNameChecked)
                     ElevatedButton(
@@ -284,7 +304,7 @@ class _ArtistEditState extends State<ArtistEdit> {
               TextField(
                 controller: _artistName,
                 decoration: InputDecoration(
-                    hintText: '활동명을 입력해주세요.',
+                    hintText: widget.doc['artistName'],
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(6)
                     )
@@ -304,7 +324,7 @@ class _ArtistEditState extends State<ArtistEdit> {
                 maxLines: 4,
                 controller: _artistInfo,
                 decoration: InputDecoration(
-                    hintText: '소개를 입력해주세요.',
+                    hintText: widget.doc['artistInfo'],
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(6)
                     )
@@ -322,7 +342,7 @@ class _ArtistEditState extends State<ArtistEdit> {
               TextField(
                 controller: _mainPlace,
                 decoration: InputDecoration(
-                    hintText: '주로 활동하는 지역을 입력해주세요.(ex. 서울 홍대)',
+                    hintText: widget.doc['mainPlace'],
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(6)
                     )
@@ -332,15 +352,61 @@ class _ArtistEditState extends State<ArtistEdit> {
               Text(
                 '장르',
                 style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               SizedBox(height: 14),
-              TextField(
+              Row(
+                children: [
+                  Radio<String>(
+                    value: '음악', // 첫 번째 장르
+                    groupValue: _selectedGenre,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedGenre = value!;
+                      });
+                    },
+                  ),
+                  Text('음악'),
+                  Radio<String>(
+                    value: '댄스', // 두 번째 장르
+                    groupValue: _selectedGenre,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedGenre = value!;
+                      });
+                    },
+                  ),
+                  Text('댄스'),
+                  Radio<String>(
+                    value: '퍼포먼스', // 세 번째 장르
+                    groupValue: _selectedGenre,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedGenre = value!;
+                      });
+                    },
+                  ),
+                  Text('퍼포먼스'),
+                  Radio<String>(
+                    value: '마술', // 네 번째 장르
+                    groupValue: _selectedGenre,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedGenre = value!;
+                      });
+                    },
+                  ),
+                  Text('마술'),
+                ],
+              ),
+              SizedBox(height: 40),
+              SizedBox(height: 14),
+              TextField( // 이거 라디오 버튼으로 민들거임
                 controller: _genre,
                 decoration: InputDecoration(
-                    hintText: '음악 장르를 입력해주세요. (ex. 락발라드)',
+                    hintText: widget.doc['genre'],
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(6)
                     )
@@ -352,7 +418,7 @@ class _ArtistEditState extends State<ArtistEdit> {
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16.0), // Add horizontal padding if needed
                   child: ElevatedButton(
-                    onPressed: _register,
+                    onPressed: _artistEdit,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFF392F31), // 392F31 색상
                       minimumSize: Size(double.infinity, 48), // Set button width and height
@@ -370,8 +436,6 @@ class _ArtistEditState extends State<ArtistEdit> {
             ],
           ),
         ),
-
     );
   }
-
 }

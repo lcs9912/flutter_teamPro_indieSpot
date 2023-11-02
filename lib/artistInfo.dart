@@ -13,6 +13,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'donationPage.dart';
 import 'userModel.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 
 class ArtistInfo extends StatefulWidget {
   final DocumentSnapshot doc;
@@ -31,7 +32,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
   String? _userId;
   bool scheduleFlg = false;
   int? folCnt; // 팔로워
-
+  String? _artistId;
   //////////////세션 확인//////////
   @override
   void initState() {
@@ -42,12 +43,32 @@ class _ArtistInfoState extends State<ArtistInfo> {
     if (!userModel.isLogin) {
 
     } else {
-
       _userId = userModel.userId;
       _followCheck();
+      artistCheck();
     }
   }
 
+  // 아티스트 권한 확인
+  void artistCheck() async{
+    QuerySnapshot art = await fs.collection("artist").get();
+    if(art.docs.isNotEmpty){
+      for(int i =0; i<art.docs.length; i++){
+        var docId=art.docs[i].id;
+
+        QuerySnapshot teamSnap = await fs.collection("artist").doc(docId).collection("team_members").get();
+        for(int j=0; j<teamSnap.docs.length; j++){
+          DocumentSnapshot artistDoc = teamSnap.docs[j];
+          Map<String,dynamic>teamData = artistDoc.data() as Map<String,dynamic>;
+          if(teamData['userId'] == _userId){
+            setState(() {
+              _artistId = docId;
+            });
+          }
+        }
+      }
+    }
+  }
   
   // 팔로우COUNT 불러오기
   void _followerCount() async {
@@ -161,13 +182,13 @@ class _ArtistInfoState extends State<ArtistInfo> {
 
   }
 
-
+  // 로그인 해라 
   _alertDialogWidget() {
     showDialog(
         context: context,
         builder: (BuildContext context){
           return AlertDialog(
-            content: Text("로그인 이후 이용 가능합니다"),
+            content: Text("로그인이후 이용 가능합니다."),
             actions: [
               ElevatedButton(
                   onPressed: (){
@@ -192,9 +213,51 @@ class _ArtistInfoState extends State<ArtistInfo> {
     );
   }
 
+  // 스피드 다이얼로그
+  Widget? floatingButtons() {
+    if(_artistId != null){
+      return SpeedDial(
+        animatedIcon: AnimatedIcons.menu_close,
+        visible: true,
+        curve: Curves.bounceIn,
+        backgroundColor: Color(0xFF392F31),
+        children: [
+          SpeedDialChild(
+              child: const Icon(Icons.settings_sharp, color: Colors.white),
+              label: "수정",
+              labelStyle: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                  fontSize: 13.0),
+              backgroundColor: Color(0xFF392F31),
+              labelBackgroundColor: Color(0xFF392F31),
+              onTap: () {
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => ArtistEdit(widget.doc, widget.artistImg),)).then((value) => setState(() {}));
+              }),
+          SpeedDialChild(
+            child: const Icon(
+              Icons.add_chart_rounded,
+              color: Colors.white,
+            ),
+            label: "내 후원기록",
+            backgroundColor: Color(0xFF392F31),
+            labelBackgroundColor: Color(0xFF392F31),
+            labelStyle: const TextStyle(
+                fontWeight: FontWeight.w500, color: Colors.white, fontSize: 13.0),
+            onTap: () {},
+          )
+        ],
+      );
+    } else {
+      return Container();
+    }
+
+  }
+
+
   /////////////////상세 타이틀///////////////
   Widget _infoTitle(){
-    return Stack( // 이부분만 따로 묶어서 관리하기
+    return Stack(
       children: [
         Image.network(
           widget.artistImg,
@@ -248,7 +311,12 @@ class _ArtistInfoState extends State<ArtistInfo> {
                 ),
                 IconButton(
                     onPressed: (){
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => DonationPage(artistId : widget.doc.id),));
+                      if(_userId != null){
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => DonationPage(artistId : widget.doc.id),));
+                      }else{
+                        _alertDialogWidget();
+                      }
+
                     },
                     icon: Icon(Icons.price_change),
                 )
@@ -732,13 +800,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
             ),
           ],
         ),
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: Color(0xFF392F31),
-          onPressed: (){
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) => ArtistEdit(),)).then((value) => setState(() {}));
-          },
-          child: Icon(Icons.edit),
-        ),
+        floatingActionButton: floatingButtons(),
       ),
     );
   }
