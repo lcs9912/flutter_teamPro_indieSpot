@@ -10,8 +10,9 @@ import 'package:geocoding/geocoding.dart';
 class SpotDetailed extends StatefulWidget {
   final Map<String, dynamic> _data;
   final List<QueryDocumentSnapshot<Map<String, dynamic>>> _addr;
+  final List<QueryDocumentSnapshot<Map<String, dynamic>>> _images;
   final String _spotId;
-  const SpotDetailed(this._data, this._addr, this._spotId, {super.key});
+  const SpotDetailed(this._data, this._addr, this._images, this._spotId, {super.key});
 
   @override
   State<SpotDetailed> createState() => _SpotDetailedState();
@@ -46,7 +47,7 @@ class _SpotDetailedState extends State<SpotDetailed> {
       appBar: _appBar(),
       body: ListView(
         children: [
-          Image.asset('busking/SE-70372558-15b5-11ee-8f66-416d786acd10.jpg', height: 308,),
+          Image.network(widget._images[0].data()['path'], height: 308,),
           SizedBox(height: 10,),
           ListTile(
             title: Row(
@@ -65,7 +66,7 @@ class _SpotDetailedState extends State<SpotDetailed> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Icon(Icons.location_on_outlined),
-                    Text('${widget._addr[0]['addr']} ${widget._addr[0]['addr2']}')
+                    Text('${widget._addr[0]['addr']}\n${widget._addr[0]['addr2']}', softWrap: true,)
                   ],
                 ),
                 SizedBox(height: 10,),
