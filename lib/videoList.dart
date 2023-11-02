@@ -139,21 +139,20 @@ class _VideoListState extends State<VideoList> {
     );
   }
 
-  Widget _buildVideoListItem(Map<String, dynamic> videoDetailData, String id, Map<String, dynamic>? data) {
+  Widget _buildVideoListItem(Map<String, dynamic> videoDetailData, String id, DocumentSnapshot<Map<String, dynamic>>? artistName) {
     String title = videoDetailData['title'];
     String url = videoDetailData['url'];
     int cnt = videoDetailData['cnt'];
     var time = videoDetailData['cDateTime'];
-    
-    
-    
+
+     
     if (title.length > 30) {
       title = title.substring(0, 30) + "...";
     }
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => VideoDetailed(videoDetailData, id),)).then((value) => setState(() {}));
+          builder: (context) => VideoDetailed(videoDetailData, id ,artistName!),)).then((value) => setState(() {}));
       },
       child: Container(
         height: 370,
@@ -182,6 +181,7 @@ class _VideoListState extends State<VideoList> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      Text(artistName?.get('artistName') ?? 'z'),
                       Text('조회수 $cnt', style: TextStyle(fontSize: 12)),
                       Text(DateFormat('yyyy-MM-dd').format(time.toDate()),
                           style: TextStyle(fontSize: 12)),
@@ -202,24 +202,34 @@ class _VideoListState extends State<VideoList> {
 
     if (videoDetailsQuerySnapshot.docs.isNotEmpty) {
       var list = <Widget>[];
-      videoDetailsQuerySnapshot.docs.forEach((videoDetailDocument) async{
+
+      for (var videoDetailDocument in videoDetailsQuerySnapshot.docs) {
         var videoDetailData = videoDetailDocument.data();
         if (_searchControl != null && _searchControl.text.isNotEmpty) {
           // 검색어가 비어 있지 않고 title에 검색어가 포함되어 있으면 리스트에 아이템 추가
           if (videoDetailData['title'].contains(_searchControl.text)) {
-            var artisDoc = await fs.collection('artis').doc(videoDetailData['artisId']).get();
-            list.add(_buildVideoListItem(videoDetailData, videoDetailDocument.id, artisDoc.data()));
+            var artistName = await _getArtistName(videoDetailData['artistId']);
+            list.add(_buildVideoListItem(videoDetailData, videoDetailDocument.id, artistName));
+
           }
         } else {
           // 검색어가 비어있거나 null인 경우 모든 아이템 추가
-          var artisDoc = await fs.collection('artis').doc(videoDetailData['artisId']).get();
-          list.add(_buildVideoListItem(videoDetailData, videoDetailDocument.id, artisDoc.data()));
+          var artistName = await _getArtistName(videoDetailData['artistId']);
+          list.add(_buildVideoListItem(videoDetailData, videoDetailDocument.id, artistName));
         }
-      });
+      }
       return list;
     } else {
       var list = <Widget>[];
       return list;
+    }
+  }
+  Future<DocumentSnapshot<Map<String, dynamic>>?> _getArtistName(String artistId) async {
+    var artistDoc = await fs.collection('artist').doc(artistId).get();
+    if (artistDoc.exists) {
+      return artistDoc;
+    } else {
+      return null;
     }
   }
 }
