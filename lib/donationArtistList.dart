@@ -106,30 +106,33 @@ class _DonationArtistListState extends State<DonationArtistList> {
       drawer: MyDrawer(),
       body: Column(
         children: [
-          TextField(
-            controller: _search,
-            focusNode: _focusNode,
-            textInputAction: TextInputAction.go,
-            onSubmitted: (value){
-              setState(() {
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _search,
+              focusNode: _focusNode,
+              textInputAction: TextInputAction.go,
+              onSubmitted: (value){
+                setState(() {
 
-              });
-            },
-            decoration: InputDecoration(
-              hintText: "팀명으로 검색하기",
-              border: OutlineInputBorder(),
-              filled: true,
-              fillColor: Colors.white,
-              suffixIcon: IconButton(
-                onPressed: () {
-                  _focusNode.unfocus();
-                  _search.clear();
-                },
-                icon: Icon(Icons.cancel_outlined),
+                });
+              },
+              decoration: InputDecoration(
+                hintText: "팀명으로 검색하기",
+                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.white,
+                suffixIcon: IconButton(
+                  onPressed: () {
+                    _focusNode.unfocus();
+                    _search.clear();
+                  },
+                  icon: Icon(Icons.cancel_outlined),
+                ),
+                prefixIcon: Icon(Icons.search),
               ),
-              prefixIcon: Icon(Icons.search),
-            ),
         ),
+          ),
          _artistSearch(),
         ],
       ),

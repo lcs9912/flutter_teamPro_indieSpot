@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
+import 'baseBar.dart';
+
 class DonationList extends StatefulWidget {
 
   DocumentSnapshot artistDoc;
@@ -204,14 +206,55 @@ class _DonationListState extends State<DonationList> {
   Widget build(BuildContext context) {
     print("zz : ${artistImg?['path']}");
     return Scaffold(
-      appBar: AppBar(),
+      backgroundColor: Colors.white,
+      drawer: MyDrawer(), 
+      appBar: AppBar(
+        actions: [
+          IconButton(
+            onPressed: () {
+              // 아이콘 클릭 시 수행할 작업 추가
+            },
+            icon: Icon(Icons.person),
+            color: Colors.black54,
+          ),
+          Builder(
+            builder: (context) {
+              return IconButton(
+                onPressed: () {
+                  Scaffold.of(context).openDrawer();
+                },
+                icon: Icon(Icons.menu),
+                color: Colors.black54,
+              );
+            },
+          ),
+        ],
+        elevation: 1,
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: Colors.black54,
+          ),
+          onPressed: () {
+            // 뒤로가기 버튼을 눌렀을 때 수행할 작업
+            Navigator.of(context).pop();
+          },
+        ),
+        backgroundColor: Colors.white,
+        centerTitle: true,
+        title: Text(
+          '받은 후원',
+          style: TextStyle(color: Colors.black,),
+        ),
+      ),
       body: Column(
         children: [
           artistImg != null?
           Image.network(artistImg?['path']
             ,width: double.infinity,
             height: 200,
-            fit: BoxFit.fitWidth,
+            fit: BoxFit.contain,
             alignment: Alignment.topCenter,) : Container(),
           Center(
             child: Column(
