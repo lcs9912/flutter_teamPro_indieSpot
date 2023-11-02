@@ -9,8 +9,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DonationPage extends StatefulWidget {
 
-  DocumentSnapshot document;
-  DonationPage({required this.document});
+  final String artistId;
+
+  DonationPage({required this.artistId});
+
   @override
   State<DonationPage> createState() => _DonationPageState();
 }
@@ -43,7 +45,7 @@ class _DonationPageState extends State<DonationPage> {
       _userId = userModel.userId;
       print(_userId);
       pointBalanceSearch().then((value) => _donationUser.text = userData?['nick']);
-      print(widget.document.id);
+      print(widget.artistId);
       artistInfo();
     }
   }
@@ -63,12 +65,12 @@ class _DonationPageState extends State<DonationPage> {
   }
 
   Future<void> artistInfo() async {
-    DocumentSnapshot artistSnapshot = await fs.collection('artist').doc(widget.document.id).get();
+    DocumentSnapshot artistSnapshot = await fs.collection('artist').doc(widget.artistId).get();
     if (artistSnapshot.exists) {
       setState(() {
         artistData = artistSnapshot.data() as Map<String,dynamic>;
       });
-      QuerySnapshot imgSnapshot = await fs.collection('artist').doc(widget.document.id).collection("image").get();
+      QuerySnapshot imgSnapshot = await fs.collection('artist').doc(widget.artistId).collection("image").get();
       if(imgSnapshot.docs.isNotEmpty){
         setState(() {
           artistImg = imgSnapshot.docs.first.data() as Map<String, dynamic>;
@@ -79,12 +81,12 @@ class _DonationPageState extends State<DonationPage> {
   void _updataDonation() async{
     String amount1 = _donationAmount.text.replaceAll(',', '');
     int amount = artistData?['donationAmount']+int.parse(amount1);
-    FirebaseFirestore.instance.collection("artist").doc(widget.document.id).update({'donationAmount' : amount});
+    FirebaseFirestore.instance.collection("artist").doc(widget.artistId).update({'donationAmount' : amount});
     int userPoint1 = userPoint?['pointBalance'] - int.parse(amount1);
     QuerySnapshot userPointSnap = await FirebaseFirestore.instance.collection("userList").doc(_userId).collection("point").get();
     DocumentSnapshot doc = userPointSnap.docs[0];
     FirebaseFirestore.instance.collection("userList").doc(_userId).collection("point").doc(doc.id).update({"pointBalance" : userPoint1});
-    FirebaseFirestore.instance.collection("artist").doc(widget.document.id).collection("donation_details").add(
+    FirebaseFirestore.instance.collection("artist").doc(widget.artistId).collection("donation_details").add(
         {
           'amount' : int.parse(amount1),
           'user' : _userId,
@@ -97,7 +99,7 @@ class _DonationPageState extends State<DonationPage> {
           'amount' : int.parse(amount1),
           'date' : FieldValue.serverTimestamp(),
           'message' : _donationMessage.text,
-          'artistId' : widget.document.id,
+          'artistId' : widget.artistId,
           'type' : "후원"
         }
     );

@@ -4,7 +4,8 @@ import 'package:indie_spot/baseBar.dart';
 import 'package:indie_spot/buskingReservation.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
-
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geocoding/geocoding.dart';
 
 class SpotDetailed extends StatefulWidget {
   final Map<String, dynamic> _data;
@@ -17,6 +18,26 @@ class SpotDetailed extends StatefulWidget {
 }
 
 class _SpotDetailedState extends State<SpotDetailed> {
+  GoogleMapController? mapController;
+  LatLng? coordinates;
+
+  Future<void> _getCoordinatesFromAddress(String address) async {
+    List<Location> locations = await locationFromAddress(address);
+    if (locations.isNotEmpty) {
+      final coordinates = LatLng(locations.first.latitude, locations.first.longitude);
+      setState(() {
+        this.coordinates = coordinates;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _getCoordinatesFromAddress('${widget._addr[0]['addr']} ${widget._addr[0]['addr2']}');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -70,6 +91,31 @@ class _SpotDetailedState extends State<SpotDetailed> {
                 SizedBox(height: 10,),
                 Text(widget._data['description'], style: TextStyle(fontSize: 15),)
               ],
+            ),
+          ),
+          Container(
+            width: 300, // 원하는 가로 크기
+            height: 200, // 원하는 세로 크기
+            margin: EdgeInsets.only(bottom: 100, top: 20),
+            child: coordinates == null
+                ? Container()
+                : GoogleMap(
+              onMapCreated: (GoogleMapController controller) {
+                setState(() {
+                  mapController = controller;
+                });
+              },
+              initialCameraPosition: CameraPosition(
+                target: coordinates!,
+                zoom: 15, // 줌 레벨 조정
+              ),
+              markers: <Marker>{
+                Marker(
+                  markerId: MarkerId('customMarker'),
+                  position: coordinates!,
+                  infoWindow: InfoWindow(title: widget._data['spotName'], snippet: widget._data['description']),
+                ),
+              },
             ),
           )
         ],

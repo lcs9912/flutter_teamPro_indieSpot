@@ -43,6 +43,7 @@ class _ArtistRegiState extends State<ArtistRegi> {
   File? _selectedImage;
 
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
+  final TextEditingController _basicPrice = TextEditingController(); // 기본공연비(30분기준)
   final TextEditingController _artistName = TextEditingController();
   final TextEditingController _artistInfo = TextEditingController();
   final TextEditingController _mainPlace = TextEditingController();
@@ -107,6 +108,7 @@ class _ArtistRegiState extends State<ArtistRegi> {
   }
 
   void _register() async {
+    print('기본 공연비${_basicPrice.text}');
     if(!_isNameChecked){
       showDialog(
         context: context,
@@ -150,7 +152,9 @@ class _ArtistRegiState extends State<ArtistRegi> {
           'mainPlace' : _mainPlace.text,
           'createdate' : Timestamp.now(),
           'donationAmount' : 0,
-          'udatetime' : " "
+          'udatetime' : " ",
+          "followerCnt" : 0,
+          "basicPrice" : _basicPrice.text != "" ?  _basicPrice.text : 0
 
         }
       );

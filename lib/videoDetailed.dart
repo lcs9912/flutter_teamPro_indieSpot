@@ -10,7 +10,8 @@ import 'package:intl/intl.dart';
 class VideoDetailed extends StatefulWidget {
   final Map<String, dynamic> videoDetailData;
   final String videoId;
-  VideoDetailed(this.videoDetailData, this.videoId, {super.key});
+  final DocumentSnapshot<Map<String, dynamic>>? artistName;
+  VideoDetailed(this.videoDetailData, this.videoId, this.artistName, {super.key});
 
   @override
   State<VideoDetailed> createState() => _VideoDetailedState();
@@ -30,11 +31,12 @@ class _VideoDetailedState extends State<VideoDetailed> {
   bool _editflg = false;
   String? _commentId;
   final FocusNode _focusNode = FocusNode();
-
+  String img ="";
   @override
   void initState() {
     super.initState();
     _updateCnt();
+    fetchData();
     _controller = YoutubePlayerController(
       initialVideoId: widget.videoDetailData['url'], // YouTube 동영상의 ID를 여기에 입력
       flags: YoutubePlayerFlags(
@@ -50,6 +52,15 @@ class _VideoDetailedState extends State<VideoDetailed> {
     }
   }
 
+  Future<void> fetchData() async {
+    QuerySnapshot imgSnap = await fs.collection("artist").doc(widget.artistName?.id).collection("image").get();
+    if(imgSnap.docs.isNotEmpty){
+      setState(() {
+        img = imgSnap.docs.first.get("path");
+      });
+    }
+
+  }
   Future<void> _updateCnt() async {
     CollectionReference videoCollection = fs.collection('video');
     DocumentReference videoDocRef = videoCollection.doc(widget.videoId);
@@ -109,6 +120,7 @@ class _VideoDetailedState extends State<VideoDetailed> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: Color(0xFFC4C4C4),
       drawer: MyDrawer(),
@@ -174,10 +186,33 @@ class _VideoDetailedState extends State<VideoDetailed> {
                   decoration: BoxDecoration(
                       border: Border(bottom: BorderSide(color: Colors.black26, width: 1))
                   ),
-                  margin: EdgeInsets.only(bottom: 20),
+                  margin: EdgeInsets.only(bottom: 0),
                   padding: EdgeInsets.only(bottom: 15),
-                  child: Text(widget.videoDetailData['title'], style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(
-                      0xFF484848)),),
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(widget.videoDetailData['title'], style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(
+                        0xFF484848)),),
+                    subtitle: Row(
+                      children: [
+                        Text("조회수 ${(widget.videoDetailData['cnt']).toString()}회  ",style: TextStyle(fontSize: 16),),
+                        Text(DateFormat('yyyy-MM-dd HH:mm').format(widget.videoDetailData['cDateTime'].toDate()))
+                      ],
+                    ),
+                  )
+                ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 35,
+                      height: 50,
+                      child: CircleAvatar(
+                        radius: 40,
+                        backgroundImage: NetworkImage(img) // 프로필 이미지
+                      ),
+                    ),
+                    Text(widget.artistName?.get("artistName"),style: TextStyle(fontSize: 16,fontWeight: FontWeight.bold),),
+                  ],
                 ),
                 Text(widget.videoDetailData['content']),
               ],

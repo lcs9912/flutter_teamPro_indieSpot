@@ -1,7 +1,10 @@
+
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/artistInfo.dart';
+import 'package:indie_spot/login.dart';
 import 'baseBar.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -23,22 +26,44 @@ class _ArtistInfoState extends State<ArtistInfo> {
 
   bool _followerFlg = false; // 팔로우 했는지!
   String? _userId;
-  bool flg = false;
+  bool scheduleFlg = false;
   int? folCnt; // 팔로워
+
   //////////////세션 확인//////////
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    _followerCount(); // 팔로우count
     final userModel = Provider.of<UserModel>(context, listen: false);
     if (!userModel.isLogin) {
 
     } else {
+
       _userId = userModel.userId;
       _followCheck();
     }
   }
-// 팔로워 카운트 artistList 파일에서 로드한거라 바로적용안됨 이페이지에서 다시 출력
+
+  
+  // 팔로우COUNT 불러오기
+  void _followerCount() async {
+
+    final CollectionReference artistCollection = FirebaseFirestore.instance.collection('artist');
+    final DocumentReference artistDocument = artistCollection.doc(widget.doc.id);
+
+    artistDocument.get().then((DocumentSnapshot documentSnapshot) {
+      if (documentSnapshot.exists) {
+        // 문서가 존재하는 경우 필드 가져오기
+        folCnt = documentSnapshot['followerCnt'];
+      } else {
+        folCnt = 0;
+      }
+    }).catchError((error) {
+      print('데이터 가져오기 중 오류 발생: $error');
+    });
+
+  }
 
   //////////////팔로우 확인/////////////
   void _followCheck() async {
@@ -48,33 +73,50 @@ class _ArtistInfoState extends State<ArtistInfo> {
         .collection('follower')
         .where('userId',isEqualTo: _userId)
         .get(); // 데이터를 검색하기 위해 get()를 사용합니다.
-
-    if(followYnSnapshot.docs.isNotEmpty){
-      _followerFlg = true;
-    } else {
-      _followerFlg = false;
-    }
+    setState(() {
+      if(followYnSnapshot.docs.isNotEmpty){
+        _followerFlg = true;
+      } else {
+        _followerFlg = false;
+      }
+      _followerCount(); // 팔로우count
+    });
 
   }
   
   ///// 팔로우 하기
   void _followAdd() async{
-    CollectionReference followAdd = fs
-        .collection('artist')
-        .doc(widget.doc.id)
-        .collection('follower');
+    if(_userId == null){
+      _alertDialogWidget();
+    } else {
+      CollectionReference followAdd = fs
+          .collection('artist')
+          .doc(widget.doc.id)
+          .collection('follower');
 
 
-    await followAdd.add({
-      'userId' : _userId,
-    });
+      await followAdd.add({
+        'userId' : _userId
+      });
+      DocumentReference artistDoc = fs.collection('artist').doc(widget.doc.id);
+      artistDoc.update({
+        'followerCnt': FieldValue.increment(1), // 1을 증가시킵니다.
+      });
+      // 유저
+      var myFollowingRef = fs.collection('userList').doc(_userId);
+      var myFollowing = await myFollowingRef.collection('following');
+      print(_userId);
+      await myFollowing.add({
+        "artistId" : widget.doc.id
+      });
+      myFollowingRef.update({
+        'followingCnt': FieldValue.increment(1),
+      });
 
-    DocumentReference artistDoc = fs.collection('artist').doc(widget.doc.id);
-    artistDoc.update({
-      'followerCnt': FieldValue.increment(1), // 1을 증가시킵니다.
-    });
+      _followCheck();
 
-    _followCheck();
+    }
+
 
   }
 
@@ -85,6 +127,9 @@ class _ArtistInfoState extends State<ArtistInfo> {
         .doc(widget.doc.id)
         .collection('follower');
 
+    var myFollowingRef = fs.collection('userList').doc(_userId);
+    var artistIdToRemove = widget.doc.id;
+
     // 팔로우 관계를 삭제합니다.
     QuerySnapshot querySnapshot = await followDelete
         .where('userId', isEqualTo: _userId)
@@ -93,18 +138,64 @@ class _ArtistInfoState extends State<ArtistInfo> {
       for (QueryDocumentSnapshot document in querySnapshot.docs) {
         // 해당 사용자와 관련된 문서를 삭제합니다.
         await document.reference.delete();
+
+        DocumentReference artistDoc = fs.collection('artist').doc(widget.doc.id);
+        artistDoc.update({
+          'followerCnt': FieldValue.increment(-1), // 1을 감소시킵니다.
+        });
       }
+
+
+// 1. following 서브컬렉션에서 artistId와 일치하는 문서 제거
+      await myFollowingRef.collection('following').where('artistId', isEqualTo: artistIdToRemove).get().then((querySnapshot) {
+        querySnapshot.docs.forEach((doc) {
+          doc.reference.delete();
+        });
+      });
+
+// 2. userList 컬렉션의 followingCnt 필드 -1
+      await myFollowingRef.update({
+        'followingCnt': FieldValue.increment(-1),
+      });
+
+      _followCheck();
     }
 
-    DocumentReference artistDoc = fs.collection('artist').doc(widget.doc.id);
-    artistDoc.update({
-      'followerCnt': FieldValue.increment(-1), // 1을 감소시킵니다.
-    });
+
 
 
   }
 
 
+  _alertDialogWidget() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context){
+          return AlertDialog(
+            content: Text("로그인 이후 이용 가능합니다"),
+            actions: [
+              ElevatedButton(
+                  onPressed: (){
+                    Navigator.of(context).pop();
+                  }, // 기능
+                  child: Text("취소")
+              ),
+              ElevatedButton(
+                  onPressed: (){
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LoginPage(),
+                      ),
+                    ).then((value) => Navigator.of(context).pop());
+                  }, // 기능
+                  child: Text("로그인")
+              ),
+            ],
+          );
+        }
+    );
+  }
 
   /////////////////상세 타이틀///////////////
   Widget _infoTitle(){
@@ -120,9 +211,10 @@ class _ArtistInfoState extends State<ArtistInfo> {
             left: 5,
             bottom: 5,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('${widget.doc['artistName']}',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold,color: Colors.white),),
-                Text('${widget.doc['genre']}'),
+                Text('${widget.doc['genre']}',style: TextStyle(fontSize: 14,color: Colors.white),),
               ],
             )
         ),
@@ -133,33 +225,36 @@ class _ArtistInfoState extends State<ArtistInfo> {
               children: [
                 Stack(
                   children: [
-                    Text(widget.doc['followerCnt'].toString()),
                     if(_followerFlg)
-                    IconButton(
-                        onPressed: (){
-                          setState(() {
+                      IconButton(
+                          onPressed: (){
                             _followDelete();
-                          });
+                            setState(() {
 
-                        },
+                            });
+                          },
 
-                        icon: Icon(Icons.person_add)
-                    ),
+                          icon: Icon(Icons.person_add)
+                      ),
 
                     if(!_followerFlg)
-                    IconButton(
-                        onPressed: (){
-                          setState(() {
+                      IconButton(
+                          onPressed: (){
                             _followAdd();
-                          });
+                            setState(() {
 
-                        },
+                            });
+                          },
 
-                        icon: Icon(Icons.person_add_alt)
+                          icon: Icon(Icons.person_add_alt)
+                      ),
+                    Positioned(
+                      right: 1,
+                      top: 1,
+                        child: Text(folCnt.toString())
                     ),
                   ],
                 )
-
               ],
             )
         ),
@@ -178,6 +273,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
         .get(); // 데이터를 검색하기 위해 get()를 사용합니다.
 
     List<Widget> memberWidgets = [];
+
 
     if(membersQuerySnapshot.docs.isNotEmpty){
       for (QueryDocumentSnapshot membersDoc in membersQuerySnapshot.docs)  {
@@ -431,11 +527,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
                           ),
                         ),
                       );
-
-
                       buskingScheduleWidgets.add(buskingScheduleWidget);
-
-
                     }
                   }
 
@@ -461,18 +553,14 @@ class _ArtistInfoState extends State<ArtistInfo> {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
 
-    // 아티스트 클립이미지
+    // 아티스트 동영상 리스트
     final artistImagesSnapshot = await fs
-        .collection('artist')
+        .collection('video')
         .doc(widget.doc.id)
         .collection('images')
         .get();
     if(artistImagesSnapshot.docs.isNotEmpty){
-      for(QueryDocumentSnapshot artistImagesDoc in artistImagesSnapshot.docs) {
-        String images = artistImagesDoc['path'];
 
-
-      }
       return [Container()];
     }
     return [Container()];
@@ -521,18 +609,6 @@ class _ArtistInfoState extends State<ArtistInfo> {
               Tab(text: '공연일정'),
               Tab(text: '클립'),
             ],
-            onTap: (int index) {
-              if (index == 0) {
-                setState(() {
-
-                });
-              } else if (index == 1) {
-                setState(() {
-
-
-                });
-              }
-            },
             unselectedLabelColor: Colors.black,
             labelColor: Colors.blue,
             labelStyle: TextStyle(
@@ -584,7 +660,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
               children: [
                 Container(
                   child: FutureBuilder(
-                    future: flg ? _buskingSchedule() : _commerSchedule(),
+                    future: scheduleFlg ? _buskingSchedule() : _commerSchedule(),
                     builder: (BuildContext context, AsyncSnapshot<dynamic> scheduleSnap) {
                       if (scheduleSnap.connectionState == ConnectionState.waiting) {
                         return Container();
@@ -602,7 +678,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
                                       child: TextButton(
                                         onPressed: (){
                                           setState(() {
-                                            flg = true;
+                                            scheduleFlg = true;
                                           });
                                         },
                                         child: Text("버스킹",style: TextStyle(color: Colors.grey),),
@@ -615,7 +691,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
                                       child: TextButton(
                                         onPressed: (){
                                           setState(() {
-                                            flg = false;
+                                            scheduleFlg = false;
                                           });
                                         },
                                         child: Text("상업공간",style: TextStyle(color: Colors.grey),),
@@ -644,8 +720,19 @@ class _ArtistInfoState extends State<ArtistInfo> {
             ///////////클립 탭/////////////
             Column( ///////////클립 탭/////////////
               children: [
+                Row(
+                  children: [
+                    TextButton(
+                        onPressed: (){},
+                        child: Text("사진"),
+                    ),
+                    TextButton(
+                        onPressed: (){},
+                        child: Text("동영상"),
+                    ),
+                  ],
+                ),
 
-                Text("클립"),
 
               ],
             ),

@@ -6,6 +6,7 @@ import 'package:indie_spot/result.dart';
 import 'package:indie_spot/userEdit.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:indie_spot/videoList.dart';
+import 'artistRegi.dart';
 import 'buskingList.dart';
 import 'buskingReservation.dart';
 import 'concertDetails.dart';
@@ -16,6 +17,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_image/flutter_image.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,13 +30,10 @@ void main() async {
           ChangeNotifierProvider(create: (_) => UserModel())
         ],
         child: MaterialApp(
-          localizationsDelegates: [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-          ],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
           supportedLocales: [
             const Locale('ko', 'KR'), // 한국어
-            const Locale('en', ''), // 다른 언어도 지원하려면 추가
+            const Locale('en'), // 한국어
           ],
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
@@ -47,7 +46,6 @@ void main() async {
             // 다른 경로와 페이지 설정
           },
         ),
-
       )
   );
 }
@@ -59,11 +57,27 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  String? _userId; // 유저 세션
+
   FirebaseFirestore fs = FirebaseFirestore.instance;
   bool iconFlg = false; // 아이콘 리스트 플러그
   bool loginFlg = false;
   static const int maxAttempt = 3;
   static const Duration attemptTimeout = Duration(seconds: 2);
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    // 팔로우count
+    final userModel = Provider.of<UserModel>(context, listen: false);
+    if (!userModel.isLogin) {
+
+    } else {
+      _userId = userModel.userId;
+    }
+  }
 
   Future<List<Widget>> _busKinList() async {
     // 버스킹 컬렉션 호출
@@ -410,10 +424,15 @@ class _MyAppState extends State<MyApp> {
             Column(
               children: [
                 IconButton(
-                    onPressed: (){},
+                    onPressed: (){
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => ArtistRegi()),
+                      );
+                    },
                     icon: Icon(Icons.person)
                 ),
-                Text("아티스트"),
+                Text("아티스트 등록"),
               ],
             ),
             Column(

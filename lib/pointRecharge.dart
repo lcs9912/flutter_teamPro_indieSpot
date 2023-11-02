@@ -132,7 +132,11 @@ class _PointRechargeState extends State<PointRecharge> {
                   )
               ),
               onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => Payment(_rechargeControl.text),));
+                if(_rechargeControl.text == '0' || _rechargeControl.text == '' || _rechargeControl.text == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('충전할 포인트를 입력해주세요'), behavior: SnackBarBehavior.floating,));
+                } else {
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => Payment(_rechargeControl.text),));
+                }
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -169,31 +173,32 @@ class _PointRechargeState extends State<PointRecharge> {
     return Container(
       margin: EdgeInsets.only(bottom: 10),
       child: Row(
-        mainAxisAlignment:MainAxisAlignment.center,
+        mainAxisAlignment:MainAxisAlignment.spaceBetween,
         children: [
           for(int price in _price)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
+            Container(
               child: ElevatedButton(
                   onPressed: (){
+                    if(_rechargeControl.text == '') _rechargeControl.text = '0';
                     setState(() {
-                      _rechargeControl.text = _numberFormat.format(price + int.parse(_rechargeControl.text.replaceAll(',', '')));
+                      _rechargeControl.text = _numberFormat.format(price + int.parse(_rechargeControl.text.replaceAll(',', '') ?? '0'));
                     });
                   },
                   style: ButtonStyle(
-                    backgroundColor: MaterialStatePropertyAll(Colors.white),
-                    elevation: MaterialStatePropertyAll(0),
-                    shape: MaterialStatePropertyAll(
-                      RoundedRectangleBorder(
-                        side: BorderSide(width: 1, color: Color(0xFF392F31))
+                      backgroundColor: MaterialStatePropertyAll(Colors.white),
+                      elevation: MaterialStatePropertyAll(0),
+                      shape: MaterialStatePropertyAll(
+                          RoundedRectangleBorder(
+                              side: BorderSide(width: 1, color: Color(0xFF392F31))
+                          )
                       )
-                    )
                   ),
                   child: Text("+${_numberFormat.format(price)}", style: TextStyle(color: Colors.black),)
               ),
             ),
             ElevatedButton(
               onPressed: (){
+                if(_rechargeControl.text == '') _rechargeControl.text = '0';
                 setState(() {
                   _rechargeControl.text = _numberFormat.format(50000 + int.parse(_rechargeControl.text.replaceAll(',', '')));
                 });

@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
+import 'donationPage.dart';
+
 
 class ConcertDetails extends StatefulWidget {
   final DocumentSnapshot document;
@@ -22,6 +24,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
   Map<String, dynamic>? buskingData;
   // 변수 추가( 기존에 artistData 있어서 2붙임 일단)
   Map<String, dynamic>? artistData2;
+
   List<QueryDocumentSnapshot<Map<String, dynamic>>>? artistImages;
 
   TextEditingController _review = TextEditingController();
@@ -29,6 +32,8 @@ class _ConcertDetailsState extends State<ConcertDetails> {
   String? _userId;
   String? _artistId;
   String? _path;
+  String? _nick;
+
   Future<void> loadBuskingData() async {
     buskingData = null;
     DocumentSnapshot<Map<String, dynamic>> buskingSnapshot = await getBuskingDetails(widget.document.id);
@@ -45,20 +50,50 @@ class _ConcertDetailsState extends State<ConcertDetails> {
     });
   }
 
+  Future<void> main() async {
 
+    List<Map<String, dynamic>> reviewList = await getBuskingReviewNick(widget.document.id);
 
-
-
-
+    print('Busking Reviews:');
+    for (var review in reviewList) {
+      print('Nick: ${review['nick']}');
+    }
+  }
   @override
   void initState() {
     super.initState();
+    _userId = Provider
+        .of<UserModel>(context, listen: false)
+        .userId;
     loadBuskingData();
     loadBuskingImages();
     loadBuskingReview();
-
+    getNickFromFirestore();
 
   }
+  Future<void> getNickFromFirestore() async {
+    try {
+      DocumentSnapshot<Map<String, dynamic>> documentSnapshot =
+      await FirebaseFirestore.instance
+          .collection('userList')
+          .doc(_userId)
+          .get();
+
+      if (documentSnapshot.exists) {
+        String nick = documentSnapshot.data()!['nick'];
+        print('nick: $nick');
+        setState(() {
+          _nick = nick;
+        });
+      } else {
+        print('Document does not exist');
+      }
+    } catch (e) {
+      print('Error fetching email: $e');
+    }
+  }
+
+
   //----------------------------------------------------두번째 탭 영역--------------------------------------------------------------------
  // 필요한 경우 초기값 설정
 
@@ -70,7 +105,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
   Future<void> addReview(String buskingID, String review, double rating) async {
     try {
       Map<String, dynamic> reviewData = {
-        'nick': 'test2',
+        'nick': _nick,
         'content': review,
         'reviewContents': review,
         'timestamp': FieldValue.serverTimestamp(),
@@ -403,7 +438,28 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                     SizedBox(height: 20),
 
                     SizedBox(height: 10),
-
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DonationPage(
+                              artistId: _artistId!, // null이 아님을 확신하고 사용
+                            ),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        primary: Color(0xFF392F31), // 주어진 색상 코드로 버튼 색상 설정
+                      ),
+                      child: Text(
+                        'Donate', // 버튼에 표시될 텍스트
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white,
+                        ),
+                      ),
+                    )
                   ],
                 ),
               ),
@@ -411,7 +467,6 @@ class _ConcertDetailsState extends State<ConcertDetails> {
             // 두 번째 탭 (공연 후기)--------------------------------------------------------------------------------------------
             SingleChildScrollView(
               child: Container(
-
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -448,7 +503,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
 
                     SizedBox(height: 20,),
                     Container(
-                      height: 550,
+                      height: 1050,
                       width: 300,
                       child: Column(
                         children: [
@@ -472,7 +527,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                             children: [
                               SizedBox(width: 10), // Add some space between avatar and nickname
                               Text(
-                                ' $_userId', // 사용자의 ID를 텍스트로 표시
+                                ' $_nick', // 사용자의 ID를 텍스트로 표시
                                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                               ),
 

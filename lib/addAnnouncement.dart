@@ -134,7 +134,7 @@ class _AddAnnouncementState extends State<AddAnnouncement> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start, // 수직 가운데 정렬 설정
         children: [
-          Text('공지사항 제목'),
+          Text('공지사항 내용'),
           SizedBox(height: 10),
           Container(
             child: TextField(
