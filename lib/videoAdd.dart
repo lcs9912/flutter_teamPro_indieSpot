@@ -126,7 +126,7 @@ class _YoutubeTestState extends State<YoutubeAdd> {
               future: searchYouTubeVideos(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator(); // 로딩 중 표시
+                  return Center(child: CircularProgressIndicator()); // 로딩 중 표시
                 } else if (snapshot.hasError) {
                   state = 1;
                   return Padding(
@@ -358,7 +358,7 @@ class _YoutubeTestState extends State<YoutubeAdd> {
     final query = _search.text;
     final videoId = videoUrl.text;
     List<Widget> videoData = [];
-    if(searchText != "" && state1 == 1){
+    if(_search.text.isNotEmpty && state1 == 1){
       final channelResponse = await http.get(Uri.parse(
           'https://www.googleapis.com/youtube/v3/search?key=$apiKey&q=$query&part=snippet&maxResults=1&type=channel'));
       videoTitle.text = "";
@@ -399,14 +399,19 @@ class _YoutubeTestState extends State<YoutubeAdd> {
       if (response.statusCode == 200) {
         print(1);
         Map<String, dynamic> videoData1 = json.decode(response.body);
+
         final snippet = videoData1['items'][0]['snippet'];
+        String _title = snippet['title'];
+        if (_title.length > 30) {
+          _title = _title.substring(0, 30) + "...";
+        }
         final String title = snippet['title'];
         final String channelTitle = snippet['channelTitle'];
         final String thumbnailUrl = snippet['thumbnails']['default']['url'];
         videoTitle.text = title;
         videoData.add(
           ListTile(
-            title: Text(title),
+            title: Text(_title),
             subtitle: Text(channelTitle),
             leading: Image.network(thumbnailUrl),
 
