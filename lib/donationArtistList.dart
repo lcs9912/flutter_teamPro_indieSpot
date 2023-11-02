@@ -55,7 +55,7 @@ class _DonationArtistListState extends State<DonationArtistList> {
                               fit: BoxFit.fill
                             ),
                             onTap: (){
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => DonationPage(document : doc),));
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => DonationPage(artistId : doc.id),));
                             },
                           );
                         },

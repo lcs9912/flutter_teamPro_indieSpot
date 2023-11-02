@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
+import 'donationPage.dart';
+
 
 class ConcertDetails extends StatefulWidget {
   final DocumentSnapshot document;
@@ -436,7 +438,28 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                     SizedBox(height: 20),
 
                     SizedBox(height: 10),
-
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DonationPage(
+                              artistId: _artistId!, // null이 아님을 확신하고 사용
+                            ),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        primary: Color(0xFF392F31), // 주어진 색상 코드로 버튼 색상 설정
+                      ),
+                      child: Text(
+                        'Donate', // 버튼에 표시될 텍스트
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white,
+                        ),
+                      ),
+                    )
                   ],
                 ),
               ),
