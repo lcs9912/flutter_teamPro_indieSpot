@@ -30,13 +30,10 @@ void main() async {
           ChangeNotifierProvider(create: (_) => UserModel())
         ],
         child: MaterialApp(
-          localizationsDelegates: [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-          ],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
           supportedLocales: [
             const Locale('ko', 'KR'), // 한국어
-            const Locale('en', ''), // 다른 언어도 지원하려면 추가
+            const Locale('en'), // 다른 언어도 지원하려면 추가
           ],
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
