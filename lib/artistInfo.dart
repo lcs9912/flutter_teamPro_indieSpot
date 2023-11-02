@@ -23,22 +23,42 @@ class _ArtistInfoState extends State<ArtistInfo> {
 
   bool _followerFlg = false; // 팔로우 했는지!
   String? _userId;
-  bool flg = false;
+  bool scheduleFlg = false;
   int? folCnt; // 팔로워
   //////////////세션 확인//////////
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    _followerCount(); // 팔로우count
     final userModel = Provider.of<UserModel>(context, listen: false);
     if (!userModel.isLogin) {
 
     } else {
+      print("dpdpdpdp");
       _userId = userModel.userId;
       _followCheck();
     }
   }
-// 팔로워 카운트 artistList 파일에서 로드한거라 바로적용안됨 이페이지에서 다시 출력
+
+  // 팔로우COUNT 불러오기
+  void _followerCount() async {
+    print("여기?");
+    final CollectionReference artistCollection = FirebaseFirestore.instance.collection('artist');
+    final DocumentReference artistDocument = artistCollection.doc(widget.doc.id);
+
+    artistDocument.get().then((DocumentSnapshot documentSnapshot) {
+      if (documentSnapshot.exists) {
+        // 문서가 존재하는 경우 필드 가져오기
+        folCnt = documentSnapshot['followerCnt'];
+      } else {
+        folCnt = 0;
+      }
+    }).catchError((error) {
+      print('데이터 가져오기 중 오류 발생: $error');
+    });
+
+  }
 
   //////////////팔로우 확인/////////////
   void _followCheck() async {
@@ -54,7 +74,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
     } else {
       _followerFlg = false;
     }
-
+    _followerCount(); // 팔로우count
   }
   
   ///// 팔로우 하기
@@ -101,7 +121,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
       'followerCnt': FieldValue.increment(-1), // 1을 감소시킵니다.
     });
 
-
+    _followCheck();
   }
 
 
@@ -133,33 +153,34 @@ class _ArtistInfoState extends State<ArtistInfo> {
               children: [
                 Stack(
                   children: [
-                    Text(widget.doc['followerCnt'].toString()),
                     if(_followerFlg)
-                    IconButton(
-                        onPressed: (){
-                          setState(() {
-                            _followDelete();
-                          });
+                      IconButton(
+                          onPressed: (){
+                            setState(() {
+                              _followDelete();
+                            });
+                          },
 
-                        },
-
-                        icon: Icon(Icons.person_add)
-                    ),
+                          icon: Icon(Icons.person_add)
+                      ),
 
                     if(!_followerFlg)
-                    IconButton(
-                        onPressed: (){
-                          setState(() {
-                            _followAdd();
-                          });
+                      IconButton(
+                          onPressed: (){
+                            setState(() {
+                              _followAdd();
+                            });
+                          },
 
-                        },
-
-                        icon: Icon(Icons.person_add_alt)
+                          icon: Icon(Icons.person_add_alt)
+                      ),
+                    Positioned(
+                      right: 1,
+                      top: 1,
+                        child: Text(folCnt.toString())
                     ),
                   ],
                 )
-
               ],
             )
         ),
@@ -178,6 +199,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
         .get(); // 데이터를 검색하기 위해 get()를 사용합니다.
 
     List<Widget> memberWidgets = [];
+
 
     if(membersQuerySnapshot.docs.isNotEmpty){
       for (QueryDocumentSnapshot membersDoc in membersQuerySnapshot.docs)  {
@@ -584,7 +606,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
               children: [
                 Container(
                   child: FutureBuilder(
-                    future: flg ? _buskingSchedule() : _commerSchedule(),
+                    future: scheduleFlg ? _buskingSchedule() : _commerSchedule(),
                     builder: (BuildContext context, AsyncSnapshot<dynamic> scheduleSnap) {
                       if (scheduleSnap.connectionState == ConnectionState.waiting) {
                         return Container();
@@ -602,7 +624,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
                                       child: TextButton(
                                         onPressed: (){
                                           setState(() {
-                                            flg = true;
+                                            scheduleFlg = true;
                                           });
                                         },
                                         child: Text("버스킹",style: TextStyle(color: Colors.grey),),
@@ -615,7 +637,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
                                       child: TextButton(
                                         onPressed: (){
                                           setState(() {
-                                            flg = false;
+                                            scheduleFlg = false;
                                           });
                                         },
                                         child: Text("상업공간",style: TextStyle(color: Colors.grey),),

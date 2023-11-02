@@ -150,7 +150,8 @@ class _ArtistRegiState extends State<ArtistRegi> {
           'mainPlace' : _mainPlace.text,
           'createdate' : Timestamp.now(),
           'donationAmount' : 0,
-          'udatetime' : " "
+          'udatetime' : " ",
+          "followerCnt" : 0
 
         }
       );
