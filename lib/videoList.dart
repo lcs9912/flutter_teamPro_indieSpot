@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/baseBar.dart';
+import 'package:indie_spot/videoAdd.dart';
 import 'package:indie_spot/videoDetailed.dart';
 import 'package:intl/intl.dart';
 
@@ -71,6 +72,13 @@ class _VideoListState extends State<VideoList> {
         ],
       ),
       bottomNavigationBar: MyBottomBar(),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Color(0xFF392F31),
+        onPressed: (){
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) => YoutubeAdd(),)).then((value) => setState(() {}));
+        },
+        child: Icon(Icons.edit),
+      ),
     );
   }
 

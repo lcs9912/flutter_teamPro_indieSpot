@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:indie_spot/addAnnouncement.dart';
+import 'package:indie_spot/announcementDetailed.dart';
 import 'package:indie_spot/baseBar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -127,6 +128,7 @@ class _AnnouncementListState extends State<AnnouncementList> {
               border: Border(bottom: BorderSide(width: 1, color: Colors.black26))
             ),
               child: ListTile(
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => AnnouncementDetailed(announcementDocument),)).then((value) => setState((){})),
                 title: Padding(
                   padding: const EdgeInsets.only(bottom: 5),
                   child: Text(title, style: TextStyle(color: Colors.black, fontFamily: 'Noto_Serif_KR', fontSize: 15, fontWeight: FontWeight.w500),),
