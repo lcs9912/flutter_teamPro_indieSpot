@@ -6,6 +6,7 @@ import 'package:indie_spot/donationArtistList.dart';
 import 'package:indie_spot/donationList.dart';
 import 'package:indie_spot/login.dart';
 import 'package:indie_spot/main.dart';
+import 'package:indie_spot/support.dart';
 import 'package:indie_spot/userDonationHistory.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:indie_spot/videoAdd.dart';
@@ -358,6 +359,12 @@ class _MyDrawerState extends State<MyDrawer> {
                   }else{
                     showUserRegistrationDialog(context);
                   }
+                },
+              ),
+              ListTile(
+                title: Text('공지사항'),
+                onTap: () {
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => Support(),)); // Support 클래스로 이동
                 },
               ),
             ],

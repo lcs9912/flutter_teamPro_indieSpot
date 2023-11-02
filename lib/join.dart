@@ -272,7 +272,7 @@ class _JoinState extends State<Join> {
       });
 
       await _fs.collection('userList').doc(userID).update({
-        'follower':  0,
+        'follower': 0,
         'following': 0,
       });
       // 가입 성공 메시지
