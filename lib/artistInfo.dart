@@ -127,15 +127,14 @@ class _ArtistInfoState extends State<ArtistInfo> {
         .doc(widget.doc.id)
         .collection('follower');
 
-    // 유저
     var myFollowingRef = fs.collection('userList').doc(_userId);
-    var myFollowing = await myFollowingRef.collection('following').where('artistId', isEqualTo: widget.doc.id).get();
+    var artistIdToRemove = widget.doc.id;
 
     // 팔로우 관계를 삭제합니다.
     QuerySnapshot querySnapshot = await followDelete
         .where('userId', isEqualTo: _userId)
         .get();
-    if (querySnapshot.docs.isNotEmpty || myFollowing.docs.isNotEmpty) {
+    if (querySnapshot.docs.isNotEmpty) {
       for (QueryDocumentSnapshot document in querySnapshot.docs) {
         // 해당 사용자와 관련된 문서를 삭제합니다.
         await document.reference.delete();
@@ -145,7 +144,20 @@ class _ArtistInfoState extends State<ArtistInfo> {
           'followerCnt': FieldValue.increment(-1), // 1을 감소시킵니다.
         });
       }
-      //await myFollowing.reference.delete();
+
+
+// 1. following 서브컬렉션에서 artistId와 일치하는 문서 제거
+      await myFollowingRef.collection('following').where('artistId', isEqualTo: artistIdToRemove).get().then((querySnapshot) {
+        querySnapshot.docs.forEach((doc) {
+          doc.reference.delete();
+        });
+      });
+
+// 2. userList 컬렉션의 followingCnt 필드 -1
+      await myFollowingRef.update({
+        'followingCnt': FieldValue.increment(-1),
+      });
+
       _followCheck();
     }
 
