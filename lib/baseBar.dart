@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:indie_spot/announcementList.dart';
 import 'package:indie_spot/buskingList.dart';
 import 'package:indie_spot/buskingSpotList.dart';
 import 'package:indie_spot/donationArtistList.dart';
 import 'package:indie_spot/donationList.dart';
-import 'package:indie_spot/donationPage.dart';
 import 'package:indie_spot/login.dart';
+import 'package:indie_spot/main.dart';
 import 'package:indie_spot/userDonationHistory.dart';
 import 'package:indie_spot/userModel.dart';
+import 'package:indie_spot/videoAdd.dart';
+import 'package:indie_spot/videoList.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'artistList.dart';
@@ -301,7 +304,7 @@ class _MyDrawerState extends State<MyDrawer> {
               ListTile(
                 title: Text('공지사항'),
                 onTap: () {
-
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => AnnouncementList(),));
                 },
               ),
               ListTile(
@@ -345,7 +348,7 @@ class _MyDrawerState extends State<MyDrawer> {
               ListTile(
                 title: Text('사업자 등록'),
                 onTap: () {
-
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => YoutubeAdd(),));
                 },
               ),
             ],
@@ -432,21 +435,31 @@ class _MyBottomBarState extends State<MyBottomBar> {
             child: Icon(Icons.calendar_month_outlined,color: Colors.black54,),
           ),
           InkWell(
-            /*onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => ),
-                        );
-                      },*/
+            onTap: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop(); // 현재 페이지를 제거
+              }
+
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) {
+                  return MyApp(); // 새 페이지로 이동
+                },
+              ));
+            },
             child: Icon(Icons.home_outlined,color: Colors.black54,),
           ),
           InkWell(
-            /*onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => ),
-                        );
-                      },*/
+            onTap: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop(); // 현재 페이지를 제거
+              }
+
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) {
+                  return VideoList(); // 새 페이지로 이동
+                },
+              ));
+            },
             child: Icon(Icons.play_circle_outline,color: Colors.black54,),
           ),
           InkWell(

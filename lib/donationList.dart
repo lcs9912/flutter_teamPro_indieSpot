@@ -16,11 +16,31 @@ class _DonationListState extends State<DonationList> {
   FirebaseFirestore fs = FirebaseFirestore.instance;
   Map<String,dynamic>? artistData;
   QueryDocumentSnapshot? artistImg;
+  String? _selectedItem;
+  int _num = 30;
+  List<String> _items = [];
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     _artistDonationList();
+    DateTime currentDate = DateTime.now();
+    _selectedItem = '      전체';
+    DateTime lastYear = currentDate.subtract(const Duration(days: 365));
+
+    // 중복 항목을 방지하기 위한 Set을 사용합니다.
+    Set<String> uniqueMonths = {};
+
+    while (currentDate.isAfter(lastYear)) {
+      String all = "      전체";
+      uniqueMonths.add(all);
+      String month = '${currentDate.year}년 ${currentDate.month}월';
+      uniqueMonths.add(month);
+      currentDate = DateTime(currentDate.year, currentDate.month - 1, currentDate.day);
+    }
+
+    // Set을 리스트로 변환합니다.
+    _items = uniqueMonths.toList();
   }
 
   void _artistDonationList() async{
@@ -40,10 +60,37 @@ class _DonationListState extends State<DonationList> {
     }
   }
 
-  Future<Widget> _donationList() async {
-    QuerySnapshot artistSnap =
-    await fs.collection("artist").doc(widget.artistDoc.id).collection("donation_details").get();
+  Future<Widget> _donationList(sMonth) async {
+    QuerySnapshot artistSnap;
+    if(sMonth == "      전체") {
+      artistSnap =
+      await fs
+          .collection("artist")
+          .doc(widget.artistDoc.id)
+          .collection("donation_details")
+          .orderBy("date", descending: true)
+          .get();
+    }else{
+      String strippedInput = sMonth.replaceAll('년', '').replaceAll('월', '');
+      List<String> parts = strippedInput.split(' ');
 
+      int year = int.parse(parts[0]);
+      int month = int.parse(parts[1]);
+
+      DateTime selectedDate = DateTime(year, month); // 선택한 월 (예: 2023년 10월)
+      DateTime firstDayOfMonth = DateTime(selectedDate.year, selectedDate.month, 1);
+      DateTime lastDayOfMonth = DateTime(selectedDate.year, selectedDate.month + 1, 0).add(Duration(days: 1));
+
+      artistSnap =
+      await fs
+          .collection("artist")
+          .doc(widget.artistDoc.id)
+          .collection("donation_details")
+          .orderBy("date", descending: true)
+          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(firstDayOfMonth))
+          .where('date', isLessThanOrEqualTo: Timestamp.fromDate(lastDayOfMonth))
+          .get();
+    }
     List<TableRow> tableRows = [];
 
     for (int index = 0; index < artistSnap.docs.length; index++) {
@@ -63,12 +110,11 @@ class _DonationListState extends State<DonationList> {
 
       tableRows.add(
         TableRow(
-
           children: [
             TableCell(child: Container(
               height: 50,
               child: Center(child: Container(
-                height: 40,
+                height: 50,
                 child: Column(
                   children: [
                     Text(formattedDate),
@@ -77,10 +123,10 @@ class _DonationListState extends State<DonationList> {
                 ),
               )),
             )),
-            TableCell(child: Container(height : 40 ,child: Center(child: Text(userData['nick'])))),
-            TableCell(child: Container(height : 40 ,child: Center(child: Text(_numberFormat.format(_artistData['amount']))))),
+            TableCell(child: Container(height : 50 ,child: Center(child: Text(userData['nick'])))),
+            TableCell(child: Container(height : 50 ,child: Center(child: Text(_numberFormat.format(_artistData['amount']))))),
             TableCell(child: Container(
-              height: 40,
+              height: 50,
               child: Center(
                 child: TextButton(onPressed: (){
                   showDialog(
@@ -183,10 +229,42 @@ class _DonationListState extends State<DonationList> {
                   child: Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("내역",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 17),),
-                        Text("(유효기간 5년)",style: TextStyle(fontSize: 13),)
+                        Row(
+                          children: [
+                            Text("내역",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 17),),
+                            Text("(유효기간 1년)",style: TextStyle(fontSize: 13),),
+                          ],
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(left: 5),
+                          height: 30,
+                          padding: const EdgeInsets.only(left: 3),
+                          decoration: BoxDecoration(
+
+                          ),
+                          child: DropdownButton<String>(
+                            underline: Container(),
+                            icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black),
+                            value: _selectedItem,
+                            items: _items.map((item) {
+                              return DropdownMenuItem<String>(
+                                value: item,
+                                child: Container(
+                                  child: Text(item),
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                _num = 0;
+                                _selectedItem = value!;
+                              });
+                            },
+                          ),
+                        ),
+
                       ],
                     ),
                   ),
@@ -223,7 +301,7 @@ class _DonationListState extends State<DonationList> {
             ),
           ),
           FutureBuilder(
-              future: _donationList(), builder: (context, snapshot) => snapshot.data ?? Container()
+              future: _donationList(_selectedItem), builder: (context, snapshot) => snapshot.data ?? Container()
           )
         ],
       ),

@@ -192,7 +192,7 @@ class _DonationPageState extends State<DonationPage> {
                  children: [
                    for(int price in _price)
                      Padding(
-                       padding: const EdgeInsets.all(5.0),
+                       padding: const EdgeInsets.all(4.0),
                        child: ElevatedButton(
                            onPressed: (){
                              int userPointBalance = userPoint?['pointBalance'];
@@ -210,7 +210,7 @@ class _DonationPageState extends State<DonationPage> {
                        ),
                      ),
                    Padding(
-                     padding: const EdgeInsets.all(8.0),
+                     padding: const EdgeInsets.all(4.0),
                      child: ElevatedButton(
                          onPressed: (){
                            setState(() {

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:indie_spot/join.dart';
 import 'package:indie_spot/login.dart';
 import 'package:indie_spot/pointDetailed.dart';
 import 'package:indie_spot/result.dart';
 import 'package:indie_spot/userEdit.dart';
 import 'package:indie_spot/userModel.dart';
+import 'package:indie_spot/videoList.dart';
 import 'buskingList.dart';
 import 'buskingReservation.dart';
 import 'concertDetails.dart';
@@ -14,6 +14,8 @@ import 'package:provider/provider.dart';
 import 'baseBar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_image/flutter_image.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +28,14 @@ void main() async {
           ChangeNotifierProvider(create: (_) => UserModel())
         ],
         child: MaterialApp(
+          localizationsDelegates: [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: [
+            const Locale('ko', 'KR'), // 한국어
+            const Locale('en', ''), // 다른 언어도 지원하려면 추가
+          ],
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
             fontFamily: 'Noto_Serif_KR', // 폰트 패밀리 이름을 지정
@@ -37,6 +47,7 @@ void main() async {
             // 다른 경로와 페이지 설정
           },
         ),
+
       )
   );
 }
@@ -49,135 +60,136 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   FirebaseFirestore fs = FirebaseFirestore.instance;
-
   bool iconFlg = false; // 아이콘 리스트 플러그
   bool loginFlg = false;
-
-
-
-
+  static const int maxAttempt = 3;
+  static const Duration attemptTimeout = Duration(seconds: 2);
 
   Future<List<Widget>> _busKinList() async {
     // 버스킹 컬렉션 호출
-    final buskingQuerySnapshot = await fs
-        .collection('busking').limit(6).get();
+    final buskingQuerySnapshot = await fs.collection('busking').limit(6).get();
 
-    List<Widget> buskingWidgets = [];
+    List<Future<Widget>> buskingWidgetsFutures = [];
 
     // 호출에 성공하면 실행
-    if(buskingQuerySnapshot.docs.isNotEmpty){
-      for (QueryDocumentSnapshot buskingDoc in buskingQuerySnapshot.docs)  {
-        int reviewCnt;
-        int busLikeCnt;
-        String docId = buskingDoc.id;
-        // 공연제목
-        String title = buskingDoc['title'];
-        // 공연설명
-        String description = buskingDoc['description'];
-
-
-        // 버스킹 좋아요 컬렉션
-        final busLikeSnapshot = await fs
-            .collection('busking')
-            .doc(buskingDoc.id)
-            .collection('busLike').get();
-
-        // 버스킹 리뷰 컬렉션
-        final busReviewSnapshot = await fs
-            .collection('busking')
-            .doc(buskingDoc.id)
-            .collection('review').get();
-
-        // 버스킹스팟 컬렉션
-        final busSpotSnapshot = await fs
-            .collection('busking')
-            .doc(buskingDoc.id)
-            .collection('review').get();
-        if(busSpotSnapshot.docs.isNotEmpty){
-          reviewCnt = buskingDoc['reviewCnt'];
-        } else{
-          reviewCnt = 0;
-        }
-
-        if(busLikeSnapshot.docs.isNotEmpty){
-          busLikeCnt = buskingDoc['busLikeCnt'];
-        } else{
-          busLikeCnt = 0;
-        }
-
-        // busking -> image
-        final buskingImg = await fs
-            .collection("busking")
-            .doc(buskingDoc.id)
-            .collection('image')
-            .get();
-
-        if(buskingImg.docs.isNotEmpty){
-          for (QueryDocumentSnapshot buskingImgDoc in buskingImg.docs){
-
-            // 버스킹 이미지 호출
-            String busImg = buskingImgDoc['path'];
-
-            // 예시: ListTile을 사용하여 팀 멤버 정보를 보여주는 위젯을 만듭니다.
-            // 이미지 busImg 제목 title 내용 description 좋아요 busLikeCnt.toString() 리뷰 reviewCnt.toString()
-            Widget buskingWidget = GestureDetector(
-              onTap: () {
-                // 이미지를 클릭했을 때 실행할 코드를 여기에 추가
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => ConcertDetails(document: buskingDoc, spotName: '',)) // 상세페이지로 이동
-                );
-              },
-              child: Row(
-                children: [
-                  Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ClipRRect( // 이미지 테두리 둥글게 만들기
-                            borderRadius: BorderRadius.circular(16.0),
-                            child: Image.network(busImg, width: 150, height: 150, fit: BoxFit.cover)
-                        ),
-                        SizedBox(height: 10,),
-                        Text(title),
-                        Text(description),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Icon(Icons.favorite,size: 15,), // 관심, 하트 클릭
-                            Text(busLikeCnt.toString()),
-                            SizedBox(width: 70,),
-                            Text('${reviewCnt.toString()}리뷰')
-                          ],
-                        ),
-                        SizedBox(height: 10,),
-                      ]
-                  ),
-                  SizedBox(width: 20,),
-                ],
-              ),
-            );
-
-            buskingWidgets.add(buskingWidget);
-          }
-
-
-        }
-
+    if (buskingQuerySnapshot.docs.isNotEmpty) {
+      for (QueryDocumentSnapshot buskingDoc in buskingQuerySnapshot.docs) {
+        // 각 버스킹 아이템에 대한 비동기 작업 병렬화
+        final buskingWidgetFuture = _buildBuskingWidget(buskingDoc);
+        buskingWidgetsFutures.add(buskingWidgetFuture);
       }
-      print('버스킹 잘넘어오는중');
+      // 병렬로 모든 위젯 작업을 기다린 다음 반환
+      final buskingWidgets = await Future.wait(buskingWidgetsFutures);
       return buskingWidgets;
     } else {
-      print('버스킹 안넘어오는중');
       return [Container()];
     }
-
-
-
   }
 
+  Future<Widget> _buildBuskingWidget(QueryDocumentSnapshot buskingDoc) async {
+    // 필요한 데이터를 비동기로 가져오는 함수
+    int reviewCnt = 0;
+    int busLikeCnt = 0;
+
+    // 버스킹 리뷰 컬렉션
+    final busReviewSnapshot = await fs
+        .collection('busking')
+        .doc(buskingDoc.id)
+        .collection('review')
+        .get();
+
+    if (busReviewSnapshot.docs.isNotEmpty) {
+      reviewCnt = busReviewSnapshot.docs.length;
+    }
+
+    // 버스킹 좋아요 컬렉션
+    final busLikeSnapshot = await fs
+        .collection('busking')
+        .doc(buskingDoc.id)
+        .collection('busLike')
+        .get();
+
+    if (busLikeSnapshot.docs.isNotEmpty) {
+      busLikeCnt = busLikeSnapshot.docs.length;
+    }
+
+    // 버스킹 이미지 호출
+    final buskingImg = await fs
+        .collection("busking")
+        .doc(buskingDoc.id)
+        .collection('image')
+        .get();
+
+    if (buskingImg.docs.isNotEmpty) {
+      String busImg = buskingImg.docs[0]['path'];
+
+      // 예시: ListTile을 사용하여 팀 멤버 정보를 보여주는 위젯을 만듭니다.
+      return GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ConcertDetails(document: buskingDoc, spotName: ''),
+            ),
+          );
+        },
+        child: Row(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16.0),
+                  child: Image(
+                    height: 150,
+                    width: 150,
+                    fit: BoxFit.cover,
+                    image: NetworkImageWithRetry(
+                      busImg,
+                      scale: 0.8,
+                      fetchStrategy: (Uri uri, FetchFailure? failure) async {
+                        final FetchInstructions fetchInstruction =
+                        FetchInstructions.attempt(
+                          uri: uri,
+                          timeout: attemptTimeout,
+                        );
+
+                        if (failure != null && failure.attemptCount > maxAttempt) {
+                          return FetchInstructions.giveUp(uri: uri);
+                        }
+
+                        return fetchInstruction;
+                      },
+                    ),
+                  ),
+                ),
+                SizedBox(height: 10),
+                Text(buskingDoc['title']),
+                Text(buskingDoc['description']),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Icon(Icons.favorite, size: 15),
+                    Text(busLikeCnt.toString()),
+                    SizedBox(width: 70),
+                    Text('$reviewCnt 리뷰'),
+                  ],
+                ),
+                SizedBox(height: 10),
+              ],
+            ),
+            SizedBox(width: 20),
+          ],
+        ),
+      );
+    }
+    return Container(); // 이미지가 없는 경우 빈 컨테이너 반환
+  }
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: MyAppBar(),
       drawer: MyDrawer(),
@@ -246,7 +258,7 @@ class _MyAppState extends State<MyApp> {
                                       child: Image.asset(
                                         'busking/bus_sample6.jpg',
                                         fit: BoxFit.cover,
-                                        width: 190,
+                                        width: screenWidth * 0.45,
                                         height: 90,
                                       ),
                                     )
@@ -287,7 +299,7 @@ class _MyAppState extends State<MyApp> {
                                       child: Image.asset(
                                         'busking/bus_sample3.jpg',
                                         fit: BoxFit.cover,
-                                        width: 190,
+                                        width: screenWidth * 0.45,
                                         height: 90,
                                       ),
                                     )
@@ -298,12 +310,14 @@ class _MyAppState extends State<MyApp> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        "후원하기", style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white
-                                      ),
+                                      TextButton(
+                                        onPressed: () {  },
+                                        child: Text(
+                                          "후원하기", style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white
+                                        ), ),
                                       ),
                                       Text(
                                         "아티스트 응원하기",
@@ -317,141 +331,7 @@ class _MyAppState extends State<MyApp> {
                           ],
                         ),
                       ),
-                      Row( // 여기부터가 아이콘시작
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            children: [
-                              IconButton(
-                                  onPressed: (){},
-                                  icon: Icon(Icons.person)
-                              ),
-                              Text("아티스트"),
-                            ],
-                          ),
-                          Column(
-                            children: [
-                              IconButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => UserEdit()),
-                                  );
-                                },
-                                icon: Icon(Icons.pages),
-                              ),
-                              Text("마이페지"),
-                            ],
-                          ),
-                          Column(
-                            children: [
-                              IconButton(
-                                  onPressed: () async {
-                                    if(Provider.of<UserModel>(context, listen: false).isLogin) {
-                                      showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                            title: Text('로그아웃 확인'),
-                                            content: Text('로그아웃 하시겠습니까?'),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () {
-                                                  Navigator.pop(context); // 첫 번째 다이얼로그 닫기
-                                                },
-                                                child: Text('취소'),
-                                              ),
-                                              TextButton(
-                                                onPressed: () async {
-                                                  // 두 번째 확인 다이얼로그
-                                                  Navigator.pop(context); // 첫 번째 다이얼로그 닫기
-
-                                                  showDialog(
-                                                    context: context,
-                                                    builder: (BuildContext context) {
-                                                      return AlertDialog(
-                                                        title: Text('알림'),
-                                                        content: Text('로그아웃 하였습니다.'),
-                                                        actions: [
-                                                          TextButton(
-                                                            onPressed: () {
-                                                              // 로그아웃 수행
-                                                              Provider.of<UserModel>(context, listen: false).logout();
-                                                              Navigator.pop(context); // 두 번째 다이얼로그 닫기
-                                                            },
-                                                            child: Text('확인'),
-                                                          ),
-                                                        ],
-                                                      );
-                                                    },
-                                                  );
-                                                },
-                                                child: Text('확인'),
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      );
-                                    }else {
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (_) =>
-                                              LoginPage()) // 상세페이지로 넘어갈것
-                                      );
-                                    }
-                                  },
-                                  icon: Icon(Icons.login)
-                              ),
-                              Consumer<UserModel>(
-                                  builder: (context, userModel, child){
-                                    return Text(userModel.isLogin ? "로그아웃" : "로그인");
-                                  }
-                              ),
-                            ],
-                          ),
-                          Column(
-                            children: [
-                              IconButton(
-                                  onPressed: (){
-                                    _commercialListWidget();
-                                    // Navigator.push(
-                                    //     context,
-                                    //     MaterialPageRoute(builder: (_) => Join()) // 상세페이지로 넘어갈것
-                                    //);
-                                  },
-                                  icon: Icon(Icons.catching_pokemon)
-                              ),
-                              Text("회원가입"),
-                            ],
-                          ),
-
-                          if(!iconFlg!)
-                            IconButton(
-                                onPressed: (){
-                                  setState(() {
-                                    iconFlg = true;
-                                  });
-                                },
-                                icon: Icon(Icons.expand_more)
-                            ),
-
-                          if(iconFlg)
-                            IconButton(
-                                onPressed: (){
-                                  setState(() {
-                                    iconFlg = false;
-                                  });
-                                },
-                                icon: Icon(Icons.expand_less)
-
-                            ),
-
-
-                        ],
-
-                      ),
-                      if(iconFlg)
-                        _iconList(), // 여기 까지가 아이콘끝
+                      _iconAni(),
                       Container(
                         child: FutureBuilder(
                           future: _commercialListWidget(),
@@ -494,297 +374,363 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-
-  // 아이콘 리스트 출력
-  Widget _iconList() {
-    if(iconFlg){
-      return Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                children: [
-                  IconButton(
-                      onPressed: (){},
-                      icon: Icon(Icons.arrow_drop_down)
-                  ),
-                  Text("여기다"),
-                ],
-              ),
-              Column(
-                children: [
-                  IconButton(
-                      onPressed: (){},
-                      icon: Icon(Icons.smart_display)
-                  ),
-                  Text("애니메이션"),
-                ],
-              ),
-              Column(
-                children: [
-                  IconButton(
-                      onPressed: (){},
-                      icon: Icon(Icons.swap_vert)
-                  ),
-                  Text("효과"),
-                ],
-              ),
-              Column(
-                children: [
-                  IconButton(
-                      onPressed: (){},
-                      icon: Icon(Icons.dangerous)
-                  ),
-                  Text("줘야하는데.."),
-                ],
-              ),
-              SizedBox(width: 45,height: 30,),
-
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                children: [
-                  IconButton(
-                      onPressed: (){},
-                      icon: Icon(Icons.question_mark)
-                  ),
-                  Text("어케"),
-                ],
-              ),
-              Column(
-                children: [
-                  IconButton(
-                      onPressed: (){},
-                      icon: Icon(Icons.send)
-                  ),
-                  Text("주는지"),
-                ],
-              ),
-              Column(
-                children: [
-                  IconButton(
-                      onPressed: (){},
-                      icon: Icon(Icons.psychology_alt)
-                  ),
-                  Text("모르겠다"),
-                ],
-              ),
-              Column(
-                children: [
-                  IconButton(
-                      onPressed: (){
-                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => PointDetailed(),));
-                      },
-                      icon: Icon(Icons.air)
-                  ),
-                  Text("에혀.."),
-                ],
-              ),
-              SizedBox(width: 45,height: 30,),
-
-            ],
-          ),
-
-
-        ],
-      );
-    } else{
-      return Container();
-    }
-
+  Widget _iconToggle() {
+    return AnimatedSwitcher(
+      duration: Duration(milliseconds: 300), // 전환 애니메이션 지속 시간
+      child: iconFlg
+          ? IconButton(
+        key: Key('expand_less'), // 고유한 키를 제공하여 전환 시 식별 가능
+        onPressed: () {
+          setState(() {
+            iconFlg = false;
+          });
+        },
+        icon: Icon(Icons.expand_less),
+      )
+          : IconButton(
+        key: Key('expand_more'), // 고유한 키를 제공하여 전환 시 식별 가능
+        onPressed: () {
+          setState(() {
+            iconFlg = true;
+          });
+        },
+        icon: Icon(Icons.expand_more),
+      ),
+    );
   }
 
-  //상업공간 리스트 위젯
-  Future<List<Widget>> _commercialListWidget() async {
-    String _id;
-    final commerQuerySnapshot = await fs
-        .collection('commercial_space').limit(3).get();
+  // 아이콘...
+  Widget _iconAni(){
 
-    List<Widget> commerWidgets = [];
+    return Column(
+      children: [
+        Row( // 여기부터가 아이콘시작
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              children: [
+                IconButton(
+                    onPressed: (){},
+                    icon: Icon(Icons.person)
+                ),
+                Text("아티스트"),
+              ],
+            ),
+            Column(
+              children: [
+                IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => UserEdit()),
+                    );
+                  },
+                  icon: Icon(Icons.pages),
+                ),
+                Text("마이페지"),
+              ],
+            ),
+            Column(
+              children: [
+                IconButton(
+                    onPressed: () async {
+                      if(Provider.of<UserModel>(context, listen: false).isLogin) {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('로그아웃 확인'),
+                              content: Text('로그아웃 하시겠습니까?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context); // 첫 번째 다이얼로그 닫기
+                                  },
+                                  child: Text('취소'),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    // 두 번째 확인 다이얼로그
+                                    Navigator.pop(context); // 첫 번째 다이얼로그 닫기
 
-    if(commerQuerySnapshot.docs.isNotEmpty){
-
-      for(QueryDocumentSnapshot commerDoc in commerQuerySnapshot.docs){ // commercial_space 컬렉션 반복
-        _id = commerDoc.id; // 상업공간 아이디
-        String spaceName = commerDoc['spaceName'];
-
-        // 서브커넥션 rental 접근
-        final commerRentalQuerySnapshot = await fs
-            .collection('commercial_space')
-            .doc(_id)
-            .collection('rental')
-            .get();
-        if(commerRentalQuerySnapshot.docs.isNotEmpty){
-          for(QueryDocumentSnapshot rentalDoc in commerRentalQuerySnapshot.docs){ // rental 컬렉션 반복
-            // yyyy-MM-dd HH:mm:ss
-
-            String date = DateFormat('MM-dd').format(rentalDoc['startTime'].toDate());
-            String startTime = DateFormat('HH:mm').format(rentalDoc['startTime'].toDate());
-            String endTime = DateFormat('HH:mm').format(rentalDoc['endTime'].toDate());
-
-            final artistQuerySnapshot = await fs
-                .collection('artist')
-                .where(FieldPath.documentId, isEqualTo: rentalDoc['artistId']).get();
-
-            if(artistQuerySnapshot.docs.isNotEmpty){
-              for(QueryDocumentSnapshot artistDoc in artistQuerySnapshot.docs){
-                String artistName =  artistDoc['artistName'];
-
-                // image 컬렉션 접근
-                final commerImgQuerySnapshot = await fs
-                    .collection('commercial_space')
-                    .doc(_id)
-                    .collection('image')
-                    .get();
-
-                if(commerImgQuerySnapshot.docs.isNotEmpty){
-                  for(QueryDocumentSnapshot imageDoc in commerImgQuerySnapshot.docs) {
-                    String img = imageDoc['path'];
-
-                    // addr 컬렉션 접근
-                    final commerAddrQuerySnapshot = await fs
-                        .collection('commercial_space')
-                        .doc(_id)
-                        .collection('addr')
-                        .get();
-
-                    if(commerAddrQuerySnapshot.docs.isNotEmpty) {
-                      for (QueryDocumentSnapshot addrDoc in commerAddrQuerySnapshot.docs) {
-                        String addr =  addrDoc['addr'];
-
-
-                        var listItem = ListTile(
-                          contentPadding: EdgeInsets.all(0),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          tileColor: Colors.white,
-                          title: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  ClipRRect(
-                                        borderRadius: BorderRadius.circular(10), // 모서리 둥글게
-                                        child: Container(
-                                          width: 100,
-                                          height: 100,
-                                          child: Image.network(img),
-                                        ),
-                                      ),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        spaceName,
-                                        style: TextStyle(
-                                          fontSize: 18.0,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      Text(addr),
-                                      Text('공연팀:  $artistName',style: TextStyle(fontSize: 13),),
-                                    ],
-                                  ),
-                                ],
-                              ),
-
-                                  Column(
-                                    children: [
-                                      Text(date),
-                                      Text(startTime),
-                                      Text(endTime), //  오버플로우 가 표시되는 부분
-                                    ],
-                                  ),
-                            ],
-                          ),
-
-                          onTap: () {
-                            // 상업공간 공연 상세페이지
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          title: Text('알림'),
+                                          content: Text('로그아웃 하였습니다.'),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () {
+                                                // 로그아웃 수행
+                                                Provider.of<UserModel>(context, listen: false).logout();
+                                                Navigator.pop(context); // 두 번째 다이얼로그 닫기
+                                              },
+                                              child: Text('확인'),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  },
+                                  child: Text('확인'),
+                                ),
+                              ],
+                            );
                           },
                         );
-                        commerWidgets.add(listItem);
-
+                      }else {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) =>
+                                LoginPage()) // 상세페이지로 넘어갈것
+                        );
                       }
-                    }
-                  }
-                }
-              }
-            }
-
-          }
-        }
-
-
-
-
-      }
-      print("상업공간 잘넘어옴");
-      return commerWidgets;
-    }else{
-      print("상업공간 안넘어옴");
-      return [Container()];
-    }
-
-
-
-    return [Container()];
-  }
-
-  // 상업공간 리스트 출력
-  _commercialList(){
-    return ListView.builder(
-
-      itemBuilder: (context, index) {
-        return Container(
-          margin: EdgeInsets.only(bottom: 16.0),
-          child: ListTile(
-            contentPadding: EdgeInsets.all(0),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-            tileColor: Colors.white,
-            title: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10), // 모서리 둥글게
-                  child: Container(
-                    width: 120,
-                    height: 100,
-
-                  ),
+                    },
+                    icon: Icon(Icons.login)
                 ),
-                SizedBox(width: 16), // 이미지와 텍스트 사이의 간격 조절
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '아따맘마',
-                      style: TextStyle(
-                        fontSize: 18.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text("인천 부평구"),
-                    Text("공연팀: 오동동"),
-                  ],
+                Consumer<UserModel>(
+                    builder: (context, userModel, child){
+                      return Text(userModel.isLogin ? "로그아웃" : "로그인");
+                    }
                 ),
               ],
             ),
-            trailing: Text(" 날짜 \n 첫순서 \n 두번째"),
-            onTap: () {
-              // 상업공간 공연 상세페이지
-            },
+            Column(
+              children: [
+                IconButton(
+                    onPressed: (){
+                      _commercialListWidget();
+                      // Navigator.push(
+                      //     context,
+                      //     MaterialPageRoute(builder: (_) => Join()) // 상세페이지로 넘어갈것
+                      //);
+                    },
+                    icon: Icon(Icons.catching_pokemon)
+                ),
+                Text("회원가입"),
+              ],
+            ),
+
+            _iconToggle()
+
+
+          ],
+
+        ),
+        if(iconFlg)
+          Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    children: [
+                      IconButton(
+                          onPressed: (){},
+                          icon: Icon(Icons.arrow_drop_down)
+                      ),
+                      Text("여기다"),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      IconButton(
+                          onPressed: (){
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => VideoList()) // 상세페이지로 넘어갈것
+                            );
+                          },
+                          icon: Icon(Icons.smart_display)
+                      ),
+                      Text("애니메이션"),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      IconButton(
+                          onPressed: (){},
+                          icon: Icon(Icons.swap_vert)
+                      ),
+                      Text("효과"),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      IconButton(
+                          onPressed: (){},
+                          icon: Icon(Icons.dangerous)
+                      ),
+                      Text("줘야하는데.."),
+                    ],
+                  ),
+                  SizedBox(width: 45,height: 30,),
+
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    children: [
+                      IconButton(
+                          onPressed: (){},
+                          icon: Icon(Icons.question_mark)
+                      ),
+                      Text("어케"),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      IconButton(
+                          onPressed: (){},
+                          icon: Icon(Icons.send)
+                      ),
+                      Text("주는지"),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      IconButton(
+                          onPressed: (){},
+                          icon: Icon(Icons.psychology_alt)
+                      ),
+                      Text("모르겠다"),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      IconButton(
+                          onPressed: (){
+                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => PointDetailed(),));
+                          },
+                          icon: Icon(Icons.air)
+                      ),
+                      Text("에혀.."),
+                    ],
+                  ),
+                  SizedBox(width: 45,height: 30,),
+
+                ],
+              ),
+
+
+            ],
           ),
-        );
-      },
-    )
-    ;
+      ],
+    );
   }
 
 
+
+  Future<List<Widget>> _commercialListWidget() async {
+    final commerQuerySnapshot = await fs.collection('commercial_space').limit(3).get();
+
+    if (commerQuerySnapshot.docs.isEmpty) {
+      return [Container()];
+    }
+
+    List<Future<Widget>> commerWidgets = [];
+
+    for (QueryDocumentSnapshot commerDoc in commerQuerySnapshot.docs) {
+      final spaceName = commerDoc['spaceName'];
+      final _id = commerDoc.id;
+
+      final commerRentalQuerySnapshot =
+      await fs.collection('commercial_space').doc(_id).collection('rental').get();
+
+      if (commerRentalQuerySnapshot.docs.isNotEmpty) {
+        final rentalDocs = commerRentalQuerySnapshot.docs;
+
+        for (QueryDocumentSnapshot rentalDoc in rentalDocs) {
+          final date = DateFormat('MM-dd').format(rentalDoc['startTime'].toDate());
+          final startTime = DateFormat('HH:mm').format(rentalDoc['startTime'].toDate());
+          final endTime = DateFormat('HH:mm').format(rentalDoc['endTime'].toDate());
+          final artistId = rentalDoc['artistId'];
+
+          final artistDoc = await fs.collection('artist').doc(artistId).get();
+
+          if (artistDoc.exists) {
+            final artistName = artistDoc['artistName'];
+
+            final imageDoc = await fs
+                .collection('commercial_space')
+                .doc(_id)
+                .collection('image')
+                .get();
+
+            if (imageDoc.docs.isNotEmpty) {
+              final img = imageDoc.docs.first['path'];
+
+              final addrDoc = await fs
+                  .collection('commercial_space')
+                  .doc(_id)
+                  .collection('addr')
+                  .get();
+
+              if (addrDoc.docs.isNotEmpty) {
+                final addr = addrDoc.docs.first['addr'];
+
+                final listItem = ListTile(
+                  contentPadding: EdgeInsets.all(0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  tileColor: Colors.white,
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Container(
+                              width: 100,
+                              height: 100,
+                              child: Image.network(
+                                img,
+                                scale: 0.8,
+                              ),
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                spaceName,
+                                style: TextStyle(
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(addr),
+                              Text('공연팀: $artistName', style: TextStyle(fontSize: 13)),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          Text(date),
+                          Text(startTime),
+                          Text(endTime),
+                        ],
+                      ),
+                    ],
+                  ),
+                  onTap: () {
+                    // 상업공간 공연 상세페이지
+                  },
+                );
+                commerWidgets.add(Future.value(listItem));
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return Future.wait(commerWidgets);
+  }
 }
