@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/artistInfo.dart';
 import 'package:indie_spot/login.dart';
 import 'package:indie_spot/videoDetailed.dart';
+import 'artistEdit.dart';
 import 'baseBar.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -730,6 +731,13 @@ class _ArtistInfoState extends State<ArtistInfo> {
                 }
             ),
           ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: Color(0xFF392F31),
+          onPressed: (){
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => ArtistEdit(),)).then((value) => setState(() {}));
+          },
+          child: Icon(Icons.edit),
         ),
       ),
     );
