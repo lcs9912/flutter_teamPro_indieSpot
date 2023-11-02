@@ -17,6 +17,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_image/flutter_image.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,7 +49,6 @@ void main() async {
             // 다른 경로와 페이지 설정
           },
         ),
-
       )
   );
 }
@@ -60,11 +60,27 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  String? _userId; // 유저 세션
+
   FirebaseFirestore fs = FirebaseFirestore.instance;
   bool iconFlg = false; // 아이콘 리스트 플러그
   bool loginFlg = false;
   static const int maxAttempt = 3;
   static const Duration attemptTimeout = Duration(seconds: 2);
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+     // 팔로우count
+    final userModel = Provider.of<UserModel>(context, listen: false);
+    if (!userModel.isLogin) {
+
+    } else {
+      _userId = userModel.userId;
+    }
+  }
 
   Future<List<Widget>> _busKinList() async {
     // 버스킹 컬렉션 호출

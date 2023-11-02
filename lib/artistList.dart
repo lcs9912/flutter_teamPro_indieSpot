@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/artistInfo.dart';
 import 'baseBar.dart';
+import 'userModel.dart';
+import 'package:provider/provider.dart';
 
 class RadioItem {
   final String label;
@@ -19,6 +21,9 @@ class ArtistList extends StatefulWidget {
 }
 
 class _ArtistListState extends State<ArtistList> {
+  FirebaseFirestore fs = FirebaseFirestore.instance;
+  String? _userId; // 세션 아이디
+  String? artistId;
   List<RadioItem> radioItems = [
     RadioItem(label: "인기순", isSelected: true),
     RadioItem(label: "최신순"),
@@ -28,6 +33,7 @@ class _ArtistListState extends State<ArtistList> {
   // 라디오 버튼 기본 선택
   String? selectedRadio ="인기순";
   String? selectGenre; // 장르 탭바
+  
   // 검색 컨트롤러
   final TextEditingController _search = TextEditingController();
   FocusNode _focusNode = FocusNode();
@@ -35,15 +41,43 @@ class _ArtistListState extends State<ArtistList> {
 
   dynamic? _stream; // 쿼리문
 
-
-
-
-
   int cnt = 0; // 팔로우 갯수
+
+  Icon? icon;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    final userModel = Provider.of<UserModel>(context, listen: false);
+    if (!userModel.isLogin) {
+
+    } else {
+      _userId = userModel.userId;
+
+    }
+  }
+
+  Future<Widget> _followIcon() async{
+
+    final followYnSnapshot = await fs
+        .collection('artist')
+        .doc(artistId)
+        .collection('follower')
+        .where('userId',isEqualTo: _userId)
+        .get(); // 데이터를 검색하기 위해 get()를 사용합니다.
+
+    if(followYnSnapshot.docs.isNotEmpty){
+      return Icon(Icons.person_add);
+
+    } else {
+      return Icon(Icons.person_add_alt);
+    }
+
+  }
 
   // 아티스트 리스트 출력
   Widget _artistList() {
-    FirebaseFirestore fs = FirebaseFirestore.instance;
     if(selectGenre == null){
       if(selectedRadio == "가입순"){
         _stream = fs.collection("artist").orderBy('createdate', descending: true).snapshots();
@@ -80,6 +114,7 @@ class _ArtistListState extends State<ArtistList> {
                       if (imgSnap.hasData) {
                         var img = imgSnap.data!.docs.first;
                         if(data['followerCnt'] != null){
+                          artistId = doc.id;
                           cnt = data['followerCnt'];
                         } else{
                           cnt = 0;
@@ -99,7 +134,18 @@ class _ArtistListState extends State<ArtistList> {
                               Text('${data['genre']}'),
                               Row(
                                 children: [
-                                  Icon(Icons.person_add_alt),
+                                  FutureBuilder(
+                                      future: _followIcon(),
+                                      builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+                                        if (snapshot.connectionState == ConnectionState.waiting) {
+                                          return Container();
+                                        } else if (snapshot.hasError) {
+                                          return Text('Error: ${snapshot.error}');
+                                        } else {
+                                          return snapshot.data;
+                                        }
+                                      },
+                                  ),
                                   Text('  $cnt')
                                 ],
                               )
