@@ -9,6 +9,8 @@ import 'baseBar.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:provider/provider.dart';
+import 'package:indie_spot/userModel.dart';
 
 class AddBuskingSpot extends StatefulWidget {
   const AddBuskingSpot({super.key});
@@ -20,10 +22,18 @@ class AddBuskingSpot extends StatefulWidget {
 class _AddBuskingSpotState extends State<AddBuskingSpot> {
   final _spotName = TextEditingController();
   final _address = TextEditingController();
+  final _addr2 = TextEditingController();
+  final _phone = TextEditingController();
+  final _description = TextEditingController();
+  int? _zip;
+  String _addr= '';
+  String _regions = '';
   File? _image;
   String? _imageName;
   GoogleMapController? mapController;
   LatLng? coordinates;
+  FirebaseFirestore fs = FirebaseFirestore.instance;
+  String? _userId;
 
   Future<String> uploadImage(String name) async {
     // Firebase Storage에 저장할 파일의 참조 생성
@@ -64,6 +74,7 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
         this.coordinates = coordinates;
         if(_address.text != ''){
           _address.text = address; // 이 부분에서 주소를 상태에 저장
+          _addr = address;
         }
       });
     }
@@ -74,7 +85,10 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
       List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
       if (placemarks.isNotEmpty) {
         Placemark firstPlacemark = placemarks.first;
-        String address = "${firstPlacemark.street}, ${firstPlacemark.locality}, ${firstPlacemark.administrativeArea}, ${firstPlacemark.country}";
+        print(firstPlacemark);
+        _zip = int.parse(firstPlacemark.postalCode as String);
+        _regions = firstPlacemark.administrativeArea as String;
+        String address = "${firstPlacemark.street}";
         return address;
       }
     } catch (e) {
@@ -83,31 +97,120 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
     return "주소를 찾을 수 없음";
   }
 
+  Future<void> _addBuskingSpot() async{
+    if (_image == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('사진을 등록해주세요')));
+      return; // 이미지가 없으면 업로드하지 않음
+    } else if(_spotName == null || _spotName.text == '') {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('버스킹존 이름을 입력해주세요')));
+      return; // 이미지가 없으면 업로드하지 않음
+    } else if(_addr == null || _addr == '') {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('주소를 입력해주세요')));
+      return; // 이미지가 없으면 업로드하지 않음
+    } else if(_addr2 == null || _addr2.text == '') {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('상세주소를 입력해주세요')));
+      return; // 이미지가 없으면 업로드하지 않음
+    } else if(_description == null || _description.text == '') {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('상세정보를 입력해주세요')));
+      return; // 이미지가 없으면 업로드하지 않음
+    }
+
+
+
+    String name = generateUniqueFileName(_imageName!);
+    String _path = await uploadImage(name);
+    
+    fs.collection('busking_spot').add({
+      'spotName' : _spotName.text,
+      'description' : _description.text,
+      'createDate' : FieldValue.serverTimestamp(),
+      'uDateTime' : FieldValue.serverTimestamp(),
+      'managerContact' : _phone.text != '' ? _phone.text : '해당사항 없음',
+    })
+    .then((DocumentReference document){
+      document.collection('image')
+          .add({
+        'orgName' : _imageName,
+        'name' : name,
+        'path' : _path,
+        'size' : _image!.lengthSync(),
+        'deleteYn' : 'n',
+        'cDateTime' : FieldValue.serverTimestamp(),
+      });
+    });
+  }
+
   @override
   void initState() {
     // TODO: implement initState
     _getCoordinatesFromAddress('서울 시청');
+
+    _userId = Provider.of<UserModel>(context, listen: false).userId;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: MyDrawer(),
-      appBar: _appBar(),
-      body: ListView(
-        children: [
-          _spotNameTextField(),
-          Padding(
-            padding: const EdgeInsets.only(left: 20, right: 20),
-            child: Text('공연 이미지 등록', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        resizeToAvoidBottomInset: true,
+        backgroundColor: Colors.white,
+        drawer: MyDrawer(),
+        appBar: _appBar(),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              _TextField('버스킹존 이름', '버스킹존의 장소면을 입력하세요', _spotName),
+              Padding(
+                padding: const EdgeInsets.all(15),
+                child: Text('공연 이미지 등록'),
+              ),
+              SizedBox(height: 10,),
+              _imageAdd(),
+              SizedBox(height: 10,),
+              _maps(),
+              SizedBox(height: 10,),
+              _TextField('상세주소', '상세주소를 입력해주세요.', _addr2),
+              SizedBox(height: 10,),
+              _TextField('전화번호 (선택사항)', '해당 버스킹존의 전화번호(고객센터)를 입력해주세요.', _phone),
+              SizedBox(height: 10,),
+              _TextField2('상세정보', '주의사항 등 버스킹존의 상세정보를 입력해주세요.', _description),
+              SizedBox(height: 30,),
+              Row(
+                children: [
+                  Expanded(child: ElevatedButton(
+                    style: ButtonStyle(
+                        minimumSize: MaterialStatePropertyAll(Size(0, 48)),
+                        backgroundColor: MaterialStatePropertyAll(Color(0xFF392F31)),
+                        elevation: MaterialStatePropertyAll(0),
+                        shape: MaterialStatePropertyAll(
+                            RoundedRectangleBorder(
+                                borderRadius: BorderRadius.zero
+                            )
+                        )
+                    ),
+                    onPressed: () {
+                      showDialog(context: context, builder: (context) {
+                        return AlertDialog(
+                          title: Text('공지사항 등록'),
+                          content: Text('공지사항을 등록하시겠습니까?'),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('취소')),
+                            TextButton(onPressed: (){
+                              _addBuskingSpot();
+                              Navigator.of(context).pop();
+                            }, child: Text('등록')),
+                          ],
+                        );
+                      },);
+                    },
+                    child: Text('등록하기 ', style: TextStyle(fontSize: 17),),
+                  ),)
+                ],
+              )
+            ],
           ),
-          SizedBox(height: 10,),
-          _imageAdd(),
-          SizedBox(height: 10,),
-          _maps(),
-        ],
-      ),
-      bottomNavigationBar: MyBottomBar(),
+        ),
+        bottomNavigationBar: MyBottomBar(),
+
     );
   }
 
@@ -170,13 +273,41 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
     );
   }
 
-  Container _spotNameTextField() {
+  Container _TextField2(String title, String hint, TextEditingController control) {
     return Container(
       padding: EdgeInsets.all(15),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start, // 수직 가운데 정렬 설정
         children: [
-          Text('버스킹존 이름'),
+          Text('$title'),
+          SizedBox(height: 10),
+          Container(
+            child: TextField(
+              style: TextStyle(
+                  fontWeight: FontWeight.w500
+              ),
+              maxLines: 5,
+              controller: control,
+              decoration: InputDecoration(
+                contentPadding: EdgeInsets.only(left: 10),
+                hintText: '$hint',
+                hintStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
+                border: OutlineInputBorder(),
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Container _TextField(String title, String hint, TextEditingController control) {
+    return Container(
+      padding: EdgeInsets.all(15),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start, // 수직 가운데 정렬 설정
+        children: [
+          Text('$title'),
           SizedBox(height: 10),
           Container(
             height: 35,
@@ -184,10 +315,10 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
               style: TextStyle(
                   fontWeight: FontWeight.w500
               ),
-              controller: _spotName,
+              controller: control,
               decoration: InputDecoration(
                 contentPadding: EdgeInsets.only(left: 10),
-                hintText: '버스킹존의 장소명을 입력해주세요',
+                hintText: '$hint',
                 hintStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
                 border: OutlineInputBorder(),
               ),
@@ -271,7 +402,7 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
     Image.file(_image!, width: 180, height: 180,) :
     Container(
       margin: EdgeInsets.all(10),
-      color: Colors.white,
+      color: Colors.black12,
       height: 180,
       width: 180,
       child: Icon(Icons.camera_alt, color: Colors.grey),
