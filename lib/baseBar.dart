@@ -362,7 +362,7 @@ class _MyDrawerState extends State<MyDrawer> {
                 },
               ),
               ListTile(
-                title: Text('공지사항'),
+                title: Text('고객센터'),
                 onTap: () {
                   Navigator.of(context).push(MaterialPageRoute(builder: (context) => Support(),)); // Support 클래스로 이동
                 },
