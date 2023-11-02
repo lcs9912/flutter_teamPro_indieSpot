@@ -6,6 +6,7 @@ import 'package:indie_spot/result.dart';
 import 'package:indie_spot/userEdit.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:indie_spot/videoList.dart';
+import 'artistRegi.dart';
 import 'buskingList.dart';
 import 'buskingReservation.dart';
 import 'concertDetails.dart';
@@ -410,10 +411,15 @@ class _MyAppState extends State<MyApp> {
             Column(
               children: [
                 IconButton(
-                    onPressed: (){},
+                    onPressed: (){
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => ArtistRegi()),
+                      );
+                    },
                     icon: Icon(Icons.person)
                 ),
-                Text("아티스트"),
+                Text("아티스트 등록"),
               ],
             ),
             Column(
