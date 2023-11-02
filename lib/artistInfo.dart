@@ -1,3 +1,5 @@
+
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -86,7 +88,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
   void _followAdd() async{
     if(_userId == null){
       _alertDialogWidget();
-    } else{
+    } else {
       CollectionReference followAdd = fs
           .collection('artist')
           .doc(widget.doc.id)
@@ -94,13 +96,23 @@ class _ArtistInfoState extends State<ArtistInfo> {
 
 
       await followAdd.add({
-        'userId' : _userId,
+        'userId' : _userId
       });
-
       DocumentReference artistDoc = fs.collection('artist').doc(widget.doc.id);
       artistDoc.update({
         'followerCnt': FieldValue.increment(1), // 1을 증가시킵니다.
       });
+      // 유저
+      var myFollowingRef = fs.collection('userList').doc(_userId);
+      var myFollowing = await myFollowingRef.collection('following');
+      print(_userId);
+      await myFollowing.add({
+        "artistId" : widget.doc.id
+      });
+      myFollowingRef.update({
+        'followingCnt': FieldValue.increment(1),
+      });
+
       _followCheck();
 
     }
@@ -115,11 +127,15 @@ class _ArtistInfoState extends State<ArtistInfo> {
         .doc(widget.doc.id)
         .collection('follower');
 
+    // 유저
+    var myFollowingRef = fs.collection('userList').doc(_userId);
+    var myFollowing = await myFollowingRef.collection('following').where('artistId', isEqualTo: widget.doc.id).get();
+
     // 팔로우 관계를 삭제합니다.
     QuerySnapshot querySnapshot = await followDelete
         .where('userId', isEqualTo: _userId)
         .get();
-    if (querySnapshot.docs.isNotEmpty) {
+    if (querySnapshot.docs.isNotEmpty || myFollowing.docs.isNotEmpty) {
       for (QueryDocumentSnapshot document in querySnapshot.docs) {
         // 해당 사용자와 관련된 문서를 삭제합니다.
         await document.reference.delete();
@@ -129,6 +145,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
           'followerCnt': FieldValue.increment(-1), // 1을 감소시킵니다.
         });
       }
+      //await myFollowing.reference.delete();
       _followCheck();
     }
 
@@ -498,11 +515,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
                           ),
                         ),
                       );
-
-
                       buskingScheduleWidgets.add(buskingScheduleWidget);
-
-
                     }
                   }
 
@@ -528,18 +541,14 @@ class _ArtistInfoState extends State<ArtistInfo> {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
 
-    // 아티스트 클립이미지
+    // 아티스트 동영상 리스트
     final artistImagesSnapshot = await fs
-        .collection('artist')
+        .collection('video')
         .doc(widget.doc.id)
         .collection('images')
         .get();
     if(artistImagesSnapshot.docs.isNotEmpty){
-      for(QueryDocumentSnapshot artistImagesDoc in artistImagesSnapshot.docs) {
-        String images = artistImagesDoc['path'];
 
-
-      }
       return [Container()];
     }
     return [Container()];
@@ -588,18 +597,6 @@ class _ArtistInfoState extends State<ArtistInfo> {
               Tab(text: '공연일정'),
               Tab(text: '클립'),
             ],
-            onTap: (int index) {
-              if (index == 0) {
-                setState(() {
-
-                });
-              } else if (index == 1) {
-                setState(() {
-
-
-                });
-              }
-            },
             unselectedLabelColor: Colors.black,
             labelColor: Colors.blue,
             labelStyle: TextStyle(
@@ -711,8 +708,19 @@ class _ArtistInfoState extends State<ArtistInfo> {
             ///////////클립 탭/////////////
             Column( ///////////클립 탭/////////////
               children: [
+                Row(
+                  children: [
+                    TextButton(
+                        onPressed: (){},
+                        child: Text("사진"),
+                    ),
+                    TextButton(
+                        onPressed: (){},
+                        child: Text("동영상"),
+                    ),
+                  ],
+                ),
 
-                Text("클립"),
 
               ],
             ),

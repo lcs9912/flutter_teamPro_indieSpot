@@ -62,7 +62,9 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
 
       setState(() {
         this.coordinates = coordinates;
-        _address.text = address; // 이 부분에서 주소를 상태에 저장
+        if(_address.text != ''){
+          _address.text = address; // 이 부분에서 주소를 상태에 저장
+        }
       });
     }
   }
@@ -117,7 +119,7 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('주소'),
-          SizedBox(height: 10),
+          SizedBox(height: 20),
           Container(
             height: 200,
             child: coordinates == null
@@ -143,7 +145,7 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
               },
             ),
           ),
-          SizedBox(height: 10),
+          SizedBox(height: 20),
           Container(
             height: 35,
             child: TextField(
