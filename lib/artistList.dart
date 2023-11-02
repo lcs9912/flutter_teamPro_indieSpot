@@ -55,6 +55,7 @@ class _ArtistListState extends State<ArtistList> {
     } else {
       _userId = userModel.userId;
 
+
     }
   }
 
@@ -67,11 +68,10 @@ class _ArtistListState extends State<ArtistList> {
         .where('userId',isEqualTo: _userId)
         .get(); // 데이터를 검색하기 위해 get()를 사용합니다.
 
-    if(followYnSnapshot.docs.isNotEmpty){
-      return Icon(Icons.person_add);
-
-    } else {
+    if(followYnSnapshot.docs.isEmpty || _userId == null){
       return Icon(Icons.person_add_alt);
+    } else {
+      return Icon(Icons.person_add);
     }
 
   }
