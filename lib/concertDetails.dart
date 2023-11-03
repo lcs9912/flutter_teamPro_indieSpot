@@ -386,31 +386,52 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     // 상단 이미지
-                    ...getImageWidgets(),
+                    Stack(
+                      children: [
+                        // 기존 이미지 위젯들
+                        ...getImageWidgets(),
+
+                        // 새로운 이미지
+                        Positioned(
+                          top: 10, // 위치 조절
+                          left: 10, // 위치 조절
+                          child: Image.asset(
+                            'assets/nukki.png',// 추가할 이미지의 경로
+                            height: 40, // 높이 조절
+                            width: 40, // 너비 조절
+                          ),
+                        ),
+                      ],
+                    ),
                     SizedBox(height: 30), // 간격 추가
-                    Text(
-                      ' ${buskingData?['description']}',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(height: 10), // 간격 추가
                     Container(
-                      height: 1.0,
-                      width: double.infinity,
-                      color: Colors.black.withOpacity(0.1),
-                    ),
-                    SizedBox(height: 10), // 간격 추가
-                    Container(
-                      alignment: Alignment.centerLeft,
+                      width: 600,
+                      height: 40,
+                      color: Color(0xFF3E2007),
+                      padding: EdgeInsets.all(8.0), // 내부 여백 설정
                       child: Text(
-                        "기본정보",
-                        textAlign: TextAlign.left,
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        ' ${buskingData?['description']}',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color: Colors.white),
                       ),
                     ),
-                    SizedBox(height: 20),
+
+
+
+                    Container(
+                      width: 600,
+                      height: 50,
+                      color: Color(0xFF3E2007),
+                      padding: EdgeInsets.all(8.0), // 내부 여백 설정
+                      child: Text(
+                        "  기본정보",
+                        textAlign: TextAlign.left,
+                        style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white),
+                      ),
+                    ),
+
                     Container(
                       color: Colors.grey[200],
-                      height: 250,
+                      height: 210,
                       width: 400,
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
@@ -421,14 +442,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                               padding: const EdgeInsets.symmetric(horizontal: 20),
 
 
-                                child: ClipOval(
-                                  child: Image.network(
-                                    _path ?? '',
-                                    height: 120,
-                                    fit: BoxFit.cover,
 
-                                  ),
-                                ),
                               ),
 
                             Column(
@@ -437,7 +451,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                               children: [
 
                                 Text(
-                                  ' ${artistData2?['artistName']}',
+                                  '이름: ${artistData2?['artistName']}',
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
                                 SizedBox(height: 30),
@@ -448,22 +462,30 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                 ),
                                 SizedBox(height: 20),
                                 Text(
-                                  '장소 ${widget.spotName}', // widget을 사용하여 spotName에 접근합니다.
+                                  '장소: ${widget.spotName}', // widget을 사용하여 spotName에 접근합니다.
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
                                 SizedBox(height: 20),
                                 Text(
-                                  '버스킹시간 ${DateFormat('yyyy-MM-dd').format(buskingData?['buskingStart'].toDate())}',
+                                  '버스킹시간: ${DateFormat('yyyy-MM-dd').format(buskingData?['buskingStart'].toDate())}',
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
                                 Text(
-                                  '장르 ${artistData2?['genre']}',
+                                  '장르: ${artistData2?['genre']}',
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
-
+                             ClipRRect(
+                              borderRadius: BorderRadius.circular(8.0), // 네모 모양을 위한 BorderRadius 설정
+                              child: Image.network(
+                                _path ?? '',
+                                height: 160,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ],
+
                         ),
                       ),
                     ),
