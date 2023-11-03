@@ -25,6 +25,13 @@ class _ConcertDetailsState extends State<ConcertDetails> {
   Map<String, dynamic>? buskingData;
   // 변수 추가( 기존에 artistData 있어서 2붙임 일단)
   Map<String, dynamic>? artistData2;
+  FirebaseFirestore fs = FirebaseFirestore.instance;
+
+  bool _followerFlg = false; // 팔로우 했는지!
+
+  bool scheduleFlg = false;
+  int? folCnt; // 팔로워
+
 
   List<QueryDocumentSnapshot<Map<String, dynamic>>>? artistImages;
 
@@ -71,6 +78,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
     loadBuskingReview();
     getNickFromFirestore();
     fetchData();
+
   }
   Future<void> fetchData() async {
     try {
@@ -108,8 +116,127 @@ class _ConcertDetailsState extends State<ConcertDetails> {
       print('Error fetching email: $e');
     }
   }
+  _alertDialogWidget() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: Text("로그인이후 이용 가능합니다."),
+            actions: [
+              ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  }, // 기능
+                  child: Text("취소")),
+              ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LoginPage(),
+                      ),
+                    ).then((value) => Navigator.of(context).pop());
+                  }, // 기능
+                  child: Text("로그인")),
+            ],
+          );
+        });
+  }
+  void _followAdd() async {
+    if (_userId == null) {
+      _alertDialogWidget();
+    } else {
+      CollectionReference followAdd =
+      fs.collection('artist').doc(_artistId).collection('follower');
 
+      await followAdd.add({'userId': _userId});
+      DocumentReference artistDoc = fs.collection('artist').doc(_artistId);
+      artistDoc.update({
+        'followerCnt': FieldValue.increment(1), // 1을 증가시킵니다.
+      });
+      // 유저
+      var myFollowingRef = fs.collection('userList').doc(_userId);
+      var myFollowing = await myFollowingRef.collection('following');
+      print(_userId);
+      await myFollowing.add({"artistId": _artistId});
+      myFollowingRef.update({
+        'followingCnt': FieldValue.increment(1),
+      });
 
+      _followCheck();
+    }
+  }
+  void _followCheck() async {
+    final followYnSnapshot = await fs
+        .collection('artist')
+        .doc(_artistId)
+        .collection('follower')
+        .where('userId', isEqualTo: _userId)
+        .get(); // 데이터를 검색하기 위해 get()를 사용합니다.
+    setState(() {
+      if (followYnSnapshot.docs.isNotEmpty) {
+        _followerFlg = true;
+      } else {
+        _followerFlg = false;
+      }
+      _followerCount(); // 팔로우count
+    });
+  }
+  void _followerCount() async {
+    final CollectionReference artistCollection =
+    FirebaseFirestore.instance.collection('artist');
+    final DocumentReference artistDocument =
+    artistCollection.doc(_artistId);
+
+    artistDocument.get().then((DocumentSnapshot documentSnapshot) {
+      if (documentSnapshot.exists) {
+        // 문서가 존재하는 경우 필드 가져오기
+        folCnt = documentSnapshot['followerCnt'];
+      } else {
+        folCnt = 0;
+      }
+    }).catchError((error) {
+      print('데이터 가져오기 중 오류 발생: $error');
+    });
+  }
+  // 팔로우 취소
+  void _followDelete() async {
+    CollectionReference followDelete =
+    fs.collection('artist').doc(_artistId).collection('follower');
+
+    var myFollowingRef = fs.collection('userList').doc(_userId);
+
+    // 팔로우 관계를 삭제합니다.
+    QuerySnapshot querySnapshot =
+    await followDelete.where('userId', isEqualTo: _userId).get();
+    if (querySnapshot.docs.isNotEmpty) {
+      for (QueryDocumentSnapshot document in querySnapshot.docs) {
+        // 해당 사용자와 관련된 문서를 삭제합니다.
+        await document.reference.delete();
+
+        DocumentReference artistDoc =
+        fs.collection('artist').doc(_artistId);
+        artistDoc.update({
+          'followerCnt': FieldValue.increment(-1), // 1을 감소시킵니다.
+        });
+      }
+
+      await myFollowingRef
+          .collection('following')
+          .where('artistId', isEqualTo: _artistId)
+          .get()
+          .then((querySnapshot) {
+        querySnapshot.docs.forEach((doc) {
+          doc.reference.delete();
+        });
+      });
+
+      await myFollowingRef.update({
+        'followingCnt': FieldValue.increment(-1),
+      });
+      _followCheck();
+    }
+  }
   //----------------------------------------------------두번째 탭 영역--------------------------------------------------------------------
  // 필요한 경우 초기값 설정
 
@@ -413,15 +540,41 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                             ),
                           ),
                         ),
-                        Positioned(
-                          top: 135, // 위치 조절
-                          left: 280, // 위치 조절
-                          child: Image.asset(
-                            'assets/nheart.png',// 추가할 이미지의 경로
-                            height: 70, // 높이 조절
-                            width: 70, // 너비 조절
-                          ),
-                        ),
+                        Stack(
+                          children: [
+                            Positioned(
+                              top: 135, // 위치 조절
+                              left: 280, // 위치 조절
+                              child: Image.asset(
+                                'assets/nheart.png', // 추가할 이미지의 경로
+                                height: 70, // 높이 조절
+                                width: 70, // 너비 조절
+                              ),
+                            ),
+                            Positioned(
+                              right: 1,
+                              top: 1,
+                              child: Text(folCnt.toString()),
+                            ),
+                            if (_followerFlg)
+                              IconButton(
+                                onPressed: () {
+                                  _followDelete();
+                                  setState(() {});
+                                },
+                                icon: Icon(Icons.person_add),
+                              ),
+                            if (!_followerFlg)
+                              IconButton(
+                                onPressed: () {
+                                  _followAdd();
+                                  setState(() {});
+                                },
+                                icon: Icon(Icons.person_add_alt),
+                              ),
+                          ],
+                        )
+
                       ],
                     ),
                     SizedBox(height: 30), // 간격 추가
