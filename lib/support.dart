@@ -5,9 +5,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'userModel.dart';
 import 'contactUs.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 class Support extends StatefulWidget {
-
+  List<Map<String, dynamic>> inquiries = [];
+  List<bool> isExpandedList = List.generate(11, (index) => false);
+  bool isExpanded = false;
+  int expandedIndex = -1;
   @override
   State<Support> createState() => _SupportState();
 }
@@ -15,6 +19,7 @@ class Support extends StatefulWidget {
 
 class _SupportState extends State<Support> {
   late String _userId; // 수정: _userId를 late 변수로 변경
+  String? reply;
   @override
   void initState() {
     super.initState();
@@ -66,125 +71,314 @@ class _SupportState extends State<Support> {
         length: 2,
         child: Scaffold(
             appBar: AppBar(
-              title: Text('Support'),
+              backgroundColor: Colors.white, // 앱바 배경색
+              title: Text(
+                '고객센터',
+                style: TextStyle(
+                  color: Colors.black, // 앱바 글자색
+                ),
+              ),
+              iconTheme: IconThemeData(color: Colors.black),
               bottom: TabBar(
+                labelColor: Colors.black, // 탭의 활성화된 글자색
+                unselectedLabelColor: Colors.black, // 탭의 비활성화된 글자색
                 tabs: [
-                  Tab(text: 'FAQ'),
+                  Tab(text: 'FAQ',),
                   Tab(text: '문의하기'),
                 ],
+                indicatorColor: Colors.black, // 탭의 밑줄 색상
               ),
             ),
             body: TabBarView(
-                children: [
-                  SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: List.generate(questions.length, (index) {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              GestureDetector(
-                                onTap: () => toggleAdditionalText(index),
-                                child: Text(
-                                  questions[index],
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                  ),
+              children: [
+                SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: List.generate(questions.length, (index) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            GestureDetector(
+                              onTap: () => toggleAdditionalText(index),
+                              child: Text(
+                                questions[index],
+                                style: TextStyle(
+                                  fontSize: 17,
                                 ),
                               ),
-                              SizedBox(height: 8),
-                              if (showAdditionalText[index])
-                                Container(
-                                  color: Colors.grey[200],
-                                  padding: EdgeInsets.all(8),
-                                  child: Text(
-                                    answers[index],
-                                    style: TextStyle(fontSize: 16),
-                                  ),
+                            ),
+                            SizedBox(height: 8),
+                            if (showAdditionalText[index])
+                              Container(
+                                color: Colors.grey[200],
+                                padding: EdgeInsets.all(8),
+                                child: Text(
+                                  answers[index],
+                                  style: TextStyle(fontSize: 16),
                                 ),
-                            ],
-                          );
-                        }),
-                      ),
+                              ),
+                          ],
+                        );
+                      }),
                     ),
                   ),
-                  Scaffold(
-                    body: Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(width: 20), // 간격 조절
-                          FutureBuilder(
-                            future: getInquiries(), // Firebase에서 문의 내용 가져오는 함수 호출
-                            builder: (BuildContext context, AsyncSnapshot<List<String>> snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return CircularProgressIndicator(); // 데이터를 기다리는 동안 로딩 표시
-                              } else if (snapshot.hasError) {
-                                return Text('Error: ${snapshot.error}');
-                              } else {
-                                List<String> inquiries = snapshot.data ?? []; // 가져온 데이터
+                ),
 
-                                return Row(
-                                  children: inquiries.map((inquiry) {
-                                    return Container(
-                                      margin: EdgeInsets.only(right: 8), // content와의 간격 조절
-                                      child: Text(inquiry), // 각각의 문의 내용을 출력
-                                    );
-                                  }).toList(),
-                                );
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    floatingActionButton: Positioned(
-                      right: 20,
-                      bottom: 20,
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => ContactUs(),
-                          ));
-                        },
-                        child: Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.blue,
-                          ),
-                          child: Center(
-                            child: Icon(
-                              Icons.edit,
-                              color: Colors.white,
+                Scaffold(
+                  body: Stack(
+                      children: [
+                        Positioned(
+                          top: MediaQuery.of(context).size.height / 6 - 20, // 수직 중앙에 위치
+                          left: MediaQuery.of(context).size.width / 3 - 0, // 수평 중앙에 위치
+                          child: Text(
+                            '나의 문의 내역', // 여기에 표시할 텍스트
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20, // 텍스트 크기
                             ),
+                          ),
+                        ),
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(width: 20), // 간격 조절
+                      FutureBuilder<List<Map<String, dynamic>>>(
+                        future: getInquiries(),
+                        builder: (BuildContext context, AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return CircularProgressIndicator();
+                          } else if (snapshot.hasError) {
+                            return Text('Error: ${snapshot.error}');
+                          } else {
+                            List<Map<String, dynamic>> inquiries = snapshot.data ?? [];
+                            print('Inquiries: $inquiries');
+                            return Column(
+                              children: inquiries.asMap().entries.map((entry) {
+                                int index = entry.key;
+                                Map<String, dynamic> inquiry = entry.value;
+                                String category = inquiry['category'].toString();
+                                String content = inquiry['content'].toString();
+                                bool isExpanded = widget.isExpandedList[index];
+
+                                return GestureDetector(
+                                  onTap: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        Map<String, dynamic> inquiry = inquiries[index];
+                                        String category = inquiry['category'].toString();
+                                        String content = inquiry['content'].toString();
+
+                                        return AlertDialog(
+                                            contentPadding: EdgeInsets.all(16), // 패딩을 조절합니다.
+                                        title: Text('카테고리: $category'),
+                                        content: Container(
+                                        width: 300,
+                                            height: 300,// 원하는 너비로 설정합니다.
+                                        child: FutureBuilder<String>(
+
+                                            future: getNickFromUserList(_userId),
+                                            builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+                                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                                return CircularProgressIndicator();
+                                              } else if (snapshot.hasError) {
+                                                return Text('Error: ${snapshot.error}');
+                                              } else {
+                                                String nick = snapshot.data ?? "";
+                                                return Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Container(
+                                                      margin: EdgeInsets.only(bottom: 8),
+                                                      width: 280,
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.grey[200], // 배경색 설정
+                                                        border: Border.all(color: Colors.grey), // 테두리 추가
+                                                        borderRadius: BorderRadius.circular(8),
+                                                      ),
+                                                      padding: EdgeInsets.all(8),
+                                                      child: Text(
+                                                        '작성자: $nick',
+                                                        style: TextStyle(
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      width: 280,
+                                                      height: 200,
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.grey[200], // 배경색 설정
+                                                        border: Border.all(color: Colors.grey), // 테두리 추가
+                                                        borderRadius: BorderRadius.circular(8),
+                                                      ),
+                                                      padding: EdgeInsets.all(8),
+                                                      child: Text(
+                                                        '문의내용: $content',
+                                                        style: TextStyle(
+                                                          fontStyle: FontStyle.italic,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                );
+                                              }
+                                            },
+                                        )
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                              child: Text('Close'),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  },
+
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+
+                                      children: [
+                                  SizedBox(height: 16), // 간격 조절
+                                  Container(
+                                    width: 300,
+                                    height: 120,
+                                    margin: EdgeInsets.only(bottom: 8),
+                                    padding: EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[200],
+                                      border: Border.all(color: Colors.grey),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('카테고리: $category', style: TextStyle(fontWeight: FontWeight.bold)),
+                                        SizedBox(height: 8),
+                                        FutureBuilder<String>(
+                                          future: getNickFromUserList(_userId),
+                                          builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+                                            if (snapshot.connectionState == ConnectionState.waiting) {
+                                              return CircularProgressIndicator();
+                                            } else if (snapshot.hasError) {
+                                              return Text('Error: ${snapshot.error}');
+                                            } else {
+                                              String nick = snapshot.data ?? "";
+                                              return Text('작성자: $nick');
+                                            }
+                                          },
+                                        ),
+                                        SizedBox(height: 8),
+                                        (reply == null)
+                                            ? Row(
+                                          children: [
+                                            Icon(Icons.access_time, color: Colors.orange), // 답변 대기 아이콘
+                                            SizedBox(width: 4),
+                                            Text('답변대기', style: TextStyle(color: Colors.orange)),
+                                          ],
+                                        )
+                                            : (isExpanded
+                                            ? Expanded(
+                                          child: Text(
+                                            'Content: $content',
+                                            softWrap: true,
+                                            overflow: TextOverflow.fade,
+                                          ),
+                                        )
+                                            : Container()),
+                                        ],
+                                      ),
+                                    ),
+                                  ]
+                                  ),
+                                );
+                              }).toList(),
+                            );
+
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ]
+                ),
+                  floatingActionButton: Positioned(
+                    right: 20,
+                    bottom: 20,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => ContactUs(),
+                        ));
+                      },
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.blue,
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.edit,
+                            color: Colors.white,
                           ),
                         ),
                       ),
                     ),
-                  )
-    ],
-    )
-    )
+                  ),
+                )
+              ],
+            )
+        )
     );
   }
 
-  Future<List<String>> getInquiries() async {
+  Future<List<Map<String, dynamic>>> getInquiries() async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     QuerySnapshot<Map<String, dynamic>> inquiriesSnapshot = await firestore
         .collection('userList')
-        .doc(_userId) // 사용자 ID를 넣어주세요
+        .doc(_userId)
         .collection('inquiry')
         .get();
 
-    List<String> inquiries = inquiriesSnapshot.docs
-        .map((doc) => doc['content'].toString()) // 가져온 데이터 중 content 필드 사용
+    List<Map<String, dynamic>> inquiries = inquiriesSnapshot.docs
+        .map((doc) => {
+      'category': doc['category'],
+      'content': doc['content'],
+      'cDateTime': doc['cDateTime'],
+    })
         .toList();
 
     return inquiries;
   }
-}
+  Future<String> getNickFromUserList(String userId) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
 
+    try {
+      DocumentSnapshot<Map<String, dynamic>> userDoc = await firestore
+          .collection('userList')
+          .doc(userId)
+          .get();
+
+      if (userDoc.exists) {
+        String nick = userDoc['nick'].toString();
+        return nick;
+      } else {
+        return ""; // 해당하는 사용자를 찾지 못한 경우 빈 문자열을 반환하거나 다른 값을 반환할 수 있습니다.
+      }
+    } catch (e) {
+      print('Error fetching nick: $e');
+      return ""; // 에러가 발생한 경우 빈 문자열을 반환하거나 다른 값을 반환할 수 있습니다.
+    }
+  }
+
+}
