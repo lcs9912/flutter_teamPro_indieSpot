@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:indie_spot/baseBar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:indie_spot/pointExchange.dart';
 import 'package:indie_spot/pointHistory.dart';
 import 'package:indie_spot/pointRecharge.dart';
 import 'package:indie_spot/userModel.dart';
@@ -182,7 +183,9 @@ class _PointDetailedState extends State<PointDetailed> {
               )
           ),
           TextButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => PointExchange(),));
+              },
               child: Column(
                 children: [
                   Icon(Icons.autorenew, size: 40, color: Color(0xFF392F31),),

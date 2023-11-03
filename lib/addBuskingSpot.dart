@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:uuid/uuid.dart';
@@ -11,6 +10,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
+
+import 'buskingReservation.dart';
 
 class AddBuskingSpot extends StatefulWidget {
   const AddBuskingSpot({super.key});
@@ -124,21 +125,29 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
     if (_image == null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('사진을 등록해주세요')));
       return; // 이미지가 없으면 업로드하지 않음
-    } else if(_spotName == null || _spotName.text == '') {
+    } else if(_spotName.text == '') {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('버스킹존 이름을 입력해주세요')));
       return; // 이미지가 없으면 업로드하지 않음
-    } else if(_addr == null || _addr == '') {
+    } else if(_addr == '') {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('주소를 입력해주세요')));
       return; // 이미지가 없으면 업로드하지 않음
-    } else if(_addr2 == null || _addr2.text == '') {
+    } else if(_addr2.text == '') {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('상세주소를 입력해주세요')));
       return; // 이미지가 없으면 업로드하지 않음
-    } else if(_description == null || _description.text == '') {
+    } else if(_description.text == '') {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('상세정보를 입력해주세요')));
       return; // 이미지가 없으면 업로드하지 않음
     }
 
     String regions = formatCity(_regions);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return LoadingScreen();
+      },
+      barrierDismissible: false, // 사용자가 화면을 탭해서 닫는 것을 막습니다.
+    );
 
 
     String name = generateUniqueFileName(_imageName!);
@@ -168,6 +177,8 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
         'zipcode' : _zip ?? 0
       });
     });
+
+    Navigator.of(context).pop();
   }
 
   @override
@@ -220,8 +231,8 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
                     onPressed: () {
                       showDialog(context: context, builder: (context) {
                         return AlertDialog(
-                          title: Text('공지사항 등록'),
-                          content: Text('공지사항을 등록하시겠습니까?'),
+                          title: Text('버스킹존 등록'),
+                          content: Text('버스킹존을 등록하시겠습니까?'),
                           actions: [
                             TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('취소')),
                             TextButton(onPressed: (){
@@ -404,8 +415,8 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
     );
   }
 
-  Container _imageAdd(){
-    return Container(
+  SizedBox _imageAdd(){
+    return SizedBox(
       height: 200,
       child: Center(
           child: InkWell(
