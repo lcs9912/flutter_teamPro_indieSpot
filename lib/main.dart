@@ -81,6 +81,34 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  // 로그인 해라
+  _alertDialogWidget() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: Text("로그인이후 이용 가능합니다."),
+            actions: [
+              ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  }, // 기능
+                  child: Text("취소")),
+              ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LoginPage(),
+                      ),
+                    ).then((value) => Navigator.of(context).pop());
+                  }, // 기능
+                  child: Text("로그인")),
+            ],
+          );
+        });
+  }
+
   Future<List<Widget>> _busKinList() async {
     // 버스킹 컬렉션 호출
     final buskingQuerySnapshot = await fs.collection('busking').limit(6).get();
@@ -427,10 +455,15 @@ class _MyAppState extends State<MyApp> {
               children: [
                 IconButton(
                     onPressed: (){
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => ArtistRegi()),
-                      );
+                      if(_userId != null){
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => ArtistRegi()),
+                        );
+                      } else {
+                        _alertDialogWidget();
+                      }
+
                     },
                     icon: Icon(Icons.person)
                 ),

@@ -5,6 +5,7 @@ import 'package:indie_spot/artistInfo.dart';
 import 'package:indie_spot/login.dart';
 import 'package:indie_spot/videoDetailed.dart';
 import 'artistEdit.dart';
+import 'artistMembers.dart';
 import 'baseBar.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -28,10 +29,10 @@ class _ArtistInfoState extends State<ArtistInfo> {
   FirebaseFirestore fs = FirebaseFirestore.instance;
 
   bool _followerFlg = false; // 팔로우 했는지!
-  String? _userId;
   bool scheduleFlg = false;
   int? folCnt; // 팔로워
   String? _artistId;
+  String? _userId;
 
   //////////////세션 확인//////////
   @override
@@ -243,8 +244,26 @@ class _ArtistInfoState extends State<ArtistInfo> {
                     builder: (context) => DonationList(artistDoc: widget.doc),
                   ))
                   .then((value) => setState(() {}));
-            },
-          )
+            }),
+            SpeedDialChild(
+                child: const Icon(
+                  Icons.edit,
+                  color: Colors.white,
+                ),
+                label: "멤버수정",
+                backgroundColor: Color(0xFF392F31),
+                labelBackgroundColor: Color(0xFF392F31),
+                labelStyle: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                    fontSize: 13.0),
+                onTap: () {
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(
+                    builder: (context) => ArtistMembers(widget.doc, widget.artistImg),
+                  ))
+                      .then((value) => setState(() {}));
+                }),
         ],
       );
     } else {
