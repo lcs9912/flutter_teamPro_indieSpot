@@ -19,7 +19,7 @@ class BoardAdd extends StatefulWidget {
 
 class _BoardAddState extends State<BoardAdd> {
 
-  String? _selectedCategory;
+  String _selectedCategory = 'free_board';
   File? _selectedImage;
 
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
@@ -103,13 +103,16 @@ class _BoardAddState extends State<BoardAdd> {
     // final imageUrl = await _uploadImage(_selectedImage!);
 
     try {
-      DocumentReference boardRef = await _fs.collection('posts').add(
+      QuerySnapshot firstDocumentSnapshot = await _fs.collection('posts').limit(1).get();
+      String firstDocumentId = firstDocumentSnapshot.docs.isNotEmpty ? firstDocumentSnapshot.docs.first.id : '3QjunO69Eb2OroMNJKWU';
+
+      DocumentReference boardRef = await _fs.collection('posts').doc(firstDocumentId).collection(_selectedCategory).add(
         {
-          'CATEGORY' : _selectedCategory,
-          'TITLE': _title.text,
-          'CONTENT': _content.text,
-          'CREATEDATE': FieldValue.serverTimestamp(),
+          'title': _title.text,
+          'content': _content.text,
+          'createdate': FieldValue.serverTimestamp(),
           'USER_ID' : _userId,
+          'cnt' : 0
         }
       );
 
@@ -117,7 +120,7 @@ class _BoardAddState extends State<BoardAdd> {
 
       //서브 콜렉션에 이미지 추가'
       if (imageUrl != null) {
-        await _fs.collection('posts').doc(boardID).collection('image').add(
+        await _fs.collection('posts').doc(firstDocumentId).collection(_selectedCategory).doc(boardID).collection('image').add(
             {
               'DELETE_YN' : 'N',
               'PATH' : imageUrl,
@@ -211,10 +214,10 @@ class _BoardAddState extends State<BoardAdd> {
                 value: _selectedCategory,
                 onChanged: (String? newValue) {
                   setState(() {
-                    _selectedCategory = newValue;
+                    _selectedCategory = newValue!;
                   });
                 },
-                items: ['자유', '팀모집', '함께연주']
+                items: [ 'free_board', 'concert_board']
                     .map<DropdownMenuItem<String>>(
                       (String value) => DropdownMenuItem<String>(
                     value: value,
