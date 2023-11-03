@@ -33,7 +33,22 @@ class _ContactUsState extends State<ContactUs> {
     print(_userId);
     return Scaffold(
       appBar: AppBar(
-        title: Text('문의하기'),
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: Colors.black, // 뒤로가기 아이콘의 색상을 검정색으로 지정합니다.
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: Text(
+          '문의하기',
+          style: TextStyle(
+            color: Colors.black, // 텍스트 색상을 검정색으로 지정합니다.
+          ),
+        ),
+        backgroundColor: Colors.white, // 배경색을 흰색으로 지정합니다.
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
