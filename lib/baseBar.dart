@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:indie_spot/announcementList.dart';
 import 'package:indie_spot/buskingList.dart';
 import 'package:indie_spot/buskingSpotList.dart';
+import 'package:indie_spot/commercialList.dart';
 import 'package:indie_spot/donationArtistList.dart';
 import 'package:indie_spot/donationList.dart';
 import 'package:indie_spot/login.dart';
@@ -393,7 +394,7 @@ class _MyDrawerState extends State<MyDrawer> {
               ListTile(
                 title: Text('공연 신청'),
                 onTap: () {
-
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => CommercialList(),));
                 },
               ),
               ListTile(

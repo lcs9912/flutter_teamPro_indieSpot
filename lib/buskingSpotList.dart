@@ -3,11 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:indie_spot/addBuskingSpot.dart';
 import 'package:indie_spot/baseBar.dart';
-import 'package:indie_spot/firebase_options.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:indie_spot/spotDetailed.dart';
-
-import 'firebase_options.dart';
 
 
 class BuskingZoneList extends StatefulWidget {
@@ -106,7 +102,8 @@ class _BuskingZoneListState extends State<BuskingZoneList> {
                                     contentPadding: EdgeInsets.only(top: 0, bottom: 15, left: 15, right: 15),
                                     leading: Container(
                                       height: double.infinity,
-                                      child: Image.network(images[0].data()['path']),
+                                      width: 100,
+                                      child: Image.network(images[0].data()['path'], fit: BoxFit.cover,),
                                     ),
                                     trailing: Icon(Icons.chevron_right),
                                     onTap: () {
