@@ -80,14 +80,37 @@ class _SupportState extends State<Support> {
               ),
               iconTheme: IconThemeData(color: Colors.black),
               bottom: TabBar(
-                labelColor: Colors.black, // 탭의 활성화된 글자색
-                unselectedLabelColor: Colors.black, // 탭의 비활성화된 글자색
+                labelColor: Colors.black,
+                unselectedLabelColor: Colors.black,
+                onTap: (index) {
+                  if (index == 1 && (_userId == null || _userId.isEmpty)) {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text('로그인 후 이용 가능합니다'),
+                          actions: <Widget>[
+                            TextButton(
+                              child: Text('확인'),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+
+                    // 로그인하지 않은 상태에서는 탭으로 이동하지 않도록 return 처리
+                    return;
+                  }
+                },
                 tabs: [
                   Tab(text: 'FAQ',),
                   Tab(text: '문의하기'),
                 ],
-                indicatorColor: Colors.black, // 탭의 밑줄 색상
               ),
+
             ),
             body: TabBarView(
               children: [
