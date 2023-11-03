@@ -28,6 +28,13 @@ class _CommercialListState extends State<CommercialList> {
         appBar: _appBar(),
         body: _spotList(),
         bottomNavigationBar: MyBottomBar(),
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: Color(0xFF392F31),
+          onPressed: (){
+            //Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddBuskingSpot(),)).then((value) => setState(() {}));
+          },
+          child: Icon(Icons.edit),
+        ),
       )
     );
   }

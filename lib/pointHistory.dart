@@ -279,10 +279,12 @@ class _PointHistoryState extends State<PointHistory> {
         _totalRecharge = 0;
         final DateTime now = DateTime.now();
         final DateTime oneMonthAgo = now.subtract(Duration(days: day));
+        print(oneMonthAgo);
 
+        // 날짜 범위를 포함하여 쿼리
         pointsDetailsQuerySnapshot = await pointsDetailsRef.orderBy('date', descending: true)
             .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(oneMonthAgo))
-            .where('date', isLessThanOrEqualTo: Timestamp.fromDate(now))
+            .where('date', isLessThanOrEqualTo: Timestamp.fromDate(now.add(Duration(days: 1))))
             .get();
       } else {
         _totalRecharge = 0;
@@ -320,7 +322,7 @@ class _PointHistoryState extends State<PointHistory> {
         int amount = pointDetailData['amount'].toInt();
         var date = pointDetailData['date'];
 
-        if(type == '충전') {
+        if(type == '충전' || type == '정산') {
           _totalRecharge += amount;
         }
 

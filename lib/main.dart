@@ -19,6 +19,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_image/flutter_image.dart';
 import 'package:provider/provider.dart';
 
+import 'join.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -520,10 +522,10 @@ class _MyAppState extends State<MyApp> {
                 IconButton(
                     onPressed: (){
                       _commercialListWidget();
-                      // Navigator.push(
-                      //     context,
-                      //     MaterialPageRoute(builder: (_) => Join()) // 상세페이지로 넘어갈것
-                      //);
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => Join())
+                      );
                     },
                     icon: Icon(Icons.catching_pokemon)
                 ),
