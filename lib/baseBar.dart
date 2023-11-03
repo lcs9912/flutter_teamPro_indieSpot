@@ -6,6 +6,7 @@ import 'package:indie_spot/donationArtistList.dart';
 import 'package:indie_spot/donationList.dart';
 import 'package:indie_spot/login.dart';
 import 'package:indie_spot/main.dart';
+import 'package:indie_spot/proprietorIdAdd.dart';
 import 'package:indie_spot/support.dart';
 import 'package:indie_spot/userDonationHistory.dart';
 import 'package:indie_spot/userModel.dart';
@@ -365,12 +366,8 @@ class _MyDrawerState extends State<MyDrawer> {
                 title: Text('사업자 등록'),
                 onTap: () {
                   if(_userId != null) {
-                    if (_artistId != null) {
                       Navigator.push(context, MaterialPageRoute(
-                        builder: (context) => YoutubeAdd(),));
-                    } else {
-                      showArtistRegistrationDialog(context);
-                    }
+                        builder: (context) => ProprietorAdd()));
                   }else{
                     showUserRegistrationDialog(context);
                   }

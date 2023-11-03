@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:indie_spot/lsjMain.dart';
+
 
 class Join extends StatefulWidget {
   const Join({super.key});
@@ -279,6 +281,7 @@ class _JoinState extends State<Join> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('가입되었음!!')),
       );
+
 
       // 입력값 초기화
       _birthday.clear();
