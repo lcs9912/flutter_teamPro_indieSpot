@@ -4,6 +4,9 @@ import 'baseBar.dart';
 
 class SpaceInfo extends StatefulWidget {
 
+  String spaceId;
+  SpaceInfo(this.spaceId);
+
   @override
   State<SpaceInfo> createState() => _SpaceInfoState();
 }
@@ -92,7 +95,8 @@ class _SpaceInfoState extends State<SpaceInfo> {
                 ),
               ],
             ),
-          )
+          ),
+
         ],
       ),
     );
