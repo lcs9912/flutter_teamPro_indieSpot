@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:indie_spot/announcementList.dart';
 import 'package:indie_spot/buskingList.dart';
 import 'package:indie_spot/buskingSpotList.dart';
-import 'package:indie_spot/commercialList.dart';
 import 'package:indie_spot/donationArtistList.dart';
 import 'package:indie_spot/donationList.dart';
 import 'package:indie_spot/login.dart';
@@ -14,7 +13,9 @@ import 'package:indie_spot/videoAdd.dart';
 import 'package:indie_spot/videoList.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'artistEdit.dart';
 import 'artistList.dart';
+import 'commercialList.dart';
 
 class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
 
@@ -22,20 +23,20 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: Text("indieSpot"),
-      backgroundColor: Colors.white,
-      actions: [
-        IconButton(
-            onPressed: (){
+        title: Text("indieSpot"),
+        backgroundColor: Colors.white,
+        actions: [
+          IconButton(
+              onPressed: (){
 
-            },
-            icon: Icon(Icons.person),color: Colors.black54),
-        IconButton(
-          onPressed: (){
-            Scaffold.of(context).openDrawer();
-          },
-          icon: Icon(Icons.menu),color: Colors.black54),
-      ]
+              },
+              icon: Icon(Icons.person),color: Colors.black54),
+          IconButton(
+              onPressed: (){
+                Scaffold.of(context).openDrawer();
+              },
+              icon: Icon(Icons.menu),color: Colors.black54),
+        ]
     );
   }
 }
@@ -52,8 +53,11 @@ class _MyDrawerState extends State<MyDrawer> {
   Map<String,dynamic>? imgData;
   ImageProvider<Object>? imageProvider;
   FirebaseFirestore fs = FirebaseFirestore.instance;
-  String? _artistId;
+  DocumentSnapshot? _artistId;
+  bool _artistLeader = false;
   DocumentSnapshot? doc;
+  DocumentSnapshot? artistDoc;
+  String? artistImg;
   @override
   void initState(){
     super.initState();
@@ -93,10 +97,20 @@ class _MyDrawerState extends State<MyDrawer> {
           Map<String,dynamic>teamData = artistDoc.data() as Map<String,dynamic>;
           if(teamData['userId'] == _userId){
             setState(() {
-              _artistId = docId;
+
               doc = art.docs[i];
+
             });
+            if(teamData['status'] == "Y"){ // 유저가 리더라면
+              _artistLeader = true;
+              _artistId = doc;
+              // 'image' 컬렉션에 접근
+              await fs.collection("artist").doc(docId).collection("image").get()
+                  .then((imageSnap) => artistImg = imageSnap.docs.first['path']);
+
+            }
           }
+
         }
       }
     }
@@ -335,7 +349,7 @@ class _MyDrawerState extends State<MyDrawer> {
                 title: Text('받은 후원 내역'),
                 onTap: () {
                   if(_artistId != null){
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => DonationList(artistDoc : doc!),));
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => DonationList(artistDoc : doc!),));
                   }else {
                     showArtistRegistrationDialog(context);
                   }// 아티스트 권한
@@ -403,12 +417,13 @@ class _MyDrawerState extends State<MyDrawer> {
 
                 },
               ),
-              ListTile(
-                title: Text('아티스트 정보 수정'),
-                onTap: () {
-
-                },
-              ),
+              if(_artistLeader)
+                ListTile(
+                  title: Text('아티스트 정보 수정'),
+                  onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => ArtistEdit(_artistId as DocumentSnapshot<Object?>, artistImg!),)).then((value) => setState(() {}));
+                  },
+                ),
             ],
           ),
         ],
@@ -427,70 +442,70 @@ class _MyBottomBarState extends State<MyBottomBar> {
   @override
   Widget build(BuildContext context) {
     return BottomAppBar(
-      child: Container(
-      height: 70,
-      color: Colors.white,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ArtistList()),
-              );
-            },
-            child: Image.asset('assets/mic.png',width: 23,),
-          ),
-          InkWell(
-            onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => BuskingList()),
-                        );
-                      },
-            child: Icon(Icons.calendar_month_outlined,color: Colors.black54,),
-          ),
-          InkWell(
-            onTap: () {
-              if (Navigator.of(context).canPop()) {
-                Navigator.of(context).pop(); // 현재 페이지를 제거
-              }
+        child: Container(
+            height: 70,
+            color: Colors.white,
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => ArtistList()),
+                      );
+                    },
+                    child: Image.asset('assets/mic.png',width: 23,),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => BuskingList()),
+                      );
+                    },
+                    child: Icon(Icons.calendar_month_outlined,color: Colors.black54,),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      if (Navigator.of(context).canPop()) {
+                        Navigator.of(context).pop(); // 현재 페이지를 제거
+                      }
 
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) {
-                  return MyApp(); // 새 페이지로 이동
-                },
-              ));
-            },
-            child: Icon(Icons.home_outlined,color: Colors.black54,),
-          ),
-          InkWell(
-            onTap: () {
-              if (Navigator.of(context).canPop()) {
-                Navigator.of(context).pop(); // 현재 페이지를 제거
-              }
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) {
+                          return MyApp(); // 새 페이지로 이동
+                        },
+                      ));
+                    },
+                    child: Icon(Icons.home_outlined,color: Colors.black54,),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      if (Navigator.of(context).canPop()) {
+                        Navigator.of(context).pop(); // 현재 페이지를 제거
+                      }
 
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) {
-                  return VideoList(); // 새 페이지로 이동
-                },
-              ));
-            },
-            child: Icon(Icons.play_circle_outline,color: Colors.black54,),
-          ),
-          InkWell(
-            /*onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) {
+                          return VideoList(); // 새 페이지로 이동
+                        },
+                      ));
+                    },
+                    child: Icon(Icons.play_circle_outline,color: Colors.black54,),
+                  ),
+                  InkWell(
+                    /*onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => ),
                         );
                       },*/
-            child: Icon(Icons.person,color: Colors.black54,),
+                    child: Icon(Icons.person,color: Colors.black54,),
+                  )
+                ]
             )
-          ]
         )
-      )
     );
   }
 }

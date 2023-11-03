@@ -40,14 +40,22 @@ class _ArtistEditState extends State<ArtistEdit> {
     void initState() {
       // TODO: implement initState
       super.initState();
+      _artistName.text = widget.doc['artistName'];
       _basicPrice.text = widget.doc['basicPrice'].toString();
       _artistInfo.text = widget.doc['artistInfo'];
       _genre.text = widget.doc['genre'];
       _mainPlace.text = widget.doc['mainPlace'];
+      if(_artistName.text == widget.doc['artistName']){
+        setState(() {
+          _isNameChecked = true; //
+        });
+      }
+
     }
 
   void _checkArtistName() async {
     // 활동명이 비어있는지 확인
+
     if (_artistName.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('아티스트 활동명을 입력해주세요.')),
@@ -57,11 +65,17 @@ class _ArtistEditState extends State<ArtistEdit> {
     // Firestore에서 중복 닉네임 체크
     final checkArtistName = await _fs.collection('artist')
         .where('artistName', isEqualTo: _artistName.text).get();
-    if (checkArtistName.docs.isNotEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('이미 사용 중인 활동명 입니다.')),
-      );
-    } else {
+
+
+    if(_artistName.text == widget.doc['artistName']){
+      setState(() {
+        _isNameChecked = true; //
+      });
+    } else if(checkArtistName.docs.isNotEmpty && _artistName.text != widget.doc.id){
+         ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(content: Text('이미 사용 중인 활동명 입니다.')),
+         );
+      } else{
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('사용 가능한 활동명 입니다.')),
       );
@@ -69,6 +83,7 @@ class _ArtistEditState extends State<ArtistEdit> {
         _isNameChecked = true; //
       });
     }
+
   }
 
   Future<void> _pickImage() async {
@@ -130,10 +145,16 @@ class _ArtistEditState extends State<ArtistEdit> {
       return;
     }
 
+    print(_artistName.text);
+    print(_artistInfo.text);
+    print(_mainPlace.text);
+    print(_selectedGenre);
+    print(_basicPrice.text);
     if(_artistName.text.isEmpty ||
         _artistInfo.text.isEmpty ||
         _mainPlace.text.isEmpty ||
-        _genre.text.isEmpty) {
+        _selectedGenre.isEmpty ||
+        _basicPrice.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("모든 정보를 입력해주세요."))
       );
@@ -142,6 +163,8 @@ class _ArtistEditState extends State<ArtistEdit> {
     final imageUrl = _selectedImage != null
         ? await _uploadImage(_selectedImage!)
         : widget.artistImg; // 이미지를 선택하지 않았을 때 widget.artistImg 사용
+
+    print(imageUrl);
     try {
       //수정 처리
       _fs.collection('artist').doc(widget.doc.id).update(
@@ -154,20 +177,22 @@ class _ArtistEditState extends State<ArtistEdit> {
             'basicPrice' : int.parse(_basicPrice.text)
           }
       );
-      // 이미지 문서 아이디 구함
-      // final imageDocumentId = _fs.collection('artist')
-      //     .doc(widget.doc.id)
-      //     .collection('image')
-      //     .doc()
-      //     .id;
-      // print("이미지문서 아이디구함");
-      // print('이미지 아이디${imageDocumentId}');
-      // //서브 콜렉션에 이미지 추가
-      // await _fs.collection('artist').doc(widget.doc.id).collection('image').doc(imageDocumentId).update(
-      //     {
-      //       'path' : imageUrl,
-      //     });
-      print("이미지문서");
+
+      final QuerySnapshot snapshot = await _fs.collection('artist').doc(widget.doc.id).collection('image').get();
+
+      if (snapshot.docs.isNotEmpty) {
+        final DocumentSnapshot document = snapshot.docs[0]; // 기존 문서 중 하나를 선택
+        final String imageDocumentId = document.id;
+
+
+        //서브 콜렉션에 이미지 추가
+        await _fs.collection('artist').doc(widget.doc.id).collection('image').doc(imageDocumentId).update(
+            {
+              'path' : imageUrl,
+            });
+      }
+
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('수정되었습니다.')),
       );
@@ -284,7 +309,7 @@ class _ArtistEditState extends State<ArtistEdit> {
                             backgroundColor: Colors.black
                         ),
                         onPressed: _change,
-                        child: Text('다시 입력')
+                        child: Text('수정')
                     )
                   else if(!_isNameChecked)
                     ElevatedButton(

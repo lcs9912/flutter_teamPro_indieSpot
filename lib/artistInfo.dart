@@ -10,6 +10,7 @@ import 'artistEdit.dart';
 import 'baseBar.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'donationList.dart';
 import 'donationPage.dart';
 import 'userModel.dart';
 import 'package:provider/provider.dart';
@@ -50,24 +51,19 @@ class _ArtistInfoState extends State<ArtistInfo> {
   }
 
   // 아티스트 권한 확인
+  // 아티스트 멤버 권한이 리더 인 userId 가 _userId 와 같을때
   void artistCheck() async{
-    QuerySnapshot art = await fs.collection("artist").get();
-    if(art.docs.isNotEmpty){
-      for(int i =0; i<art.docs.length; i++){
-        var docId=art.docs[i].id;
 
-        QuerySnapshot teamSnap = await fs.collection("artist").doc(docId).collection("team_members").get();
-        for(int j=0; j<teamSnap.docs.length; j++){
-          DocumentSnapshot artistDoc = teamSnap.docs[j];
-          Map<String,dynamic>teamData = artistDoc.data() as Map<String,dynamic>;
-          if(teamData['userId'] == _userId){
-            setState(() {
-              _artistId = docId;
-            });
+    fs.collection('artist').doc(widget.doc.id)
+        .collection('team_members')
+        .where('status', isEqualTo: 'Y')
+        .where('userId', isEqualTo: _userId).get().then((value) {
+          if(value.docs.isNotEmpty){
+            _artistId = _userId;
           }
-        }
-      }
-    }
+        });
+
+
   }
   
   // 팔로우COUNT 불러오기
@@ -244,7 +240,10 @@ class _ArtistInfoState extends State<ArtistInfo> {
             labelBackgroundColor: Color(0xFF392F31),
             labelStyle: const TextStyle(
                 fontWeight: FontWeight.w500, color: Colors.white, fontSize: 13.0),
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => DonationList(artistDoc: widget.doc),))
+                  .then((value) => setState(() {}));
+            },
           )
         ],
       );
