@@ -393,12 +393,33 @@ class _ConcertDetailsState extends State<ConcertDetails> {
 
                         // 새로운 이미지
                         Positioned(
-                          top: 10, // 위치 조절
-                          left: 10, // 위치 조절
+                          top: 140, // 위치 조절
+                          left: 340, // 위치 조절
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => DonationPage(
+                                    artistId: _artistId!, // null이 아님을 확신하고 사용
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Image.asset(
+                              'assets/nukki.png', // 추가할 이미지의 경로
+                              height: 50, // 높이 조절
+                              width: 50, // 너비 조절
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 135, // 위치 조절
+                          left: 280, // 위치 조절
                           child: Image.asset(
-                            'assets/nukki.png',// 추가할 이미지의 경로
-                            height: 40, // 높이 조절
-                            width: 40, // 너비 조절
+                            'assets/nheart.png',// 추가할 이미지의 경로
+                            height: 70, // 높이 조절
+                            width: 70, // 너비 조절
                           ),
                         ),
                       ],
@@ -492,28 +513,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                     SizedBox(height: 20),
 
                     SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => DonationPage(
-                              artistId: _artistId!, // null이 아님을 확신하고 사용
-                            ),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        primary: Color(0xFF392F31), // 주어진 색상 코드로 버튼 색상 설정
-                      ),
-                      child: Text(
-                        'Donate', // 버튼에 표시될 텍스트
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.white,
-                        ),
-                      ),
-                    )
+
                   ],
                 ),
               ),
