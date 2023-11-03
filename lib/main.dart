@@ -644,7 +644,7 @@ class _MyAppState extends State<MyApp> {
 
 
   Future<List<Widget>> _commercialListWidget() async {
-    final commerQuerySnapshot = await fs.collection('commercial_space').limit(3).get();
+    final commerQuerySnapshot = await fs.collection('commercial_space').limit(2).get();
 
     if (commerQuerySnapshot.docs.isEmpty) {
       return [Container()];

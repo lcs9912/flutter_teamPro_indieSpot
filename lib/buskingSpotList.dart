@@ -3,11 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:indie_spot/addBuskingSpot.dart';
 import 'package:indie_spot/baseBar.dart';
-import 'package:indie_spot/firebase_options.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:indie_spot/spotDetailed.dart';
-
-import 'firebase_options.dart';
 
 
 class BuskingZoneList extends StatefulWidget {
@@ -82,23 +78,40 @@ class _BuskingZoneListState extends State<BuskingZoneList> {
                             return Text('데이터를 불러오는 중 오류가 발생했습니다.');
                           }
                           List<QueryDocumentSnapshot<Map<String, dynamic>>> addr = addrSnapshot.data!.docs as List<QueryDocumentSnapshot<Map<String, dynamic>>>;
-                          return Container(
-                            padding: EdgeInsets.only(bottom: 5, top: 5),
-                            decoration: BoxDecoration(border: Border(bottom: BorderSide(width: 1, color: Color(0xFFEEEEEE)))),
-                            child: ListTile(
-                              visualDensity: VisualDensity(vertical: 4),
-                              title: Text(data['spotName']),
-                              subtitle: Text(addr[0].data()['addr']),
-                              contentPadding: EdgeInsets.only(top: 0, bottom: 15, left: 15, right: 15),
-                              leading: Container(
-                                height: double.infinity,
-                                child: Image.asset('busking/SE-70372558-15b5-11ee-8f66-416d786acd10.jpg',)
-                              ),
-                              trailing: Icon(Icons.chevron_right),
-                              onTap: () {
-                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => SpotDetailed(data, addr, document.id),));
-                              },
-                            ),
+
+                          // 이미지 정보를 가져오는 FutureBuilder 추가
+                          return FutureBuilder<QuerySnapshot>(
+                            future: spots.doc(document.id).collection('image').limit(1).get(),
+                            builder: (context, imageSnapshot) {
+                              if (imageSnapshot.connectionState == ConnectionState.waiting) {
+                                return Container(); // 데이터가 로딩 중이면 로딩 표시
+                              }
+                              if (imageSnapshot.hasError) {
+                                return Text('이미지를 불러오는 중 오류가 발생했습니다.');
+                              }
+                              List<QueryDocumentSnapshot<Map<String, dynamic>>> images = imageSnapshot.data!.docs as List<QueryDocumentSnapshot<Map<String, dynamic>>>;
+
+                              // 이미지와 주소를 사용하여 ListTile을 생성
+                              return Container(
+                                  padding: EdgeInsets.only(bottom: 5, top: 5),
+                                  decoration: BoxDecoration(border: Border(bottom: BorderSide(width: 1, color: Color(0xFFEEEEEE)))),
+                                  child: ListTile(
+                                    visualDensity: VisualDensity(vertical: 4),
+                                    title: Text(data['spotName']),
+                                    subtitle: Text(addr[0].data()['addr']),
+                                    contentPadding: EdgeInsets.only(top: 0, bottom: 15, left: 15, right: 15),
+                                    leading: Container(
+                                      height: double.infinity,
+                                      width: 100,
+                                      child: Image.network(images[0].data()['path'], fit: BoxFit.cover,),
+                                    ),
+                                    trailing: Icon(Icons.chevron_right),
+                                    onTap: () {
+                                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => SpotDetailed(data, addr, images, document.id),));
+                                    },
+                                  ),
+                                );
+                             },
                           );
                         },
                       );

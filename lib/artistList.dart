@@ -31,9 +31,9 @@ class _ArtistListState extends State<ArtistList> {
   ];
 
   // 라디오 버튼 기본 선택
-  String? selectedRadio ="인기순";
+  String? selectedRadio = "인기순";
   String? selectGenre; // 장르 탭바
-  
+
   // 검색 컨트롤러
   final TextEditingController _search = TextEditingController();
   FocusNode _focusNode = FocusNode();
@@ -51,44 +51,51 @@ class _ArtistListState extends State<ArtistList> {
     super.initState();
     final userModel = Provider.of<UserModel>(context, listen: false);
     if (!userModel.isLogin) {
-
     } else {
       _userId = userModel.userId;
-
-
     }
   }
 
-  Future<Widget> _followIcon() async{
-
+  Future<Widget> _followIcon() async {
     final followYnSnapshot = await fs
         .collection('artist')
         .doc(artistId)
         .collection('follower')
-        .where('userId',isEqualTo: _userId)
+        .where('userId', isEqualTo: _userId)
         .get(); // 데이터를 검색하기 위해 get()를 사용합니다.
 
-    if(followYnSnapshot.docs.isEmpty || _userId == null){
+    if (followYnSnapshot.docs.isEmpty || _userId == null) {
       return Icon(Icons.person_add_alt);
     } else {
       return Icon(Icons.person_add);
     }
-
   }
 
   // 아티스트 리스트 출력
   Widget _artistList() {
-    if(selectGenre == null){
-      if(selectedRadio == "가입순"){
-        _stream = fs.collection("artist").orderBy('createdate', descending: true).snapshots();
-      } else if(selectedRadio == "인기순"){
-        _stream = fs.collection("artist").orderBy('followerCnt', descending: true).snapshots();
-      } else if(selectedRadio == "최신순"){
-        _stream = fs.collection("artist").orderBy('recentShow', descending: true).snapshots();
+    if (selectGenre == null) {
+      if (selectedRadio == "가입순") {
+        _stream = fs
+            .collection("artist")
+            .orderBy('createdate', descending: true)
+            .snapshots();
+      } else if (selectedRadio == "인기순") {
+        _stream = fs
+            .collection("artist")
+            .orderBy('followerCnt', descending: true)
+            .snapshots();
+      } else if (selectedRadio == "최신순") {
+        _stream = fs
+            .collection("artist")
+            .orderBy('recentShow', descending: true)
+            .snapshots();
       }
     } else {
-      _stream = fs.collection("artist").where('genre',isEqualTo: selectGenre)
-          .orderBy('followerCnt', descending: true).snapshots();
+      _stream = fs
+          .collection("artist")
+          .where('genre', isEqualTo: selectGenre)
+          .orderBy('followerCnt', descending: true)
+          .snapshots();
     }
 
     return StreamBuilder(
@@ -103,24 +110,32 @@ class _ArtistListState extends State<ArtistList> {
             itemBuilder: (context, index) {
               DocumentSnapshot doc = snap.data!.docs[index];
               Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-              if(data['artistName'].contains(_search.text)){
+              if (data['artistName'].contains(_search.text)) {
                 return FutureBuilder(
                     future: FirebaseFirestore.instance
                         .collection("artist")
                         .doc(doc.id)
                         .collection("image")
                         .get(),
-                    builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> imgSnap) {
+                    builder: (BuildContext context,
+                        AsyncSnapshot<QuerySnapshot> imgSnap) {
                       if (imgSnap.hasData) {
+                        String genreText;
+                        if(data['detailedGenre'] == null || data['detailedGenre'] == ""){
+                          genreText =  data['genre'];
+                        } else{
+                          genreText = '${data['genre']} / ${data['detailedGenre']}';
+                        }
+
+
                         var img = imgSnap.data!.docs.first;
-                        if(data['followerCnt'] != null){
+                        if (data['followerCnt'] != null) {
                           artistId = doc.id;
                           cnt = data['followerCnt'];
-                        } else{
+                        } else {
                           cnt = 0;
                         }
                         return ListTile(
-
                           leading: Image.network(
                             img['path'],
                             width: 100,
@@ -131,20 +146,23 @@ class _ArtistListState extends State<ArtistList> {
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('${data['genre']}'),
+                              Text(genreText),
+
                               Row(
                                 children: [
                                   FutureBuilder(
-                                      future: _followIcon(),
-                                      builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-                                        if (snapshot.connectionState == ConnectionState.waiting) {
-                                          return Container();
-                                        } else if (snapshot.hasError) {
-                                          return Text('Error: ${snapshot.error}');
-                                        } else {
-                                          return snapshot.data;
-                                        }
-                                      },
+                                    future: _followIcon(),
+                                    builder: (BuildContext context,
+                                        AsyncSnapshot<dynamic> snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return Container();
+                                      } else if (snapshot.hasError) {
+                                        return Text('Error: ${snapshot.error}');
+                                      } else {
+                                        return snapshot.data;
+                                      }
+                                    },
                                   ),
                                   Text('  $cnt')
                                 ],
@@ -158,18 +176,17 @@ class _ArtistListState extends State<ArtistList> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => ArtistInfo(doc, artistImg),
+                                builder: (context) =>
+                                    ArtistInfo(doc, artistImg),
                               ),
                             );
                           },
                         );
-                      } else{
+                      } else {
                         return Container();
                       }
-                    }
-                );
+                    });
               }
-
             },
           ),
         );
@@ -178,49 +195,45 @@ class _ArtistListState extends State<ArtistList> {
   }
 
   // 장르 탭바
-  final List<String> _genre = ["음악","댄스","퍼포먼스","마술"];
-  Widget genreWidget(){
+  final List<String> _genre = ["음악", "댄스", "퍼포먼스", "마술"];
+
+  Widget genreWidget() {
     return SingleChildScrollView(
-      child: Column(
-          children: [
-            Container(
-              color: Colors.white,
-              height: 50.0, // 높이 조절
-              child: ListView(
-                scrollDirection: Axis.horizontal, // 수평 스크롤
-                children: [
-                  for (String genre in _genre)
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
-                        children:[
-                          Container(
-                            margin: EdgeInsets.symmetric(horizontal: 17.0),
-                            child: TextButton(
-                              onPressed: () {
-                                setState(() {
-                                  selectGenre = genre;
-
-                                });
-
-                              },
-
-                              child: Text(genre, style: TextStyle(
-                                  color: selectGenre == genre? Colors.lightBlue : Colors.black),
-
-                              ),
-                            ),
-                          ),]
-                    ),
-                ],
-              ),
-            ),
-          ]
-      ),
+      child: Column(children: [
+        Container(
+          color: Colors.white,
+          height: 50.0, // 높이 조절
+          child: ListView(
+            scrollDirection: Axis.horizontal, // 수평 스크롤
+            children: [
+              for (String genre in _genre)
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        margin: EdgeInsets.symmetric(horizontal: 17.0),
+                        child: TextButton(
+                          onPressed: () {
+                            setState(() {
+                              selectGenre = genre;
+                            });
+                          },
+                          child: Text(
+                            genre,
+                            style: TextStyle(
+                                color: selectGenre == genre
+                                    ? Colors.lightBlue
+                                    : Colors.black),
+                          ),
+                        ),
+                      ),
+                    ]),
+            ],
+          ),
+        ),
+      ]),
     );
-
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -228,13 +241,10 @@ class _ArtistListState extends State<ArtistList> {
       controller: _search,
       focusNode: _focusNode,
       textInputAction: TextInputAction.go,
-      onSubmitted: (value){
-        setState(() {
-
-        });
+      onSubmitted: (value) {
+        setState(() {});
       },
       decoration: InputDecoration(
-
         hintText: "팀명으로 검색하기",
         border: OutlineInputBorder(),
         filled: true,
@@ -268,7 +278,8 @@ class _ArtistListState extends State<ArtistList> {
           title: Center(
             child: Text(
               "아티스트 목록",
-              style: TextStyle(color: Colors.black54, fontWeight: FontWeight.bold),
+              style:
+                  TextStyle(color: Colors.black54, fontWeight: FontWeight.bold),
             ),
           ),
           actions: [
@@ -302,7 +313,6 @@ class _ArtistListState extends State<ArtistList> {
                   _search.clear();
                   selectGenre = "음악";
                   _focusNode.unfocus();
-
                 });
               }
             },
@@ -319,9 +329,9 @@ class _ArtistListState extends State<ArtistList> {
         ),
         drawer: MyDrawer(),
         body: TabBarView(
-
           children: [
-            Column( // 전체
+            Column(
+              // 전체
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -331,15 +341,11 @@ class _ArtistListState extends State<ArtistList> {
                 ),
                 sharedTextField,
                 _artistList(),
-
               ],
             ),
-            Column( // 장르
-              children: [
-                genreWidget(),
-                sharedTextField,
-                _artistList()
-              ],
+            Column(
+              // 장르
+              children: [genreWidget(), sharedTextField, _artistList()],
             ),
           ],
         ),
@@ -358,7 +364,8 @@ class _ArtistListState extends State<ArtistList> {
         });
       },
       style: ButtonStyle(
-        backgroundColor: MaterialStateProperty.all(isSelected ? Color(0xFF392F31) : Colors.white),
+        backgroundColor: MaterialStateProperty.all(
+            isSelected ? Color(0xFF392F31) : Colors.white),
       ),
       child: Text(
         label,
@@ -368,5 +375,4 @@ class _ArtistListState extends State<ArtistList> {
       ),
     );
   }
-
 }

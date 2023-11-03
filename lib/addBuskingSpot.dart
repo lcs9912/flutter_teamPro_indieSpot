@@ -97,6 +97,29 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
     return "주소를 찾을 수 없음";
   }
 
+  String formatCity(String city) {
+    Map<String, String> cityMap = {
+      '서울특별시': '서울',
+      '인천광역시': '인천',
+      '부산광역시': '부산',
+      '강원도': '강원',
+      '경기도': '경기',
+      '경상남도': '경남',
+      '경상북도': '경북',
+      '광주광역시': '광주',
+      '대구광역시': '대구',
+      '대전광역시': '대전',
+      '울산광역시': '울산',
+      '전라남도': '전남',
+      '전라북도': '전북',
+      '제주특별자치도': '제주',
+      '충청남도': '충남',
+      '충청북도': '충북',
+    };
+
+    return cityMap[city] ?? city;
+  }
+
   Future<void> _addBuskingSpot() async{
     if (_image == null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('사진을 등록해주세요')));
@@ -115,20 +138,22 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
       return; // 이미지가 없으면 업로드하지 않음
     }
 
+    String regions = formatCity(_regions);
 
 
     String name = generateUniqueFileName(_imageName!);
     String _path = await uploadImage(name);
     
-    fs.collection('busking_spot').add({
+    await fs.collection('busking_spot').add({
       'spotName' : _spotName.text,
       'description' : _description.text,
       'createDate' : FieldValue.serverTimestamp(),
       'uDateTime' : FieldValue.serverTimestamp(),
       'managerContact' : _phone.text != '' ? _phone.text : '해당사항 없음',
+      'regions' : regions
     })
-    .then((DocumentReference document){
-      document.collection('image')
+    .then((DocumentReference document) async{
+      await document.collection('image')
           .add({
         'orgName' : _imageName,
         'name' : name,
@@ -136,6 +161,11 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
         'size' : _image!.lengthSync(),
         'deleteYn' : 'n',
         'cDateTime' : FieldValue.serverTimestamp(),
+      });
+      await document.collection('addr').add({
+        'addr' : _addr,
+        'addr2' : _addr2.text,
+        'zipcode' : _zip ?? 0
       });
     });
   }

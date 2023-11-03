@@ -6,9 +6,9 @@ import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-
+import 'package:flutter/material.dart';
 import 'donationPage.dart';
-
+import 'dart:async';
 
 class ConcertDetails extends StatefulWidget {
   final DocumentSnapshot document;
@@ -21,6 +21,7 @@ class ConcertDetails extends StatefulWidget {
 }
 
 class _ConcertDetailsState extends State<ConcertDetails> {
+  bool isLoading = true;
   Map<String, dynamic>? buskingData;
   // 변수 추가( 기존에 artistData 있어서 2붙임 일단)
   Map<String, dynamic>? artistData2;
@@ -69,8 +70,23 @@ class _ConcertDetailsState extends State<ConcertDetails> {
     loadBuskingImages();
     loadBuskingReview();
     getNickFromFirestore();
-
+    fetchData();
   }
+  Future<void> fetchData() async {
+    try {
+      // 여기서 데이터를 불러오는 비동기 작업을 수행합니다.
+      await Future.delayed(Duration(seconds: 2)); // 예시로 2초 동안 대기
+      setState(() {
+        isLoading = false; // 데이터 불러오기 완료 후 isLoading을 false로 변경
+      });
+    } catch (e) {
+      print('데이터를 불러오는 중 오류가 발생했습니다: $e');
+      setState(() {
+        isLoading = false; // 오류가 발생해도 isLoading을 false로 변경
+      });
+    }
+  }
+
   Future<void> getNickFromFirestore() async {
     try {
       DocumentSnapshot<Map<String, dynamic>> documentSnapshot =
@@ -135,7 +151,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
         imageWidgets.add(
           Image.network(
             imagePath,
-            height: 130,
+            height: 190,
             width: double.infinity,
             fit: BoxFit.cover,
           ),
@@ -337,15 +353,31 @@ class _ConcertDetailsState extends State<ConcertDetails> {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('공연 상세 페이지'),
+          backgroundColor: Colors.white, // 앱바 배경색
+          title: Text(
+            '공연 상세 페이지',
+            style: TextStyle(
+              color: Colors.black, // 글자색
+            ),
+          ),
+          iconTheme: IconThemeData(color: Colors.black), // 뒤로가기 아이콘 색상
           bottom: TabBar(
+            indicatorColor: Colors.black, // 선택된 탭 아래의 효과 색상
+            labelColor: Colors.black, // 선택된 탭의 글자색
+            unselectedLabelColor: Colors.grey, // 선택되지 않은 탭의 글자색
             tabs: [
               Tab(text: '상세 정보'),
               Tab(text: '공연 후기'),
             ],
           ),
         ),
-        body: TabBarView(
+
+        body: isLoading
+            ? Center(
+          child: CircularProgressIndicator(), // 로딩 중에 표시될 위젯
+        )
+            : TabBarView(
+
           children: [
             // 첫 번째 탭 (상세 정보)
             SingleChildScrollView(
@@ -377,7 +409,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                     ),
                     SizedBox(height: 20),
                     Container(
-                      color: Color(0xFFdcdcdc),
+                      color: Colors.grey[200],
                       height: 250,
                       width: 400,
                       child: SingleChildScrollView(
@@ -474,7 +506,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                     for (var index = 0; index < buskingImages!.length; index++)
                       Image.network(
                         buskingImages![index]['path'],
-                        height: 130,
+                        height: 190,
                         width: double.infinity,
                         fit: BoxFit.cover,
                       ),
@@ -527,7 +559,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                             children: [
                               SizedBox(width: 10), // Add some space between avatar and nickname
                               Text(
-                                ' $_nick', // 사용자의 ID를 텍스트로 표시
+                                _nick ?? '게스트', // nick 값이 null이면 '게스트'를 출력
                                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                               ),
 
@@ -535,9 +567,31 @@ class _ConcertDetailsState extends State<ConcertDetails> {
 
                               ElevatedButton(
                                 onPressed: () {
-                                  double userRating = rating;
-                                  submitReview(widget.document.id, userRating);
+                                  if (_nick == null) {
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          title: Text('로그인 후 리뷰 작성이 가능합니다'),
+                                          actions: <Widget>[
+                                            TextButton(
+                                              child: Text('확인'),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  } else {
+                                    double userRating = rating;
+                                    submitReview(widget.document.id, userRating);
+                                  }
                                 },
+                                style: ElevatedButton.styleFrom(
+                                  primary: Color(0xFF392F31), // 배경색을 392F31로 설정
+                                ),
                                 child: Text('댓글작성'),
                               ),
 
@@ -547,33 +601,33 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                           // Text("후기글 (총${buskingReview?[0]['reviewCnt']}개)"),
                           SizedBox(height: 20,),
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    // 최신순으로 리뷰 정렬 및 UI 업데이트
-                                    buskingReview?.sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
-                                  });
-                                },
-                                child: Text("최신순                 "),
+                              Padding(
+                                padding: EdgeInsets.only(right: 20), // 오른쪽 간격 조절
+                                child: InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      if (buskingReview != null) {
+                                        buskingReview!.sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
+                                      }
+                                    });
+                                  },
+                                  child: Text("최신순"),
+                                ),
                               ),
-                              InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    // 별점 높은 순으로 리뷰 정렬 및 UI 업데이트
-                                    buskingReview?.sort((a, b) => b['rating'].compareTo(a['rating']));
-                                  });
-                                },
-                                child: Text("별점높은순                  "),
-                              ),
-                              InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    // 별점 낮은 순으로 리뷰 정렬 및 UI 업데이트
-                                    buskingReview?.sort((a, b) => a['rating'].compareTo(b['rating']));
-                                  });
-                                },
-                                child: Text("별점낮은순"),
+                              Padding(
+                                padding: EdgeInsets.only(left: 16), // 왼쪽 간격 조절
+                                child: InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      if (buskingReview != null) {
+                                        buskingReview!.sort((a, b) => a['timestamp'].compareTo(b['timestamp']));
+                                      }
+                                    });
+                                  },
+                                  child: Text("오래된순"),
+                                ),
                               ),
                             ],
                           ),

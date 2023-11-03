@@ -4,6 +4,8 @@ import 'package:indie_spot/baseBar.dart';
 import 'package:indie_spot/videoAdd.dart';
 import 'package:indie_spot/videoDetailed.dart';
 import 'package:intl/intl.dart';
+import 'package:indie_spot/userModel.dart';
+import 'package:provider/provider.dart';
 
 class VideoList extends StatefulWidget {
   const VideoList({super.key});
@@ -72,13 +74,13 @@ class _VideoListState extends State<VideoList> {
         ],
       ),
       bottomNavigationBar: MyBottomBar(),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: Provider.of<UserModel>(context, listen: false).isArtist ? FloatingActionButton(
         backgroundColor: Color(0xFF392F31),
         onPressed: (){
           Navigator.of(context).push(MaterialPageRoute(builder: (context) => YoutubeAdd(),)).then((value) => setState(() {}));
         },
         child: Icon(Icons.edit),
-      ),
+      ) : Container(),
     );
   }
 
@@ -145,7 +147,7 @@ class _VideoListState extends State<VideoList> {
     int cnt = videoDetailData['cnt'];
     var time = videoDetailData['cDateTime'];
 
-     
+
     if (title.length > 30) {
       title = title.substring(0, 30) + "...";
     }
@@ -181,8 +183,15 @@ class _VideoListState extends State<VideoList> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(artistName?.get('artistName') ?? 'z'),
-                      Text('조회수 $cnt', style: TextStyle(fontSize: 12)),
+                      Row(
+                        children: [
+                          Text(artistName?.get('artistName') ?? 'z'),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 10),
+                            child: Text('조회수 $cnt', style: TextStyle(fontSize: 12)),
+                          ),
+                        ],
+                      ),
                       Text(DateFormat('yyyy-MM-dd').format(time.toDate()),
                           style: TextStyle(fontSize: 12)),
                     ],

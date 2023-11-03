@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/userModel.dart';
+import 'package:indie_spot/videoList.dart';
 import 'package:provider/provider.dart';
 import 'baseBar.dart';
 
@@ -40,7 +41,48 @@ class _YoutubeTestState extends State<YoutubeAdd> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+        backgroundColor: Colors.white,
+        drawer: MyDrawer(),
+        appBar: AppBar(
+          actions: [
+            IconButton(
+              onPressed: () {
+                // 아이콘 클릭 시 수행할 작업 추가
+              },
+              icon: Icon(Icons.person),
+              color: Colors.black54,
+            ),
+            Builder(
+              builder: (context) {
+                return IconButton(
+                  onPressed: () {
+                    Scaffold.of(context).openDrawer();
+                  },
+                  icon: Icon(Icons.menu),
+                  color: Colors.black54,
+                );
+              },
+            ),
+          ],
+          elevation: 1,
+          automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back,
+              color: Colors.black54,
+            ),
+            onPressed: () {
+              // 뒤로가기 버튼을 눌렀을 때 수행할 작업
+              Navigator.of(context).pop();
+            },
+          ),
+          backgroundColor: Colors.white,
+          centerTitle: true,
+          title: Text(
+            '영상 등록',
+            style: TextStyle(color: Colors.black,),
+          ),
+        ),
       body: ListView(
         children: [
           Padding(
@@ -84,7 +126,8 @@ class _YoutubeTestState extends State<YoutubeAdd> {
               future: searchYouTubeVideos(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator(); // 로딩 중 표시
+                  state = 0;
+                  return Center(child: CircularProgressIndicator()); // 로딩 중 표시
                 } else if (snapshot.hasError) {
                   state = 1;
                   return Padding(
@@ -129,6 +172,11 @@ class _YoutubeTestState extends State<YoutubeAdd> {
                 setState(() {
                   states1 = 0;
                   state1 = 0;
+                });
+              },
+              onChanged: (value){
+                setState(() {
+                  state = 0;
                 });
               },
               textInputAction: TextInputAction.go,
@@ -261,7 +309,6 @@ class _YoutubeTestState extends State<YoutubeAdd> {
             child: ElevatedButton(
               onPressed: (){
                 if(videoUrl.text.isEmpty || state == 1){
-                  print(1);
                   setState(() {
                     states1 = 1;
                   });
@@ -282,6 +329,7 @@ class _YoutubeTestState extends State<YoutubeAdd> {
                 }
                 if(states1==0&&states2==0&&states3==0){
                   videoUpload();
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => VideoList(),));
                 }
               },
               child: Text("등록"),
@@ -315,7 +363,7 @@ class _YoutubeTestState extends State<YoutubeAdd> {
     final query = _search.text;
     final videoId = videoUrl.text;
     List<Widget> videoData = [];
-    if(searchText != "" && state1 == 1){
+    if(_search.text.isNotEmpty && state1 == 1){
       final channelResponse = await http.get(Uri.parse(
           'https://www.googleapis.com/youtube/v3/search?key=$apiKey&q=$query&part=snippet&maxResults=1&type=channel'));
       videoTitle.text = "";
@@ -327,6 +375,7 @@ class _YoutubeTestState extends State<YoutubeAdd> {
             'https://www.googleapis.com/youtube/v3/search?key=$apiKey&q=$query&part=snippet&maxResults=10&type=video'));
 
         if (response.statusCode == 200) {
+          state = 0;
           Map<String, dynamic> data = json.decode(response.body);
           List<dynamic> videos = data['items'];
           for (var video in videos) {
@@ -356,14 +405,20 @@ class _YoutubeTestState extends State<YoutubeAdd> {
       if (response.statusCode == 200) {
         print(1);
         Map<String, dynamic> videoData1 = json.decode(response.body);
+
         final snippet = videoData1['items'][0]['snippet'];
+        String _title = snippet['title'];
+        if (_title.length > 30) {
+          _title = _title.substring(0, 30) + "...";
+        }
         final String title = snippet['title'];
         final String channelTitle = snippet['channelTitle'];
         final String thumbnailUrl = snippet['thumbnails']['default']['url'];
         videoTitle.text = title;
+        state = 0;
         videoData.add(
           ListTile(
-            title: Text(title),
+            title: Text(_title),
             subtitle: Text(channelTitle),
             leading: Image.network(thumbnailUrl),
 

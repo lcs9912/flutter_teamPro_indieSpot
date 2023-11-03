@@ -21,6 +21,7 @@ class UserModel with ChangeNotifier{
 
   logout(){
     _userId = null;
+    _artistId = null;
     notifyListeners();
   }
 }

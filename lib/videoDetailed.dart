@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:indie_spot/artistInfo.dart';
 import 'package:indie_spot/login.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -202,6 +203,7 @@ class _VideoDetailedState extends State<VideoDetailed> {
                 ),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Container(
                       width: 35,
@@ -211,7 +213,15 @@ class _VideoDetailedState extends State<VideoDetailed> {
                         backgroundImage: NetworkImage(img) // 프로필 이미지
                       ),
                     ),
-                    Text(widget.artistName?.get("artistName"),style: TextStyle(fontSize: 16,fontWeight: FontWeight.bold),),
+                    TextButton(
+                      onPressed: (){
+                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => ArtistInfo(widget.artistName as DocumentSnapshot<Object?>, img),));
+                      },
+                      style: ButtonStyle(
+                        padding: MaterialStatePropertyAll(EdgeInsets.zero), // 패딩 없음
+                      ),
+                      child : Text(widget.artistName?.get("artistName"),style: TextStyle(fontSize: 16,fontWeight: FontWeight.bold)),
+                    ),
                   ],
                 ),
                 Text(widget.videoDetailData['content']),
