@@ -126,6 +126,7 @@ class _YoutubeTestState extends State<YoutubeAdd> {
               future: searchYouTubeVideos(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
+                  state = 0;
                   return Center(child: CircularProgressIndicator()); // 로딩 중 표시
                 } else if (snapshot.hasError) {
                   state = 1;
@@ -171,6 +172,11 @@ class _YoutubeTestState extends State<YoutubeAdd> {
                 setState(() {
                   states1 = 0;
                   state1 = 0;
+                });
+              },
+              onChanged: (value){
+                setState(() {
+                  state = 0;
                 });
               },
               textInputAction: TextInputAction.go,
@@ -303,7 +309,6 @@ class _YoutubeTestState extends State<YoutubeAdd> {
             child: ElevatedButton(
               onPressed: (){
                 if(videoUrl.text.isEmpty || state == 1){
-                  print(1);
                   setState(() {
                     states1 = 1;
                   });
@@ -370,6 +375,7 @@ class _YoutubeTestState extends State<YoutubeAdd> {
             'https://www.googleapis.com/youtube/v3/search?key=$apiKey&q=$query&part=snippet&maxResults=10&type=video'));
 
         if (response.statusCode == 200) {
+          state = 0;
           Map<String, dynamic> data = json.decode(response.body);
           List<dynamic> videos = data['items'];
           for (var video in videos) {
@@ -409,6 +415,7 @@ class _YoutubeTestState extends State<YoutubeAdd> {
         final String channelTitle = snippet['channelTitle'];
         final String thumbnailUrl = snippet['thumbnails']['default']['url'];
         videoTitle.text = title;
+        state = 0;
         videoData.add(
           ListTile(
             title: Text(_title),
