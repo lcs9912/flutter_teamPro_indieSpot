@@ -184,7 +184,7 @@ class _PointDetailedState extends State<PointDetailed> {
           ),
           TextButton(
               onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => PointExchange(),));
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => PointExchange(),)).then((value) => setState((){}));
               },
               child: Column(
                 children: [

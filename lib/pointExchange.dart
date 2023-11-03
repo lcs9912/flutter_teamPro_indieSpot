@@ -136,7 +136,7 @@ class _PointExchangeState extends State<PointExchange> {
                   if(_rechargeControl.text == '0' || _rechargeControl.text == '' || _rechargeControl.text == null) {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('환전할 포인트를 입력해주세요'), behavior: SnackBarBehavior.floating,));
                   } else {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => ExchangeInformation(_rechargeControl.text),));
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => ExchangeInformation(_rechargeControl.text),)).then((value) => Navigator.of(context).pop());
                   }
                 },
                 child: Row(
