@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:indie_spot/lsjMain.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 
 
 class Join extends StatefulWidget {
@@ -243,6 +244,12 @@ class _JoinState extends State<Join> {
       return;
     }
 
+      const uniqueKey = 'Indie_spot'; // 비밀번호 추가 암호화를 위해 유니크 키 추가
+      final bytes = utf8.encode(_pwd.text + uniqueKey); // 비밀번호와 유니크 키를 바이트로 변환
+      final hash = sha512.convert(bytes); // 비밀번호를 sha512을 통해 해시 코드로 변환
+      String pwd =  hash.toString();
+
+
     try {
       // 가입 처리
       DocumentReference userRef = await _fs.collection('userList').add({
@@ -250,7 +257,7 @@ class _JoinState extends State<Join> {
         'name': _name.text,
         'phone': _phone.text,
         'birthday': _birthday.text,
-        'pwd': _pwd.text,
+        'pwd': pwd,
         'email': _email.text,
         'nick': _nick.text,
       });
@@ -293,6 +300,9 @@ class _JoinState extends State<Join> {
       _nick.clear();
       _selectedGender = '남자';
       _isAgreedToTerms = false;
+
+      if(!context.mounted) return;
+      Navigator.of(context).pop();
 
     } catch (e) {
       // 에러 발생 시 메시지 표시

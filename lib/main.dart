@@ -189,7 +189,7 @@ class _MyAppState extends State<MyApp> {
                     width: 150,
                     fit: BoxFit.cover,
                     image: NetworkImageWithRetry(
-                      busImg,
+                      busImg, // 이미지 url
                       scale: 0.8,
                       fetchStrategy: (Uri uri, FetchFailure? failure) async {
                         final FetchInstructions fetchInstruction =

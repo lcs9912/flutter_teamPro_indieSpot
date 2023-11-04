@@ -4,6 +4,8 @@ import 'package:indie_spot/main.dart';
 import 'package:indie_spot/pwdEdit.dart';
 import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 
 import 'join.dart';
 
@@ -152,9 +154,14 @@ class _LoginPageState extends State<LoginPage> {
 
   void _login() async {
     String email = _email.text;
-    String password = _pwd.text;
 
-    if(email.isEmpty || password.isEmpty){
+    const uniqueKey = 'Indie_spot'; // 비밀번호 추가 암호화를 위해 유니크 키 추가
+    final bytes = utf8.encode(_pwd.text + uniqueKey); // 비밀번호와 유니크 키를 바이트로 변환
+    final hash = sha512.convert(bytes); // 비밀번호를 sha256을 통해 해시 코드로 변환
+    String password = hash.toString();
+
+
+    if(email.isEmpty || _pwd.text.isEmpty){
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('이메일과 비밀번호를 입력하세요'),
             dismissDirection: DismissDirection.up,
@@ -218,6 +225,7 @@ class _LoginPageState extends State<LoginPage> {
         MaterialPageRoute(builder: (context) => MyApp() ),
       );
     } else {
+      Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(
             '이메일과 패스워드를 다시 확인해주세요.',
