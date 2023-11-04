@@ -396,34 +396,12 @@ class _BuskingZoneListScreenState extends State<BuskingZoneListScreen> {
   }
 
   Widget _spotList() {
-
     FirebaseFirestore fs = FirebaseFirestore.instance;
     CollectionReference spots = fs.collection('busking_spot');
 
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: '검색',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.search),
-              suffixIcon: IconButton(
-                onPressed: () {_searchControl.clear(); setState(() {});},
-                icon: Icon(Icons.cancel_outlined),
-                highlightColor: Colors.transparent, // 클릭 시 하이라이트 효과를 제거
-                splashColor: Colors.transparent,
-              ),
-            ),
-            controller: _searchControl,
-            textInputAction: TextInputAction.go,
-            onSubmitted: (value) {
-              FocusScope.of(context).unfocus();
-              setState(() {});
-            },
-          ),
-        ),
+        // ... 이전 코드 부분은 여기에 그대로 두세요 ...
         Expanded(
           child: StreamBuilder<QuerySnapshot>(
             stream: getSelectedCollection(fs).snapshots(),
@@ -438,26 +416,49 @@ class _BuskingZoneListScreenState extends State<BuskingZoneListScreen> {
                   Map<String, dynamic> data = document.data() as Map<String, dynamic>;
                   if (data['spotName'].contains(_searchControl.text)) {
                     return FutureBuilder<QuerySnapshot>(
-                      future: spots.doc(document.id).collection('addr').limit(1).get(),
-                      builder: (context, addrSnapshot) {
-                        if (addrSnapshot.connectionState == ConnectionState.waiting) {
+                      future: spots.doc(document.id).collection('image').limit(1).get(),
+                      builder: (context, imageSnapshot) {
+                        if (imageSnapshot.connectionState == ConnectionState.waiting) {
                           return Container(); // 데이터가 로딩 중이면 로딩 표시
                         }
-                        if (addrSnapshot.hasError) {
-                          return Text('데이터를 불러오는 중 오류가 발생했습니다.');
+                        if (imageSnapshot.hasError) {
+                          return Text('이미지를 불러오는 중 오류가 발생했습니다.');
                         }
-                        List<QueryDocumentSnapshot<Map<String, dynamic>>> addr = addrSnapshot.data!.docs as List<QueryDocumentSnapshot<Map<String, dynamic>>>;
-                        return Container(
-                          padding: EdgeInsets.only(bottom: 5, top: 5),
-                          decoration: BoxDecoration(border: Border(bottom: BorderSide(width: 1, color: Color(0xFFEEEEEE)))),
-                          child: ListTile(
-                            title: Text(data['spotName']),
-                            subtitle: Text(addr[0].data()['addr']),
-                            leading: Container(child: Image.asset('busking/SE-70372558-15b5-11ee-8f66-416d786acd10.jpg'), width: 100, height: 100,),
-                            onTap: () {
-                              Navigator.pop(context, document); // 선택한 항목 반환
-                            },
-                          ),
+                        List<QueryDocumentSnapshot<Map<String, dynamic>>> image = imageSnapshot.data!.docs as List<QueryDocumentSnapshot<Map<String, dynamic>>>;
+
+                        // addr 서브컬렉션 데이터 가져오기
+                        return FutureBuilder<QuerySnapshot>(
+                          future: spots.doc(document.id).collection('addr').limit(1).get(),
+                          builder: (context, addrSnapshot) {
+                            if (addrSnapshot.connectionState == ConnectionState.waiting) {
+                              return Container(); // 데이터가 로딩 중이면 로딩 표시
+                            }
+                            if (addrSnapshot.hasError) {
+                              return Text('주소 데이터를 불러오는 중 오류가 발생했습니다.');
+                            }
+                            List<QueryDocumentSnapshot<Map<String, dynamic>>> addr = addrSnapshot.data!.docs as List<QueryDocumentSnapshot<Map<String, dynamic>>>;
+
+                            return Container(
+                              padding: EdgeInsets.only(bottom: 5, top: 5),
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(width: 1, color: Color(0xFFEEEEEE)),
+                                ),
+                              ),
+                              child: ListTile(
+                                title: Text(data['spotName']),
+                                subtitle: Text(addr[0].data()['addr']),
+                                leading: Container(
+                                  width: 100,
+                                  height: 100,
+                                  child: Image.network(image[0].data()['path']),
+                                ),
+                                onTap: () {
+                                  Navigator.pop(context, document); // 선택한 항목 반환
+                                },
+                              ),
+                            );
+                          },
                         );
                       },
                     );
@@ -467,8 +468,8 @@ class _BuskingZoneListScreenState extends State<BuskingZoneListScreen> {
                 },
               );
             },
-          )
-        )
+          ),
+        ),
       ],
     );
   }

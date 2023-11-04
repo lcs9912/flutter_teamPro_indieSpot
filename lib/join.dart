@@ -209,6 +209,7 @@ class _JoinState extends State<Join> {
 
   void _register() async {
     // 필수 정보가 비어 있는지 확인
+    FocusScope.of(context).unfocus();
     if (_email.text.isEmpty ||
         _pwd.text.isEmpty ||
         _pwd2.text.isEmpty ||
