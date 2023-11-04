@@ -184,7 +184,6 @@ class _ArtistEditState extends State<ArtistEdit> {
 
     if(_genreCheck == null){
       _genreCheck = "";
-
     }
 
 

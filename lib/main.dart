@@ -19,6 +19,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_image/flutter_image.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import 'join.dart';
 
@@ -80,6 +81,34 @@ class _MyAppState extends State<MyApp> {
     } else {
       _userId = userModel.userId;
     }
+  }
+
+  // 로그인 해라
+  _alertDialogWidget() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: Text("로그인이후 이용 가능합니다."),
+            actions: [
+              ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  }, // 기능
+                  child: Text("취소")),
+              ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LoginPage(),
+                      ),
+                    ).then((value) => Navigator.of(context).pop());
+                  }, // 기능
+                  child: Text("로그인")),
+            ],
+          );
+        });
   }
 
   Future<List<Widget>> _busKinList() async {
@@ -157,28 +186,14 @@ class _MyAppState extends State<MyApp> {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(16.0),
-                  child: Image(
-                    height: 150,
+                  child: CachedNetworkImage(
+                    imageUrl: busImg, // 이미지 URL
                     width: 150,
+                    height: 150,
                     fit: BoxFit.cover,
-                    image: NetworkImageWithRetry(
-                      busImg,
-                      scale: 0.8,
-                      fetchStrategy: (Uri uri, FetchFailure? failure) async {
-                        final FetchInstructions fetchInstruction =
-                        FetchInstructions.attempt(
-                          uri: uri,
-                          timeout: attemptTimeout,
-                        );
-
-                        if (failure != null && failure.attemptCount > maxAttempt) {
-                          return FetchInstructions.giveUp(uri: uri);
-                        }
-
-                        return fetchInstruction;
-                      },
-                    ),
-                  ),
+                    placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
+                    errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
+                  )
                 ),
                 SizedBox(height: 10),
                 Text(buskingDoc['title']),
@@ -428,10 +443,15 @@ class _MyAppState extends State<MyApp> {
               children: [
                 IconButton(
                     onPressed: (){
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => ArtistRegi()),
-                      );
+                      if(_userId != null){
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => ArtistRegi()),
+                        );
+                      } else {
+                        _alertDialogWidget();
+                      }
+
                     },
                     icon: Icon(Icons.person)
                 ),
@@ -715,10 +735,14 @@ class _MyAppState extends State<MyApp> {
                             child: Container(
                               width: 100,
                               height: 100,
-                              child: Image.network(
-                                img,
-                                scale: 0.8,
-                              ),
+                              child: CachedNetworkImage(
+                                imageUrl: img, // 이미지 URL
+                                width: 100,
+                                height: 100,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
+                                errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
+                              )
                             ),
                           ),
                           Column(

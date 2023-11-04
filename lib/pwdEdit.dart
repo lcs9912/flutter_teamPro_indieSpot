@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/login.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 
 class PwdEdit extends StatefulWidget {
   const PwdEdit({super.key});
@@ -89,11 +91,18 @@ class _PwdEditState extends State<PwdEdit> {
 
     if(userDocs.docs.isNotEmpty) {
       String newPwd = await _showPwdDialog();
+
+      const uniqueKey = 'Indie_spot'; // 비밀번호 추가 암호화를 위해 유니크 키 추가
+      final bytes = utf8.encode(newPwd + uniqueKey); // 비밀번호와 유니크 키를 바이트로 변환
+      final hash = sha512.convert(bytes); // 비밀번호를 sha512을 통해 해시 코드로 변환
+      String pwd =  hash.toString();
+
       if(newPwd.isNotEmpty) {
         await _fs.collection('userList')
             .doc(userDocs.docs.first.id)
-            .update({'pwd': newPwd});
+            .update({'pwd': pwd});
 
+        if(!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("비밀번호가 변경되었습니다."))
         );

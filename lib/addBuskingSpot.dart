@@ -178,6 +178,8 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
       });
     });
 
+    if(!context.mounted) return;
+    Navigator.of(context).pop();
     Navigator.of(context).pop();
   }
 
@@ -199,7 +201,7 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
         body: SingleChildScrollView(
           child: Column(
             children: [
-              _TextField('버스킹존 이름', '버스킹존의 장소면을 입력하세요', _spotName),
+              _TextField('버스킹존 이름', '버스킹존의 장소명을 입력하세요', _spotName),
               Padding(
                 padding: const EdgeInsets.all(15),
                 child: Text('공연 이미지 등록'),

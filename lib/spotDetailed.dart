@@ -47,7 +47,7 @@ class _SpotDetailedState extends State<SpotDetailed> {
       appBar: _appBar(),
       body: ListView(
         children: [
-          Image.network(widget._images[0].data()['path'], height: 308,),
+          Image.network(widget._images[0].data()['path'], height: 308, fit: BoxFit.cover,),
           SizedBox(height: 10,),
           ListTile(
             title: Row(

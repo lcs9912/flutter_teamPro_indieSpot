@@ -6,6 +6,8 @@ import 'package:indie_spot/videoDetailed.dart';
 import 'package:intl/intl.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+
 
 class VideoList extends StatefulWidget {
   const VideoList({super.key});
@@ -169,9 +171,14 @@ class _VideoListState extends State<VideoList> {
             Container(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: Image.network(
-                  'https://img.youtube.com/vi/$url/0.jpg', height: 270,),
-              ),
+                child: CachedNetworkImage(
+                  imageUrl: 'https://img.youtube.com/vi/$url/0.jpg', // 이미지 URL
+                  height: 270,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
+                  errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
+                ),
+              )
             ),
             Padding(
               padding: const EdgeInsets.all(14.0),
