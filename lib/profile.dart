@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/pointDetailed.dart';
 import 'package:indie_spot/userEdit.dart';
 
+import 'followList.dart';
+
 class Profile extends StatefulWidget {
   final TextEditingController nicknameController;
   final TextEditingController introductionController;
@@ -181,14 +183,26 @@ class _ProfileState extends State<Profile> {
                       imagePaths[0]) // Assuming you want to use the first image from the list
                       : AssetImage('assets/기본.jpg'),
                 ),
-                Text(
-                  '   Follower: $_followerCount    ',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
-                Text(
-                  'Following: $_followingCount',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context, rootNavigator: true).push(
+                      MaterialPageRoute(builder: (context) => FollowList()),
+                    );
+                  },
+                  child: Column(
+                    children: [
+                      Text(
+                        'Follower: $_followerCount',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      ),
+                      Text(
+                        'Following: $_followingCount',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      ),
+                    ],
+                  ),
+                )
+
               ],
             ),
             SizedBox(height: 20),
