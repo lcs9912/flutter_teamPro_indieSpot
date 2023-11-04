@@ -72,7 +72,6 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
     }
   }
 
-
   Widget _listboard() {
 
     return StreamBuilder(
@@ -112,11 +111,11 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
               String? userData = post['userId'];
 
               if (userData == null) {
-                print('Error: User data is null.');
-                return Container();
+                return Container(
+                  child: Text("Unknown User"),
+                );
               }
 
-              print('User Data: $userData');
 
               return StreamBuilder(
                 stream: fs.collection("userList").doc(userData).snapshots(),
@@ -164,34 +163,40 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
                           : null;
 
 
-                      return ListTile(
-                        title: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('${querySnapshot.get('nick')}'),
-                            Row(
+                      return Column(
+                        children: [
+                          ListTile(
+                            title: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                Text(
+                                  '${querySnapshot.get('nick')}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                  ),
+                                ),
                                 Text('${post['title']}'),
                               ],
                             ),
-                            Divider(
-                              color: Colors.grey[400],
-                              thickness: 1,
-                              height: 30,
-                            )
-                          ],
-                        ),
-                        leading: imageData != null && imageData.isNotEmpty
-                            ? Image.network(imageData['PATH'])
-                            : Image.asset('assets/nullimg.png'),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => BoardView(document: doc),
-                            ),
-                          );
-                        },
+                            leading: imageData != null && imageData.isNotEmpty
+                                ? Image.network(imageData['PATH'])
+                                : Image.asset('assets/nullimg.png'),
+
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => BoardView(document: doc),
+                                ),
+                              );
+                            },
+                          ),
+                          Divider(
+                            color: Colors.grey[400],
+                            thickness: 1,
+                            height: 30,
+                          ),
+                        ],
                       );
                     },
                   );
