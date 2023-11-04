@@ -72,26 +72,9 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
     }
   }
 
-  Widget _nick() {
-    return StreamBuilder(
-      stream: fs.collection('userList').doc('LgCiFESZ5JQ65f7S4qDJ').snapshots(),
-      builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snap) {
-        if (!snap.hasData) {
-          return Center(child: CircularProgressIndicator());
-        }
-        Map<String, dynamic>? data = snap.data?.data() as Map<String, dynamic>?;
-
-        return ListTile(
-          title: Text(
-            '${data?['nick'] ?? "닉네임 없음"}',
-          ),
-        );
-      },
-    );
-  }
-
 
   Widget _listboard() {
+
     return StreamBuilder(
       stream: fs.collection("posts")
           .doc("3QjunO69Eb2OroMNJKWU")
@@ -99,15 +82,23 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
           .orderBy("createDate", descending: true)
           .snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
-        if (!snap.hasData) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          // 로딩 중이면 여기서 CircularProgressIndicator를 반환
           return Center(child: CircularProgressIndicator());
         }
 
-        // Check if there are any documents
-        if (snap.data?.docs.isEmpty ?? true) {
+        if (snap.hasError) {
+          // 에러가 있다면 에러 메시지를 표시
+          return Text('Error: ${snap.error}');
+        }
+
+        // 스냅샷이 데이터를 가지고 있지 않다면 특정 메시지를 반환
+        if (!snap.hasData || snap.data!.docs.isEmpty) {
           return Text("게시글이 없습니다.");
         }
 
+
+        print('Snap Data: ${snap.data}');
         List<DocumentSnapshot> filteredPosts = filterPostsByCategory(snap.data!.docs, subcollection);
 
         return ListView.builder(
@@ -118,19 +109,34 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
               String postDoc = filteredPosts[index].id;
               DocumentSnapshot doc = filteredPosts[index];
 
-              // 사용자 정보 가져오기
               String? userData = post['userId'];
+
+              if (userData == null) {
+                print('Error: User data is null.');
+                return Container();
+              }
+
+              print('User Data: $userData');
 
               return StreamBuilder(
                 stream: fs.collection("userList").doc(userData).snapshots(),
                 builder: (context, userSnap) {
-                  if (!userSnap.hasData) {
+                  if (userSnap.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
                   }
 
-                  // Check if the user document exists
-                  if (!userSnap.data!.exists) {
+                  if (userSnap.hasError) {
+                    return Text('Error: ${userSnap.error}');
+                  }
+
+                  if (userSnap.data == null || !userSnap.data!.exists) {
                     return Text("사용자 정보가 없습니다.");
+                  }
+
+                  // Check if the user document exists
+                  if (userSnap.data == null || !userSnap.data!.exists) {
+                    print('Error: User document does not exist.');
+                    return Container();
                   }
 
                   DocumentSnapshot<Map<String, dynamic>> querySnapshot = userSnap.data as DocumentSnapshot<Map<String, dynamic>>;
@@ -140,17 +146,23 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
                         .doc("3QjunO69Eb2OroMNJKWU")
                         .collection(subcollection)
                         .doc(postDoc)
-                        .collection("image")  // 이미지 서브컬렉션
+                        .collection("image")
                         .snapshots(),
                     builder: (context, imageSnap) {
-                      if (!imageSnap.hasData) {
+                      if (imageSnap.connectionState == ConnectionState.waiting) {
                         return Center(child: CircularProgressIndicator());
                       }
 
-                      // 이미지 정보 가져오기
-                      Map<String, dynamic>? imageData = imageSnap.data?.docs.first.data() as Map<String, dynamic>?;
-                      Map<String, dynamic>? subData = post['image'];
-                      String? boardImg = subData?['PATH'];
+                      if (imageSnap.hasError) {
+                        return Text('Error: ${imageSnap.error}');
+                      }
+                      print('Snap Data: ${snap.data}');
+                      print('UserSnap Data: ${userSnap.data}');
+
+                      Map<String, dynamic>? imageData = imageSnap.data?.docs.isNotEmpty ?? false
+                          ? imageSnap.data!.docs.first.data() as Map<String, dynamic>?
+                          : null;
+
 
                       return ListTile(
                         title: Column(
@@ -169,8 +181,8 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
                             )
                           ],
                         ),
-                        leading: imageData != null
-                            ? Image.network(imageData!['PATH'])
+                        leading: imageData != null && imageData.isNotEmpty
+                            ? Image.network(imageData['PATH'])
                             : Image.asset('assets/nullimg.png'),
                         onTap: () {
                           Navigator.push(
