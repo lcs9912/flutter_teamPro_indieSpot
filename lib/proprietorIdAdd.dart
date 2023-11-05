@@ -70,6 +70,24 @@ class _ProprietorAddState extends State<ProprietorAdd> {
   String _addr= '';
   String _regions = '';
 
+  String startTimeHour = '00'; // 초기 선택 항목
+  List<String> hourItem = [
+    '00', '01', '02', '03', '04',
+    '05', '06', '07', '08', '09',
+    '10', '11', '12', '13', '14',
+    '15', '16', '17', '18', '19',
+    '20', '21', '22', '23', '24',
+  ];
+
+  String startTimeMinute = '00'; // 초기 선택 항목
+  List<String> minuteItem = [
+    '00', '10', '20', '30', '40', '50'
+  ];
+
+  String endTimeHour = '00'; // 초기 선택 항목
+
+
+  String endTimeMinute = '00'; // 초기 선택 항목
 
 
 
@@ -552,7 +570,87 @@ class _ProprietorAddState extends State<ProprietorAdd> {
                         borderRadius: BorderRadius.circular(6))),
               ),
               Text("영업시간",style: subStyle,),
-              Text("시간 어케 하지;;"),
+              Row(
+                children: [
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      DropdownButton<String>(
+                        value: startTimeHour,
+                        items: hourItem.map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            startTimeHour = newValue!;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      DropdownButton<String>(
+                        value: startTimeMinute,
+                        items: minuteItem.map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            startTimeMinute = newValue!;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  Text("  ~  "),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      DropdownButton<String>(
+                        value: endTimeHour,
+                        items: hourItem.map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            endTimeHour = newValue!;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      DropdownButton<String>(
+                        value: endTimeMinute,
+                        items: minuteItem.map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            endTimeMinute = newValue!;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
               Text("버스킹 공간 정보",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
               Text("지원장비",style: subStyle,),
               TextField(
@@ -567,7 +665,7 @@ class _ProprietorAddState extends State<ProprietorAdd> {
               Column(
                 children: [
                   _customRadioBut(),
-                  //_wrapWidget(_genre),
+                  _wrapWidget(_genre),
                   genreListWidget()
                 ],
               ),
