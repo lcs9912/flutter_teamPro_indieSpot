@@ -1,30 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
-import 'package:indie_spot/artistList.dart';
-import 'package:indie_spot/lsjMain.dart';
-import 'donationList.dart';
-import 'firebase_options.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'buskingReservation.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:uuid/uuid.dart';
-import 'package:flutter/services.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:provider/provider.dart';
-import 'package:indie_spot/userModel.dart';
 
 import 'buskingReservation.dart';
 class ProprietorAdd extends StatefulWidget {
@@ -36,8 +20,8 @@ class ProprietorAdd extends StatefulWidget {
 
 class _ProprietorAddState extends State<ProprietorAdd> {
   final FirebaseFirestore fs = FirebaseFirestore.instance;
-
-  File? _selectedImage;
+  String? _userId;
+  File? _selectedImage; // 사업자 등록증
 
   final TextEditingController _proprietorName = TextEditingController(); // 상호명
   final TextEditingController _representativeName = TextEditingController(); // 대표자 명
@@ -45,9 +29,8 @@ class _ProprietorAddState extends State<ProprietorAdd> {
   final TextEditingController _managerPhone = TextEditingController(); // 관리자 전화번호
   final TextEditingController _description = TextEditingController(); // 공간 소개
   final TextEditingController _equipmentComment = TextEditingController(); // 지원장비
-  final TextEditingController _commerAddr = TextEditingController(); // 공간 주소
-  final TextEditingController _commerDetaillAddr = TextEditingController(); // 공간 상세주소
-
+  final TextEditingController _headCount  = TextEditingController(); // 가용인원
+  final TextEditingController _rentalfee  = TextEditingController(); // 렌탈비용
 
 
   String? parkingYn = "가능"; // 주자 여부
@@ -67,10 +50,12 @@ class _ProprietorAddState extends State<ProprietorAdd> {
   final _address = TextEditingController();
   final _addr2 = TextEditingController();
   int? _zip;
-  String _addr= '';
   String _regions = '';
 
-  String startTimeHour = '00'; // 초기 선택 항목
+  String startTimeHour = '00'; // 영업시작 시간
+  String startTimeMinute = '00'; // 영업시작 분
+  String endTimeHour = '00'; // 영업 종료 시작
+  String endTimeMinute = '00'; // 영업 종료 분
   List<String> hourItem = [
     '00', '01', '02', '03', '04',
     '05', '06', '07', '08', '09',
@@ -78,34 +63,152 @@ class _ProprietorAddState extends State<ProprietorAdd> {
     '15', '16', '17', '18', '19',
     '20', '21', '22', '23', '24',
   ];
-
-  String startTimeMinute = '00'; // 초기 선택 항목
   List<String> minuteItem = [
     '00', '10', '20', '30', '40', '50'
   ];
 
-  String endTimeHour = '00'; // 초기 선택 항목
-
-
-  String endTimeMinute = '00'; // 초기 선택 항목
-
-
-
-
-  // 입력 쿼리문
-  void addGenresToFirestore(List<String> selectedGenres) {
-    // Firestore 데이터베이스 인스턴스를 가져옵니다.
-
-    // "genres" 컬렉션에 데이터 추가
-    fs.collection('genres').add({
-      'selectedGenres': selectedGenres,
-      // 다른 필드도 추가할 수 있습니다.
-    }).then((DocumentReference document) {
-      print('Document added with ID: ${document.id}');
-    }).catchError((error) {
-      print('Error adding document: $error');
-    });
+  String? _genreList;
+  
+  @override
+  void initState() {
+    super.initState();
+    // TODO: implement initState
+    _getCoordinatesFromAddress('서울 시청'); // 지도 기본선택
+    final userModel = Provider.of<UserModel>(context, listen: false);
+    if (!userModel.isLogin) {
+    } else {
+      _userId = userModel.userId;
+    }
   }
+
+
+  // 사업자 입력 쿼리문
+  void addGenresToFirestore() async {
+    final imageUrl = await _uploadImage(_selectedImage!);
+    final collectionReference = fs.collection('userList').doc(_userId).collection('proprietor');
+
+    String inputProprietorNum = _proprietorNum.text; // 사업자 번호 입력
+    String formattedProprietorNum = ''; // 사업자 번호 가공
+    formattedProprietorNum = '${inputProprietorNum.substring(0, 3)}-${inputProprietorNum.substring(3, 5)}-${inputProprietorNum.substring(5)}';
+    // 중복 체크를 위한 쿼리
+    final querySnapshot = await collectionReference.where('proprietorNum', isEqualTo: formattedProprietorNum).get();
+    if (querySnapshot.docs.isEmpty) {
+      // 중복되지 않을 때만 데이터를 추가
+      collectionReference.add({
+        "businessImage": imageUrl,
+        "representativeName": _representativeName.text,
+        "proprietorNum": formattedProprietorNum,
+        "termsYn" : termsYn
+      }).then((value) => commerAdd());
+    } else {
+      showDuplicateAlert(context);
+      // 포커스 주고 테두리 빨간색 밑에 텍스트
+    }
+  }
+
+  // 사업자 번호 중복체크
+  void showDuplicateAlert(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("중복 알림"),
+          content: Text("이미 등록된 상업공간입니다."),
+          actions: <Widget>[
+            TextButton(
+              child: Text("확인"),
+              onPressed: () {
+                Navigator.of(context).pop(); // 알림 창 닫기
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // 상업공간 입력 쿼리문
+  void commerAdd() async {
+    final availableTimeslots = '$startTimeHour:$startTimeMinute ~ $endTimeHour:$endTimeMinute'; // 사용 가능 시간
+    String regions = formatCity(_regions);
+    final imageListUrl = await _uploadListImages(_commerImageList);
+    try{
+      DocumentReference commerCollection = await fs.collection('commercial_space').add({
+        "availableTimeslots" : availableTimeslots,
+        "createdate" : Timestamp.now(),
+        "description" : _description.text ?? " ",
+        "equipmentYn" : _equipmentComment.text ?? " ",
+        "headcount" : int.parse(_headCount.text),
+        "managerContact" : _managerPhone.text,
+        "proprietorId" : _userId,
+        "rentalfee" : int.parse(_rentalfee.text) ?? 0,
+        "spaceName" : _proprietorName.text,
+        "updatetime" : Timestamp.now(),
+        "spaceType" : _genreList,
+        "regions" : regions,
+        "parkingYn" : parkingYn,
+        "videoYn" : videoYn
+      }); // 상업공간 컬렉션
+
+      String commerId = commerCollection.id;
+
+      //서브 컬렉션 addr 추가
+      await fs.collection('commercial_space').doc(commerId).collection('addr').add(
+          {
+            'addr': _address.text,
+            'addr2': _addr2.text ?? " ",
+            'zipcode': _zip,
+          });
+
+      await fs.collection('commercial_space').doc(commerId).collection('image').add({
+        'cDateTime' : Timestamp.now(),
+        'path' : imageListUrl
+      });
+
+    }catch (e){
+      print('에러에러에러$e');
+    }
+  }
+
+  // 파이어페이스 이미지 업로드
+  Future<String> _uploadImage(File imageFile) async {
+    try {
+      String fileName = path.basename(imageFile.path);
+      Reference firebaseStorageRef = FirebaseStorage.instance.ref().child('image/$fileName');
+
+      UploadTask uploadTask = firebaseStorageRef.putFile(imageFile);
+      TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
+
+      String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      print('Error uploading image: $e');
+      return '';
+    }
+  }
+
+  // 파이어베이스 이미지리스트 업로드
+  Future<List<String>> _uploadListImages(List<File> imageFiles) async {
+    List<String> downloadUrls = [];
+
+    for (File imageFile in imageFiles) {
+      try {
+        String fileName = path.basename(imageFile.path);
+        Reference firebaseStorageRef = FirebaseStorage.instance.ref().child('image/$fileName');
+
+        UploadTask uploadTask = firebaseStorageRef.putFile(imageFile);
+        TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
+
+        String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+        downloadUrls.add(downloadUrl);
+      } catch (e) {
+        print('Error uploading image: $e');
+      }
+    }
+
+    return downloadUrls;
+  }
+
 
   // 이미지
   Future<void> _pickImage() async {
@@ -150,10 +253,10 @@ class _ProprietorAddState extends State<ProprietorAdd> {
   }
 
   // 공간 이미지 미리보기
-  Widget? _commerImageListWidget() {
+  Widget _commerImageListWidget() {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
-    if (_commerImageList.isEmpty) {
+    if (_commerImageList.isNotEmpty) {
       // 이미지를 미리보기로 보여줄 수 있음
       List<Widget> imageContainers = [];
 
@@ -185,16 +288,11 @@ class _ProprietorAddState extends State<ProprietorAdd> {
         children: imageContainers,
       );
     }
-    return null; // 이미지가 없을 경우 null을 반환
+    return SizedBox.shrink(); // 이미지가 없을 경우 빈 SizedBox를 반환
   }
 
-  @override
-  void initState() {
-    super.initState();
-    // TODO: implement initState
-    _getCoordinatesFromAddress('서울 시청');
-    
-  }
+
+
 
   // 구글 지도 APi
   Future<void> _getCoordinatesFromAddress(String address) async {
@@ -213,7 +311,6 @@ class _ProprietorAddState extends State<ProprietorAdd> {
         this.coordinates = coordinates;
         if(_address.text != ''){
           _address.text = address; // 이 부분에서 주소를 상태에 저장
-          _addr = address;
         }
       });
     }
@@ -225,7 +322,6 @@ class _ProprietorAddState extends State<ProprietorAdd> {
       List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
       if (placemarks.isNotEmpty) {
         Placemark firstPlacemark = placemarks.first;
-        print(firstPlacemark);
         _zip = int.parse(firstPlacemark.postalCode as String);
         _regions = firstPlacemark.administrativeArea as String;
         String address = "${firstPlacemark.street}";
@@ -235,6 +331,29 @@ class _ProprietorAddState extends State<ProprietorAdd> {
       print("Error: $e");
     }
     return "주소를 찾을 수 없음";
+  }
+
+  String formatCity(String city) {
+    Map<String, String> cityMap = {
+      '서울특별시': '서울',
+      '인천광역시': '인천',
+      '부산광역시': '부산',
+      '강원도': '강원',
+      '경기도': '경기',
+      '경상남도': '경남',
+      '경상북도': '경북',
+      '광주광역시': '광주',
+      '대구광역시': '대구',
+      '대전광역시': '대전',
+      '울산광역시': '울산',
+      '전라남도': '전남',
+      '전라북도': '전북',
+      '제주특별자치도': '제주',
+      '충청남도': '충남',
+      '충청북도': '충북',
+    };
+
+    return cityMap[city] ?? city;
   }
 
   // 검색에 사용될 장르 라디오 버튼
@@ -287,7 +406,6 @@ class _ProprietorAddState extends State<ProprietorAdd> {
         OutlinedButton(
           onPressed: () {
             setState(() {
-
               _genre = '퍼포먼스';
             });
           },
@@ -386,7 +504,7 @@ class _ProprietorAddState extends State<ProprietorAdd> {
   }
 
   Widget genreListWidget() {
-    Map<String, List<String>> selectedGenres = {};
+    Map<String, List<String>> selectedGenres = {}; // 장르 중복 선택 확인
     Map<String, List<String>> genreButtonMap = {
       "음악": ["밴드", "발라드", "힙합", "클래식", "악기연주", "싱어송라이터"],
       "댄스": ["팝핀", "비보잉", "힙합댄스", "하우스", "크럼프", "락킹", "왁킹"],
@@ -406,19 +524,24 @@ class _ProprietorAddState extends State<ProprietorAdd> {
       }
     }
 
+    _genreList = selectedGenres.keys.map((category) {
+      return '$category - ${selectedGenres[category]!.join("/")}';
+    }).join(", "); // 카테고리를 쉼표로 연결
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: selectedGenres.keys.map((category) {
-        return Padding(
+      children: [
+        Padding(
           padding: EdgeInsets.symmetric(vertical: 5.0),
           child: Text(
-            '$category - ${selectedGenres[category]!.join("/")}',
+            _genreList!,
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
-        );
-      }).toList(),
+        ),
+      ],
     );
   }
+
 
 
   @override
@@ -449,7 +572,7 @@ class _ProprietorAddState extends State<ProprietorAdd> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("사업자 정보",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
+                  Text("사업자 정보(필수*)",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
                   SizedBox(height: 15,),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -494,7 +617,6 @@ class _ProprietorAddState extends State<ProprietorAdd> {
                 ],
               ),
               SizedBox(height: 30,),
-              Text("상업 공간 소개",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
               Text("상호명",style: subStyle,),
               TextField(
                 maxLines: 1,
@@ -515,18 +637,21 @@ class _ProprietorAddState extends State<ProprietorAdd> {
               ),
               Text("사업자 번호",style: subStyle,),
               TextField(
+                keyboardType: TextInputType.number,
                 controller: _proprietorNum,
                 decoration: InputDecoration(
                     hintText: "사업자 번호 입력(-제외)",
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(6))),
               ),
-              Text("주소",style: subStyle,),
+              Text("상업 공간 소개",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
+              Text("주소(필수*)",style: subStyle,),
               _maps(),
               SizedBox(height: 10,),
               _TextField('상세주소', '상세주소를 입력해주세요.', _addr2),
-              Text("연락처",style: subStyle,),
+              Text("연락처(필수*)",style: subStyle,),
               TextField(
+                keyboardType: TextInputType.number,
                 controller: _managerPhone,
                 decoration: InputDecoration(
                     hintText: "연락처 입력(-제외)",
@@ -535,7 +660,7 @@ class _ProprietorAddState extends State<ProprietorAdd> {
                 ),
               ),
               SizedBox(height: 10,),
-              Text("공간사진(첫번째 사진은 대표사진으로 설정됩니다.)", style: subStyle,),
+              Text("공간사진(첫번째 사진은 대표사진으로 설정됩니다. 필수*)", style: subStyle,),
               Wrap(
                 children: [
                   Container(
@@ -569,7 +694,7 @@ class _ProprietorAddState extends State<ProprietorAdd> {
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(6))),
               ),
-              Text("영업시간",style: subStyle,),
+              Text("영업시간(필수*)",style: subStyle,),
               Row(
                 children: [
                   Column(
@@ -661,13 +786,29 @@ class _ProprietorAddState extends State<ProprietorAdd> {
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(6))),
               ),
-              Text("장르",style: subStyle,),
+              Text("장르(필수*)",style: subStyle,),
               Column(
                 children: [
                   _customRadioBut(),
                   _wrapWidget(_genre),
                   genreListWidget()
                 ],
+              ),
+              Text("가용인원(필수*)",style: subStyle,),
+              TextField(
+                controller: _headCount,
+                decoration: InputDecoration(
+                    hintText: "공연가능 인원(숫자만)",
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6))),
+              ),
+              Text("렌탈비용(공백시 0원)",style: subStyle,),
+              TextField(
+                controller: _rentalfee,
+                decoration: InputDecoration(
+                    hintText: "장소대여 비용을 입력해주세요(시간당,)",
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6))),
               ),
               Text("주차",style: subStyle,),
               Row(
@@ -739,6 +880,31 @@ class _ProprietorAddState extends State<ProprietorAdd> {
                 ],
               ),
             ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: termsYn != null ? Color(0xFF392F31) : Colors.grey, // 버튼의 배경색
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20.0),  // 좌측 상단 모서리만 둥글게
+                topRight: Radius.circular(20.0), // 우측 상단 모서리만 둥글게
+              ),
+            ),
+          ),
+          onPressed:  termsYn != null ? (){
+            addGenresToFirestore();
+          } : null,
+          child: Container(
+            height: 60,
+            child: Center(
+                child: Text(
+                  "등록완료",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,color: Colors.white),
+                )
+            ),
           ),
         ),
       ),
@@ -831,6 +997,4 @@ class _ProprietorAddState extends State<ProprietorAdd> {
       ),
     );
   }
-
-
 }
