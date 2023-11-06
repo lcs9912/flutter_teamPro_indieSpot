@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:indie_spot/spaceRental.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'baseBar.dart';
 import 'package:intl/intl.dart';
+import 'dart:convert';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 class SpaceInfo extends StatefulWidget {
 
   String spaceId;
@@ -14,12 +20,16 @@ class SpaceInfo extends StatefulWidget {
 
 class _SpaceInfoState extends State<SpaceInfo> {
   final FirebaseFirestore fs = FirebaseFirestore.instance;
-  List<String> imgPath = [];
+  List<dynamic> imgPath = [];
   Map<String,dynamic>? spaceMap;
   List<Map<String,dynamic>> artistList = [];
   DateTime selectedDay = DateTime.now();
   DateTime selectedDay1 = DateTime.now();
   PageController _pageController = PageController();
+  GoogleMapController? mapController;
+  LatLng? coordinates;
+  Map<String,dynamic> addrData = {};
+  DocumentSnapshot? doc;
   @override
   void initState() {
     // TODO: implement initState
@@ -27,14 +37,12 @@ class _SpaceInfoState extends State<SpaceInfo> {
     spaceImg();
     spaceData();
     spaceRental();
+    deleteExpiredDocuments();
+    spaceAddr();
   }
   @override
   Widget build(BuildContext context) {
     final NumberFormat _numberFormat = NumberFormat.decimalPattern();
-    print(selectedDay.day);
-    print(selectedDay.year);
-    print(selectedDay.month);
-
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -108,7 +116,7 @@ class _SpaceInfoState extends State<SpaceInfo> {
                 ],
               ),
             ),
-            Container(
+            SizedBox(
               height: 50,
               child: TabBar(
                 tabs: [
@@ -120,173 +128,294 @@ class _SpaceInfoState extends State<SpaceInfo> {
               ),
             ),
             Container(
-              height: MediaQuery.of(context).size.height,
+              height: MediaQuery.of(context).size.height * 0.5,
               child: TabBarView(
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: spaceMap != null ? Column(
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.only(top: 10,bottom: 20),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text("공간 소개",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold)),
-                              ],
-                            ),
-                          ),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(right: 35),
-                                child: Text("소개글"),
-                              ),
-                              Container(
-                                  child: Flexible(
-                                      child: RichText(
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 5,
-                                        strutStyle: StrutStyle(fontSize: 16.0),
-                                        text: TextSpan(
-                                            text: spaceMap?["description"],
-                                            style: TextStyle(
-                                                color: Colors.black,
-                                                height: 1.4,
-                                                fontSize: 16.0,
-                                                )
+                          Expanded(
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 10,bottom: 20),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text("공간 소개",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold)),
+                                        ],
+                                      ),
+                                    ),
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.only(right: 35),
+                                          child: Text("소개글"),
                                         ),
-                                      )
-                                  ),
+                                        Container(
+                                          child: Flexible(
+                                              child: RichText(
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 5,
+                                                strutStyle: StrutStyle(fontSize: 16.0),
+                                                text: TextSpan(
+                                                    text: spaceMap?["description"],
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                      height: 1.4,
+                                                      fontSize: 16.0,
+                                                    )
+                                                ),
+                                              )
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 15),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(right: 20),
+                                            child: Text("지원장비"),
+                                          ),
+                                          Container(
+                                            child: Flexible(
+                                                child: RichText(
+                                                  overflow: TextOverflow.ellipsis,
+                                                  maxLines: 5,
+                                                  strutStyle: StrutStyle(fontSize: 16.0),
+                                                  text: TextSpan(
+                                                      text: spaceMap?["equipmentYn"],
+                                                      style: TextStyle(
+                                                        color: Colors.black,
+                                                        height: 1.4,
+                                                        fontSize: 16.0,
+                                                      )
+                                                  ),
+                                                )
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 15),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(right: 32),
+                                            child: Text("대여비"),
+                                          ),
+                                          Container(
+                                            child: Text("시간당 ${_numberFormat.format(spaceMap?["rentalfee"])}원",style: TextStyle(
+                                              color: Colors.black,
+                                              height: 1.4,
+                                              fontSize: 16.0,
+                                            )),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 15),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(right: 45),
+                                            child: Text("주차"),
+                                          ),
+                                          Container(
+                                            child: Text("가능",style: TextStyle(
+                                              color: Colors.black,
+                                              height: 1.4,
+                                              fontSize: 16.0,
+                                            )),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 15),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(right: 16),
+                                            child: Text("영상촬영"),
+                                          ),
+                                          Container(
+                                            child: Text("가능",style: TextStyle(
+                                              color: Colors.black,
+                                              height: 1.4,
+                                              fontSize: 16.0,
+                                            )),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               )
-                            ],
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 15),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 20),
-                                  child: Text("지원장비"),
-                                ),
-                                Container(
-                                  child: Flexible(
-                                      child: RichText(
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 5,
-                                        strutStyle: StrutStyle(fontSize: 16.0),
-                                        text: TextSpan(
-                                            text: spaceMap?["equipmentYn"],
-                                            style: TextStyle(
-                                                color: Colors.black,
-                                                height: 1.4,
-                                                fontSize: 16.0,
-                                                )
-                                        ),
-                                      )
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 15),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 32),
-                                  child: Text("대여비"),
-                                ),
-                                Container(
-                                  child: Text("시간당 ${_numberFormat.format(spaceMap?["rentalfee"])}원",style: TextStyle(
-                                    color: Colors.black,
-                                    height: 1.4,
-                                    fontSize: 16.0,
-                                  )),
-                                )
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 15),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 45),
-                                  child: Text("주차"),
-                                ),
-                                Container(
-                                  child: Text("가능",style: TextStyle(
-                                    color: Colors.black,
-                                    height: 1.4,
-                                    fontSize: 16.0,
-                                  )),
-                                )
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 15),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 16),
-                                  child: Text("영상촬영"),
-                                ),
-                                Container(
-                                  child: Text("가능",style: TextStyle(
-                                    color: Colors.black,
-                                    height: 1.4,
-                                    fontSize: 16.0,
-                                  )),
-                                )
-                              ],
-                            ),
-                          ),
+                          )
                         ],
                       ) : Container(),
                     ), // 1번 탭바
                     Column(
                       children: [
-                        calendar(),
-                        for(var artist in artistList)
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Container(
-                              decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.black12))),
-                              child: ListTile(
-                                title: Text(artist['artistName']),
-                                subtitle: Row(
-                                  children: [
+                        Expanded(
+                            child: SingleChildScrollView(
+                              child: Column(
+                                children: [
+                                  calendar(),
+                                  for(var artist in artistList)
                                     Padding(
-                                      padding: const EdgeInsets.only(right: 10),
-                                      child: Text(DateFormat('MM-dd').format(artist["startTime"].toDate())),
-                                    ),
-                                    Text("${DateFormat('HH:mm').format(artist['startTime'].toDate())}~${DateFormat('HH:mm').format(artist['endTime'].toDate())}"),
-                                  ],
-                                ),
-                                leading: Container(
-                                  width: 40,
-                                  child: CircleAvatar(
-                                    radius: 40,
-                                    backgroundImage: NetworkImage(artist["artistImg"]),
-                                  ),
-                                ),
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Container(
+                                        decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.black12))),
+                                        child: ListTile(
+                                          title: Text(artist['artistName']),
+                                          subtitle: Row(
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.only(right: 10),
+                                                child: Text(DateFormat('MM-dd').format(artist["startTime"].toDate())),
+                                              ),
+                                              Text("${DateFormat('HH:mm').format(artist['startTime'].toDate())}~${DateFormat('HH:mm').format(artist['endTime'].toDate())}"),
+                                            ],
+                                          ),
+                                          leading: Container(
+                                            width: 40,
+                                            child: CircleAvatar(
+                                              radius: 40,
+                                              backgroundImage: NetworkImage(artist["artistImg"]),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                ],
                               ),
-                            ),
-                          )
-                        // 다른 일정 정보 등
+                            )
+                        )
                       ],
                     ), //2번 탭바
                     Column(
                       children: [
-                        Text('교통 정보'),
-                        // 다른 교통 정보 등
+                        Expanded(
+                            child: SingleChildScrollView(
+                              child: Column(
+                                children: [
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.only(left: 20,top: 10),
+                                        child: Text('교통 정보',style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.only(right: 20),
+                                        child: ElevatedButton(onPressed: () async {
+                                          List<Location> locations = await locationFromAddress(addrData['addr']);
+                                          openDirectionsInGoogleMaps(locations.first.latitude,locations.first.longitude);
+                                        },child: Text("길찾기")),
+                                      )
+                                    ],
+                                  ),
+                                  Container(
+                                    width: 350, // 원하는 가로 크기
+                                    height: 200, // 원하는 세로 크기
+                                    margin: EdgeInsets.only(bottom:0, top: 20),
+                                    child: coordinates == null
+                                        ? Container()
+                                        : GoogleMap(
+                                      onMapCreated: (GoogleMapController controller) {
+                                        setState(() {
+                                          mapController = controller;
+                                        });
+                                      },
+                                      initialCameraPosition: CameraPosition(
+                                        target: coordinates!,
+                                        zoom: 15, // 줌 레벨 조정
+                                      ),
+                                      markers: <Marker>{
+                                        Marker(
+                                          markerId: MarkerId('customMarker'),
+                                          position: coordinates!,
+                                          infoWindow: InfoWindow(title: spaceMap?['spotName'], snippet: spaceMap?['description']),
+                                        ),
+                                      },
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(20),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.only(right: 20),
+                                          child: Text("주소"),
+                                        ),
+                                        Container(
+                                          child: Flexible(
+                                              child: RichText(
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 5,
+                                                strutStyle: StrutStyle(fontSize: 16.0),
+                                                text: TextSpan(
+                                                    text: addrData["addr"],
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                      height: 1.4,
+                                                      fontSize: 16.0,
+                                                    )
+                                                ),
+                                              )
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 20,right: 20),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.only(right: 20),
+                                          child: Text("장소"),
+                                        ),
+                                        Container(
+                                          child: Flexible(
+                                              child: RichText(
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 5,
+                                                strutStyle: StrutStyle(fontSize: 16.0),
+                                                text: TextSpan(
+                                                    text: addrData["addr2"],
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                      height: 1.4,
+                                                      fontSize: 16.0,
+                                                    )
+                                                ),
+                                              )
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                        )
                       ],
                     ), // 3번 탭바
                   ],
@@ -294,6 +423,31 @@ class _SpaceInfoState extends State<SpaceInfo> {
             ),
           ],
         ),
+        bottomNavigationBar: MyBottomBar(),
+          floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+          floatingActionButton: Container(
+            margin: EdgeInsets.only(bottom: 40),
+            child: Row(
+              children: [
+                Expanded(child: ElevatedButton(
+                  style: ButtonStyle(
+                      minimumSize: MaterialStatePropertyAll(Size(0, 48)),
+                      backgroundColor: MaterialStatePropertyAll(Color(0xFF392F31)),
+                      elevation: MaterialStatePropertyAll(0),
+                      shape: MaterialStatePropertyAll(
+                          RoundedRectangleBorder(
+                              borderRadius: BorderRadius.zero
+                          )
+                      )
+                  ),
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => SpaceRental(document : doc!),));
+                  },
+                  child: Text('예약', style: TextStyle(fontSize: 17),),
+                ),)
+              ],
+            ),
+          )
       ),
     );
   }
@@ -352,23 +506,85 @@ class _SpaceInfoState extends State<SpaceInfo> {
     ),
     );
   }
+  void openDirectionsInGoogleMaps(double destinationLatitude, double destinationLongitude) async {
+    String googleUrl = 'https://www.google.com/maps/dir/?api=1&destination=$destinationLatitude,$destinationLongitude';
+    if (await canLaunch(googleUrl)) {
+      await launch(googleUrl);
+    } else {
+      throw 'Could not launch $googleUrl';
+    }
+  }
   Future<void> spaceData() async{ //상업공간
     DocumentSnapshot spaceSnap = await fs.collection("commercial_space").doc(widget.spaceId).get();
     if(spaceSnap.exists){
       setState(() {
         spaceMap = spaceSnap.data() as Map<String,dynamic>;
-
+        doc = spaceSnap;
       });
     }
   }
+  Future<void> spaceAddr() async{
+    QuerySnapshot addrSnap = await fs.collection("commercial_space").doc(widget.spaceId).collection("addr").get();
+    if(addrSnap.docs.isNotEmpty){
+      Map<String, dynamic> addrMap = addrSnap.docs.first.data() as Map<String,dynamic>;
+      _getCoordinatesFromAddress('${addrMap?['addr']} ${addrMap?['addr2']}');
+      searchNearbyPlaces('${addrMap?['addr']} ${addrMap?['addr2']}');
+      setState(() {
+        addrData = addrMap;
+      });
+    }
+  }
+  Future<void> _getCoordinatesFromAddress(String address) async { // 상업 공간 주소 구글맵
+    List<Location> locations = await locationFromAddress(address);
+    if (locations.isNotEmpty) {
+      final coordinates = LatLng(locations.first.latitude, locations.first.longitude);
+      setState(() {
+        this.coordinates = coordinates;
+      });
+    }
+  }
+  Future<void> searchNearbyPlaces(String addr) async {
+    final String apiUrl = 'https://places.googleapis.com/v1/places:searchNearby';
+    final String apiKey = 'AIzaSyAo72hnij2zaCRszQEvikOavWMDWnQAX_c';
+    List<Location> locations = await locationFromAddress(addr);
+    final Map<String, dynamic> requestData = {
+      "includedTypes": ["train_station","subway_station"],
+      "maxResultCount": 10,
+      "locationRestriction": {
+        "circle": {
+          "center": {
+            "latitude": locations.first.latitude,
+            "longitude": locations.first.longitude,
+          },
+          "radius": 1000.0,
+        },
+      },
+    };
 
+    final Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': apiKey,
+      'X-Goog-FieldMask': 'places.displayName',
+    };
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      headers: headers,
+      body: json.encode(requestData),
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> responseData = json.decode(response.body);
+      // 여기에서 responseData를 처리하십시오.
+      print(responseData);
+    } else {
+      throw Exception('Failed to fetch data');
+    }
+  }
   Future<void> spaceImg()async{ //상업공간 이미지
     QuerySnapshot imgSnap = await fs.collection("commercial_space").doc(widget.spaceId).collection("image").get();
     if(imgSnap.docs.isNotEmpty){
       setState(() {
-        for (var element in imgSnap.docs) {
-          imgPath.add(element.get("path"));
-        }
+          imgPath = imgSnap.docs.first.get("path");
       });
     }
   }
@@ -384,7 +600,6 @@ class _SpaceInfoState extends State<SpaceInfo> {
         .where('startTime', isLessThanOrEqualTo: Timestamp.fromDate(selectedDayPlusOne))
         .get();
     if(rentalSnap.docs.isNotEmpty){
-      print(1);
       List<Map<String, dynamic>> tempList = [];
       for(int i=0; i < rentalSnap.docs.length; i++){
         DocumentSnapshot artistSnap = await fs.collection("artist").doc(rentalSnap.docs[i].get("artistId")).get();
@@ -407,6 +622,22 @@ class _SpaceInfoState extends State<SpaceInfo> {
       setState(() {
         artistList = [];
       });
+    }
+  }
+
+  Future<void> deleteExpiredDocuments() async { // 지난 예약 삭제
+    final currentDate = DateTime.now();
+    final collectionRef = fs.collection('commercial_space').doc(widget.spaceId).collection("rental"); // Replace 'yourCollection' with your collection name
+
+    QuerySnapshot querySnapshot = await collectionRef.get();
+    for (QueryDocumentSnapshot doc in querySnapshot.docs) {
+      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      DateTime endTime = (data['endTime'] as Timestamp).toDate(); // Assuming endTime field is a Firestore Timestamp
+
+      if (endTime.isBefore(currentDate)) {
+        await collectionRef.doc(doc.id).delete();
+        print('Document ${doc.id} deleted.');
+      }
     }
   }
 }
