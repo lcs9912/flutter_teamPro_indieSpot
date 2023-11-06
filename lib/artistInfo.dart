@@ -6,6 +6,7 @@ import 'package:indie_spot/login.dart';
 import 'package:indie_spot/videoDetailed.dart';
 import 'artistEdit.dart';
 import 'artistMembers.dart';
+import 'artistTeamJoin.dart';
 import 'baseBar.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -31,39 +32,61 @@ class _ArtistInfoState extends State<ArtistInfo> {
   bool _followerFlg = false; // 팔로우 했는지!
   bool scheduleFlg = false;
   int? folCnt; // 팔로워
-  String? _artistId;
+  String? _artistId; // 리더
+  String? _artistId2; // 맴버
   String? _userId;
 
   //////////////세션 확인//////////
+  bool isDataLoaded = false; // 데이터 로드 완료 여부를 확인하는 변수
   @override
   void initState() {
-    // TODO: implement initState
-    super.initState();
-    _followerCount(); // 팔로우count
+    _followerCount();
     final userModel = Provider.of<UserModel>(context, listen: false);
     if (!userModel.isLogin) {
     } else {
       _userId = userModel.userId;
-      _followCheck();
-      artistCheck();
+      _loadData().then((_) {
+        // 데이터 로딩이 완료된 경우 artistCheck 함수 호출
+        _followCheck();
+        artistCheck();
+        isDataLoaded = true; // 데이터 로드 완료 표시
+        setState(() {}); // 상태 업데이트
+      });
     }
+    super.initState();
   }
+
+  Future<void> _loadData() async {
+    // 데이터 로딩 로직
+
+  }
+
 
   // 아티스트 권한 확인
   // 아티스트 멤버 권한이 리더 인 userId 가 _userId 와 같을때
   void artistCheck() async {
-    fs
-        .collection('artist')
+    final artistCheckSnap = await fs.collection('artist')
         .doc(widget.doc.id)
         .collection('team_members')
         .where('status', isEqualTo: 'Y')
         .where('userId', isEqualTo: _userId)
-        .get()
-        .then((value) {
-      if (value.docs.isNotEmpty) {
+        .get();
+
+    final artistMemberCheck = await fs.collection('artist')
+        .doc(widget.doc.id)
+        .collection('team_members')
+        .where('userId', isEqualTo: _userId)
+        .get();
+
+    if (artistCheckSnap.docs.isNotEmpty) {
+      setState(() {
         _artistId = _userId;
-      }
-    });
+      });
+    } else if (artistMemberCheck.docs.isNotEmpty) {
+      setState(() {
+        _artistId2 = _userId;
+      });
+    }
   }
 
   // 팔로우COUNT 불러오기
@@ -119,7 +142,6 @@ class _ArtistInfoState extends State<ArtistInfo> {
       // 유저
       var myFollowingRef = fs.collection('userList').doc(_userId);
       var myFollowing = await myFollowingRef.collection('following');
-      print(_userId);
       await myFollowing.add({"artistId": widget.doc.id});
       myFollowingRef.update({
         'followingCnt': FieldValue.increment(1),
@@ -167,6 +189,25 @@ class _ArtistInfoState extends State<ArtistInfo> {
       _followCheck();
     }
   }
+  // 기본 엘럿 
+  void inputDuplicateAlert(String content) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Text(content),
+          actions: <Widget>[
+            TextButton(
+              child: Text("확인"),
+              onPressed: () {
+                Navigator.of(context).pop(); // 알림 창 닫기
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   // 로그인 해라
   _alertDialogWidget() {
@@ -198,7 +239,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
 
   // 스피드 다이얼로그
   Widget? floatingButtons() {
-    if (_artistId != null) {
+    if (_artistId != null || _artistId2 != null) {
       return SpeedDial(
         animatedIcon: AnimatedIcons.menu_close,
         visible: true,
@@ -215,15 +256,20 @@ class _ArtistInfoState extends State<ArtistInfo> {
               backgroundColor: Color(0xFF392F31),
               labelBackgroundColor: Color(0xFF392F31),
               onTap: () {
-                if (Navigator.of(context).canPop()) {
-                  Navigator.of(context).pop(); // 현재 페이지를 제거
+
+                if(_artistId != null){ // 리더가 맞다면
+                  if (Navigator.of(context).canPop()) {
+                    Navigator.of(context).pop(); // 현재 페이지를 제거
+                  }
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) {
+                      return ArtistEdit(widget.doc, widget.artistImg); // 새 페이지로 이동
+                    },
+                  ));
+                } else{
+                  inputDuplicateAlert("리더만 수정이 가능합니다");
                 }
 
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) {
-                    return ArtistEdit(widget.doc, widget.artistImg); // 새 페이지로 이동
-                  },
-                ));
 
               }),
           SpeedDialChild(
@@ -239,18 +285,23 @@ class _ArtistInfoState extends State<ArtistInfo> {
                 color: Colors.white,
                 fontSize: 13.0),
             onTap: () {
-              Navigator.of(context)
-                  .push(MaterialPageRoute(
-                    builder: (context) => DonationList(artistDoc: widget.doc),
-                  ))
-                  .then((value) => setState(() {}));
+              if(_artistId != null){
+                Navigator.of(context)
+                    .push(MaterialPageRoute(
+                  builder: (context) => DonationList(artistDoc: widget.doc),
+                ))
+                    .then((value) => setState(() {}));
+              } else {
+                inputDuplicateAlert("리더만 확인이 가능합니다");
+              }
+              
             }),
             SpeedDialChild(
                 child: const Icon(
                   Icons.edit,
                   color: Colors.white,
                 ),
-                label: "멤버수정",
+                label: "팀 관리",
                 backgroundColor: Color(0xFF392F31),
                 labelBackgroundColor: Color(0xFF392F31),
                 labelStyle: const TextStyle(
@@ -260,14 +311,65 @@ class _ArtistInfoState extends State<ArtistInfo> {
                 onTap: () {
                   Navigator.of(context)
                       .push(MaterialPageRoute(
-                    builder: (context) => ArtistMembers(widget.doc, widget.artistImg),
+                    builder: (context) => ArtistMembers(widget.doc, widget.artistImg, _artistId),
                   ))
                       .then((value) => setState(() {}));
                 }),
         ],
       );
     } else {
-      return Container();
+      return SpeedDial(
+        animatedIcon: AnimatedIcons.menu_close,
+        visible: true,
+        curve: Curves.bounceIn,
+        backgroundColor: Color(0xFF392F31),
+        children: [
+          SpeedDialChild(
+              child: const Icon(Icons.settings_sharp, color: Colors.white),
+              label: "후원하기",
+              labelStyle: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                  fontSize: 13.0),
+              backgroundColor: Color(0xFF392F31),
+              labelBackgroundColor: Color(0xFF392F31),
+              onTap: () {
+                if (_userId != null) {
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) =>
+                        DonationPage(artistId: widget.doc.id),
+                  ));
+                } else {
+                  _alertDialogWidget();
+                }
+              },
+              ),
+          SpeedDialChild(
+              child: const Icon(
+                Icons.add_chart_rounded,
+                color: Colors.white,
+              ),
+              label: "팀 가입신청",
+              backgroundColor: Color(0xFF392F31),
+              labelBackgroundColor: Color(0xFF392F31),
+              labelStyle: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                  fontSize: 13.0),
+              onTap: () {
+                if(_userId != null){
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(
+                    builder: (context) => ArtistTeamJoin(widget.doc),
+                  )).then((value) => setState(() {}));
+                } else{
+                  _alertDialogWidget();
+                }
+
+
+              }),
+        ],
+      );
     }
   }
 
@@ -570,7 +672,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
               if (commerImageSnapshot.docs.isNotEmpty) {
                 for (QueryDocumentSnapshot commerImageDoc
                     in commerImageSnapshot.docs) {
-                  String cmmerImg = commerImageDoc['path'];
+                  final List<dynamic> cmmerImg = commerImageDoc['path'];
 
                   final commerAddrSnapshot = await fs
                       .collection('commercial_space')
@@ -587,7 +689,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Image.network(cmmerImg,
+                              Image.network(cmmerImg[0],
                                   width: screenWidth * 0.2,
                                   height: screenHeight * 0.1,
                                   fit: BoxFit.cover),
