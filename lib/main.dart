@@ -64,11 +64,275 @@ class _MyAppState extends State<MyApp> {
   String? _userId; // 유저 세션
 
   FirebaseFirestore fs = FirebaseFirestore.instance;
-  bool iconFlg = false; // 아이콘 리스트 플러그
+
   bool loginFlg = false;
   static const int maxAttempt = 3;
   static const Duration attemptTimeout = Duration(seconds: 2);
 
+  // iconFlg를 ValueNotifier로 선언
+  final ValueNotifier<bool> iconFlg = ValueNotifier(false);
+
+  @override
+  void dispose() {
+    // ValueNotifier를 dispose
+    iconFlg.dispose();
+    super.dispose();
+  }
+
+  Widget _iconAni() {
+    return Padding(
+      padding: const EdgeInsets.all(15.0),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      if(_userId != null){
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => ArtistRegi()),
+                        );
+                      } else {
+                        _alertDialogWidget();
+                      }
+                    },
+                    icon: Icon(Icons.person),
+                  ),
+                  Text("아티스트 등록"),
+                ],
+              ),
+              Column(
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => UserEdit()),
+                      );
+                    },
+                    icon: Icon(Icons.pages),
+                  ),
+                  Text("마이페지"),
+                ],
+              ),
+              Column(
+                children: [
+                  IconButton(
+                      onPressed: () async {
+                        if(Provider.of<UserModel>(context, listen: false).isLogin) {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text('로그아웃 확인'),
+                                content: Text('로그아웃 하시겠습니까?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context); // 첫 번째 다이얼로그 닫기
+                                    },
+                                    child: Text('취소'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () async {
+                                      // 두 번째 확인 다이얼로그
+                                      Navigator.pop(context); // 첫 번째 다이얼로그 닫기
+
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            title: Text('알림'),
+                                            content: Text('로그아웃 하였습니다.'),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () {
+                                                  // 로그아웃 수행
+                                                  Provider.of<UserModel>(context, listen: false).logout();
+                                                  Navigator.pop(context); // 두 번째 다이얼로그 닫기
+                                                },
+                                                child: Text('확인'),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
+                                    },
+                                    child: Text('확인'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        }else {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) =>
+                                  LoginPage()) // 상세페이지로 넘어갈것
+                          );
+                        }
+                      },
+                      icon: Icon(Icons.login)
+                  ),
+                  Consumer<UserModel>(
+                      builder: (context, userModel, child){
+                        return Text(userModel.isLogin ? "로그아웃" : "로그인");
+                      }
+                  ),
+                ],
+              ),
+              Column(
+                children: [
+                  IconButton(
+                      onPressed: (){
+                        _commercialListWidget();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => Join())
+                        );
+                      },
+                      icon: Icon(Icons.catching_pokemon)
+                  ),
+                  Text("회원가입"),
+                ],
+              ),
+              ValueListenableBuilder<bool>(
+                valueListenable: iconFlg,
+                builder: (context, value, child) {
+                  return IconButton(
+                    onPressed: () {
+                      // iconFlg의 value를 업데이트합
+                      iconFlg.value = !value;
+                    },
+                    icon: Icon(value ? Icons.expand_less : Icons.expand_more),
+                  );
+                },
+              ),
+            ],
+          ),
+          ValueListenableBuilder<bool>(
+            valueListenable: iconFlg,
+            builder: (context, value, child) {
+              // value 값에 따라 UI
+              return value ? _additionalIcons() : Container();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+  Widget _additionalIcons() {
+    return Padding(
+      padding: const EdgeInsets.all(15.0),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                children: [
+                  IconButton(
+                      onPressed: (){
+                        Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => BoardList())
+                        );
+                      },
+                      icon: Icon(Icons.arrow_drop_down)
+                  ),
+                  Text("여기다"),
+                ],
+              ),
+              Column(
+                children: [
+                  IconButton(
+                      onPressed: (){
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => VideoList()) // 상세페이지로 넘어갈것
+                        );
+                      },
+                      icon: Icon(Icons.smart_display)
+                  ),
+                  Text("애니메이션"),
+                ],
+              ),
+              Column(
+                children: [
+                  IconButton(
+                      onPressed: (){},
+                      icon: Icon(Icons.swap_vert)
+                  ),
+                  Text("효과"),
+                ],
+              ),
+              Column(
+                children: [
+                  IconButton(
+                      onPressed: (){},
+                      icon: Icon(Icons.dangerous)
+                  ),
+                  Text("줘야하는데.."),
+                ],
+              ),
+              SizedBox(width: 25,height: 30,),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                children: [
+                  IconButton(
+                      onPressed: (){},
+                      icon: Icon(Icons.question_mark)
+                  ),
+                  Text("어케"),
+                ],
+              ),
+              Column(
+                children: [
+                  IconButton(
+                      onPressed: (){},
+                      icon: Icon(Icons.send)
+                  ),
+                  Text("주는지"),
+                ],
+              ),
+              Column(
+                children: [
+                  IconButton(
+                      onPressed: (){},
+                      icon: Icon(Icons.psychology_alt)
+                  ),
+                  Text("모르겠다"),
+                ],
+              ),
+              Column(
+                children: [
+                  IconButton(
+                      onPressed: (){
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => PointDetailed(),));
+                      },
+                      icon: Icon(Icons.air)
+                  ),
+                  Text("에혀.."),
+                ],
+              ),
+              SizedBox(width: 25,height: 30,),
+
+            ],
+          ),
+
+
+        ],
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -268,7 +532,7 @@ class _MyAppState extends State<MyApp> {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.all(15.0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -406,269 +670,30 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  Widget _iconToggle() {
-    return AnimatedSwitcher(
-      duration: Duration(milliseconds: 300), // 전환 애니메이션 지속 시간
-      child: iconFlg
-          ? IconButton(
-        key: Key('expand_less'), // 고유한 키를 제공하여 전환 시 식별 가능
-        onPressed: () {
-          setState(() {
-            iconFlg = false;
-          });
-        },
-        icon: Icon(Icons.expand_less),
-      )
-          : IconButton(
-        key: Key('expand_more'), // 고유한 키를 제공하여 전환 시 식별 가능
-        onPressed: () {
-          setState(() {
-            iconFlg = true;
-          });
-        },
-        icon: Icon(Icons.expand_more),
-      ),
-    );
-  }
-
-  // 아이콘...
-  Widget _iconAni(){
-
-    return Column(
-      children: [
-        Row( // 여기부터가 아이콘시작
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              children: [
-                IconButton(
-                    onPressed: (){
-                      if(_userId != null){
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => ArtistRegi()),
-                        );
-                      } else {
-                        _alertDialogWidget();
-                      }
-
-                    },
-                    icon: Icon(Icons.person)
-                ),
-                Text("아티스트 등록"),
-              ],
-            ),
-            Column(
-              children: [
-                IconButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => UserEdit()),
-                    );
-                  },
-                  icon: Icon(Icons.pages),
-                ),
-                Text("마이페지"),
-              ],
-            ),
-            Column(
-              children: [
-                IconButton(
-                    onPressed: () async {
-                      if(Provider.of<UserModel>(context, listen: false).isLogin) {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: Text('로그아웃 확인'),
-                              content: Text('로그아웃 하시겠습니까?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(context); // 첫 번째 다이얼로그 닫기
-                                  },
-                                  child: Text('취소'),
-                                ),
-                                TextButton(
-                                  onPressed: () async {
-                                    // 두 번째 확인 다이얼로그
-                                    Navigator.pop(context); // 첫 번째 다이얼로그 닫기
-
-                                    showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return AlertDialog(
-                                          title: Text('알림'),
-                                          content: Text('로그아웃 하였습니다.'),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () {
-                                                // 로그아웃 수행
-                                                Provider.of<UserModel>(context, listen: false).logout();
-                                                Navigator.pop(context); // 두 번째 다이얼로그 닫기
-                                              },
-                                              child: Text('확인'),
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    );
-                                  },
-                                  child: Text('확인'),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      }else {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) =>
-                                LoginPage()) // 상세페이지로 넘어갈것
-                        );
-                      }
-                    },
-                    icon: Icon(Icons.login)
-                ),
-                Consumer<UserModel>(
-                    builder: (context, userModel, child){
-                      return Text(userModel.isLogin ? "로그아웃" : "로그인");
-                    }
-                ),
-              ],
-            ),
-            Column(
-              children: [
-                IconButton(
-                    onPressed: (){
-                      _commercialListWidget();
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => Join())
-                      );
-                    },
-                    icon: Icon(Icons.catching_pokemon)
-                ),
-                Text("회원가입"),
-              ],
-            ),
-
-            _iconToggle()
-
-
-          ],
-
-        ),
-        if(iconFlg)
-          Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    children: [
-                      IconButton(
-                          onPressed: (){
-                            Navigator.pushReplacement(
-                                context, 
-                                MaterialPageRoute(builder: (context) => BoardList())
-                            );
-                          },
-                          icon: Icon(Icons.arrow_drop_down)
-                      ),
-                      Text("여기다"),
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      IconButton(
-                          onPressed: (){
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => VideoList()) // 상세페이지로 넘어갈것
-                            );
-                          },
-                          icon: Icon(Icons.smart_display)
-                      ),
-                      Text("애니메이션"),
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      IconButton(
-                          onPressed: (){},
-                          icon: Icon(Icons.swap_vert)
-                      ),
-                      Text("효과"),
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      IconButton(
-                          onPressed: (){},
-                          icon: Icon(Icons.dangerous)
-                      ),
-                      Text("줘야하는데.."),
-                    ],
-                  ),
-                  SizedBox(width: 45,height: 30,),
-
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    children: [
-                      IconButton(
-                          onPressed: (){},
-                          icon: Icon(Icons.question_mark)
-                      ),
-                      Text("어케"),
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      IconButton(
-                          onPressed: (){},
-                          icon: Icon(Icons.send)
-                      ),
-                      Text("주는지"),
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      IconButton(
-                          onPressed: (){},
-                          icon: Icon(Icons.psychology_alt)
-                      ),
-                      Text("모르겠다"),
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      IconButton(
-                          onPressed: (){
-                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => PointDetailed(),));
-                          },
-                          icon: Icon(Icons.air)
-                      ),
-                      Text("에혀.."),
-                    ],
-                  ),
-                  SizedBox(width: 45,height: 30,),
-
-                ],
-              ),
-
-
-            ],
-          ),
-      ],
-    );
-  }
-
+  // Widget _iconToggle() {
+  //   return AnimatedSwitcher(
+  //     duration: Duration(milliseconds: 300), // 전환 애니메이션 지속 시간
+  //     child: iconFlg
+  //         ? IconButton(
+  //       key: Key('expand_less'), // 고유한 키를 제공하여 전환 시 식별 가능
+  //       onPressed: () {
+  //         setState(() {
+  //           iconFlg = false;
+  //         });
+  //       },
+  //       icon: Icon(Icons.expand_less),
+  //     )
+  //         : IconButton(
+  //       key: Key('expand_more'), // 고유한 키를 제공하여 전환 시 식별 가능
+  //       onPressed: () {
+  //         setState(() {
+  //           iconFlg = true;
+  //         });
+  //       },
+  //       icon: Icon(Icons.expand_more),
+  //     ),
+  //   );
+  // }
 
 
   Future<List<Widget>> _commercialListWidget() async {
@@ -708,7 +733,7 @@ class _MyAppState extends State<MyApp> {
                 .get();
 
             if (imageDoc.docs.isNotEmpty) {
-              final img = imageDoc.docs.first['path'];
+              final List<dynamic> img = imageDoc.docs.first['path'];
 
               final addrDoc = await fs
                   .collection('commercial_space')
@@ -719,7 +744,10 @@ class _MyAppState extends State<MyApp> {
               if (addrDoc.docs.isNotEmpty) {
                 final addr = addrDoc.docs.first['addr'];
 
+
+
                 final listItem = ListTile(
+                  visualDensity: VisualDensity(vertical: 4),
                   contentPadding: EdgeInsets.all(0),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.0),
@@ -736,7 +764,7 @@ class _MyAppState extends State<MyApp> {
                               width: 100,
                               height: 100,
                               child: CachedNetworkImage(
-                                imageUrl: img, // 이미지 URL
+                                imageUrl: img[0], // 이미지 URL
                                 width: 100,
                                 height: 100,
                                 fit: BoxFit.cover,
@@ -755,8 +783,15 @@ class _MyAppState extends State<MyApp> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              Text(addr),
-                              Text('공연팀: $artistName', style: TextStyle(fontSize: 13)),
+                              Text('공연팀: $artistName'),
+                              Container(
+                                width: 200, // 원하는 너비로 설정
+                                child: Text(
+                                  addr,
+                                  style: TextStyle(fontSize: 13),
+                                ),
+                              ),
+
                             ],
                           ),
                         ],
@@ -771,7 +806,7 @@ class _MyAppState extends State<MyApp> {
                     ],
                   ),
                   onTap: () {
-                    // 상업공간 공연 상세페이지
+                    // 상업공간 공연 상세페이지 CommercialList
                   },
                 );
                 commerWidgets.add(Future.value(listItem));
