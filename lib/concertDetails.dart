@@ -711,7 +711,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                     SizedBox(height: 20,),
                     Container(
                       height: 1050,
-                      width: 300,
+                      width: 350,
                       child: Column(
                         children: [
                           TextField(
@@ -775,11 +775,17 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                           ),
                           // Text("후기글 (총${buskingReview?[0]['reviewCnt']}개)"),
                           SizedBox(height: 20,),
-                          Row(
+                          Container(
+                            height: 1.0,
+                            width: 400,
+                            color: Colors.black.withOpacity(0.1),
+                          ),
+                          Column(
+
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Padding(
-                                padding: EdgeInsets.only(right: 20), // 오른쪽 간격 조절
+                                padding: EdgeInsets.only(left: 300), // 오른쪽 간격 조절
                                 child: InkWell(
                                   onTap: () {
                                     setState(() {
@@ -788,11 +794,14 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                       }
                                     });
                                   },
-                                  child: Text("최신순"),
+                                  child: Text(
+                                    "최신순",
+                                    style: TextStyle(fontSize: 13,fontWeight: FontWeight.bold), // 글자 크기 조절
+                                  ),
                                 ),
                               ),
                               Padding(
-                                padding: EdgeInsets.only(left: 16), // 왼쪽 간격 조절
+                                padding: EdgeInsets.only(left: 290), // 왼쪽 간격 조절
                                 child: InkWell(
                                   onTap: () {
                                     setState(() {
@@ -801,17 +810,16 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                       }
                                     });
                                   },
-                                  child: Text("오래된순"),
+                                  child: Text(
+                                    "오래된순",
+                                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold ), // 글자 크기 조절
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                           SizedBox(height: 20,),
-                          Container(
-                            height: 1.0,
-                            width: 400,
-                            color: Colors.black.withOpacity(0.1),
-                          ),
+
 
                           Column(
                             children: [

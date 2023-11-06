@@ -30,6 +30,7 @@ class _ProfileState extends State<Profile> {
   String? _followerCntFromFirestore;
   String? _followingCntFromFirestore;
   String? _followingCount;
+  String? _followingCnt;
   @override
   void initState() {
     super.initState();
@@ -106,32 +107,32 @@ class _ProfileState extends State<Profile> {
       print('Error fetching follower and following counts: $e');
     }
   }
-  // Future<void> getFollowerFollowingCnt() async {
-  //   try {
-  //     if (widget.userId != null) {
-  //       DocumentSnapshot<Map<String, dynamic>> userSnapshot = await FirebaseFirestore
-  //           .instance
-  //           .collection('userList')
-  //           .doc(widget.userId)
-  //           .get();
-  //
-  //       if (userSnapshot.exists) {
-  //         var followingCnt = userSnapshot.data()!['followingCnt'];
-  //
-  //         if (followingCnt != null) {
-  //           print('Following count is: $followingCnt'); // 올바른 값이 출력될 것입니다.
-  //           setState(() {
-  //             _followingCnt = followingCnt.toString();
-  //           });
-  //         } else {
-  //           print('followingCnt is null'); // 만약 null일 경우 출력됩니다.
-  //         }
-  //       }
-  //     }
-  //   } catch (e) {
-  //     print('Error fetching follower and following counts: $e');
-  //   }
-  // }
+  Future<void> getFollowerFollowingCnt() async {
+    try {
+      if (widget.userId != null) {
+        DocumentSnapshot<Map<String, dynamic>> userSnapshot = await FirebaseFirestore
+            .instance
+            .collection('userList')
+            .doc(widget.userId)
+            .get();
+
+        if (userSnapshot.exists) {
+          var followingCnt = userSnapshot.data()!['followingCnt'];
+
+          if (followingCnt != null) {
+            print('Following count is: $followingCnt'); // 올바른 값이 출력될 것입니다.
+            setState(() {
+              _followingCnt = followingCnt.toString();
+            });
+          } else {
+            print('followingCnt is null'); // 만약 null일 경우 출력됩니다.
+          }
+        }
+      }
+    } catch (e) {
+      print('Error fetching follower and following counts: $e');
+    }
+  }
 
 
   Future<List<String>> getImageData() async {
@@ -228,10 +229,10 @@ class _ProfileState extends State<Profile> {
                   },
                   child: Column(
                     children: [
-                      Text(
-                        'Follower: $_followerCount',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                      ),
+                      // Text(
+                      //   'Follower: $_followerCount',
+                      //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      // ),
                       Text(
                         'Following: $_followingCntFromFirestore',
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),

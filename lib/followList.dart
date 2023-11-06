@@ -32,7 +32,6 @@ class _FollowListState extends State<FollowList> {
       var data = document.data() as Map<String, dynamic>;
       var artistId = data['artistId'];
 
-      // artistId를 사용하여 artist 컬렉션에서 정보 가져오기
       DocumentSnapshot artistSnapshot = await FirebaseFirestore.instance
           .collection('artist')
           .doc(artistId)
@@ -42,14 +41,12 @@ class _FollowListState extends State<FollowList> {
         var artistInfo = artistSnapshot['artistInfo'] as String?;
         var artistName = artistSnapshot['artistName'] as String?;
 
-        // artist 정보를 리스트에 추가
         _followingArtists.add({
           'artistInfo': artistInfo,
           'artistName': artistName,
-          'artistId': artistId, // 추가된 부분: artistId를 _followingArtists 리스트에 추가
+          'artistId': artistId,
         });
 
-        // artist 컬렉션의 image 서브컬렉션에서 필드값 path 가져오기
         QuerySnapshot imageSnapshot = await FirebaseFirestore.instance
             .collection('artist')
             .doc(artistId)
@@ -63,19 +60,14 @@ class _FollowListState extends State<FollowList> {
       }
     }
 
-    // 화면을 갱신하기 위해 setState 호출
     setState(() {});
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _userId = Provider
-        .of<UserModel>(context)
-        .userId;
-    _artistId = Provider
-        .of<UserModel>(context)
-        .artistId;
+    _userId = Provider.of<UserModel>(context).userId;
+    _artistId = Provider.of<UserModel>(context).artistId;
 
     print('_userId: $_userId');
     getFollowingArtistIds();
@@ -84,65 +76,70 @@ class _FollowListState extends State<FollowList> {
   @override
   Widget build(BuildContext context) {
     print(_artistId);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Following Artists'),
-      ),
-      body: Column(
-        children: [
-          // 추가된 텍스트 위젯
-          Text(
-            '팔로우 목록',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Following Artists'),
+          bottom: TabBar(
+            tabs: [
+              Tab(text: '팔로잉'),
+              Tab(text: '팔로워'),
+            ],
           ),
-          SizedBox(height: 20,),
+        ),
+        body: TabBarView(
+          children: [
+            Column(
+              children: [
+                Text(
+                  '팔로우 목록',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 20,),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: _followingArtists.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      var artistInfo = _followingArtists[index]['artistInfo'] as String?;
+                      var artistName = _followingArtists[index]['artistName'] as String?;
+                      var artistId = _followingArtists[index]['artistId'] as String?;
 
-          // ListView.builder
-          Expanded(
-            child: ListView.builder(
-              itemCount: _followingArtists.length,
-              itemBuilder: (BuildContext context, int index) {
-                var artistInfo = _followingArtists[index]['artistInfo'] as String?;
-                var artistName = _followingArtists[index]['artistName'] as String?;
-                var artistId = _followingArtists[index]['artistId'] as String?;
+                      return ListTile(
+                        leading: _imagePaths[artistId] != null
+                            ? Image.network(_imagePaths[artistId]!)
+                            : Placeholder(),
+                        title: Text(artistName ?? ''),
+                        subtitle: Text(artistInfo ?? ''),
+                        onTap: () async {
+                          DocumentSnapshot artistDoc = await FirebaseFirestore.instance
+                              .collection('artist')
+                              .doc(artistId)
+                              .get();
 
-                return ListTile(
-                  leading: _imagePaths[artistId] != null
-                      ? Image.network(_imagePaths[artistId]!)
-                      : Placeholder(),
-                  title: Text(artistName ?? ''),
-                  subtitle: Text(artistInfo ?? ''),
-                  onTap: () async {
-                    // artistId를 사용하여 해당 문서를 가져옵니다.
-                    DocumentSnapshot artistDoc = await FirebaseFirestore.instance
-                        .collection('artist')
-                        .doc(artistId)
-                        .get();
-
-                    // 가져온 문서를 사용하여 ArtistInfo 페이지로 이동합니다.
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ArtistInfo(
-                          artistDoc, // 가져온 DocumentSnapshot을 전달
-                          _imagePaths[artistId]!,
-                        ),
-                      ),
-                    );
-                  },
-                );
-
-
-
-
-              },
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ArtistInfo(
+                                artistDoc,
+                                _imagePaths[artistId]!,
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
+            // 두 번째 탭 (팔로워) - 이 부분에 팔로워 목록을 추가해야 합니다.
+            Center(
+              child: Text('팔로워 목록을 여기에 추가하세요.'),
+            ),
+          ],
+        ),
       ),
     );
   }
-
-
-
 }
