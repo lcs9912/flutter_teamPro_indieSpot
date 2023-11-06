@@ -32,7 +32,6 @@ class _AnimationExampleState extends State<AnimationExample> with SingleTickerPr
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             ElevatedButton(
-              child: Text(_isVisible ? '숨기기' : '보이기'),
               onPressed: () {
                 if (!_isVisible) {
                   _controller.forward(); // 애니메이션 시작
@@ -43,27 +42,31 @@ class _AnimationExampleState extends State<AnimationExample> with SingleTickerPr
                   _isVisible = !_isVisible;
                 });
               },
+              child: Text(_isVisible ? '숨기기' : '보이기'),
             ),
-            _isVisible
-                ? ScaleTransition(
-              scale: _controller.drive(
-                Tween<double>(
-                  begin: 0.0,
-                  end: 1.0,
-                ),
-              ),
-              child: Container(
-                width: 200,
-                height: 200,
-                color: Colors.blue,
-              ),
-            )
-                : Container(), // 또는 SizedBox.shrink() 사용
+            SlideTransition(
+              position: Tween<Offset>(
+                begin: Offset(0, 1), // 시작 위치 (아래)
+                end: Offset(0, 0),  // 끝 위치 (0으로 이동)
+              ).animate(_controller),
+              child: _icon(), // _icon 위젯을 SlideTransition으로 감쌈
+            ),
             SizedBox(height: 20),
-
           ],
         ),
       ),
+    );
+  }
+
+  Widget _icon() {
+    return Column(
+      children: [
+        IconButton(onPressed: () {}, icon: Icon(Icons.add)),
+        IconButton(onPressed: () {}, icon: Icon(Icons.add)),
+        IconButton(onPressed: () {}, icon: Icon(Icons.add)),
+        IconButton(onPressed: () {}, icon: Icon(Icons.add)),
+        IconButton(onPressed: () {}, icon: Icon(Icons.add)),
+      ],
     );
   }
 
