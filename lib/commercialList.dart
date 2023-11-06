@@ -125,7 +125,7 @@ class _CommercialListState extends State<CommercialList> {
                                   leading: Container(
                                     height: double.infinity,
                                     width: 100,
-                                    child: Image.network(images[0].data()['path'], fit: BoxFit.cover,),
+                                    child: Image.network(images[0].data()['path'][0], fit: BoxFit.cover,),
                                   ),
                                   trailing: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,

@@ -579,9 +579,10 @@ class _ArtistEditState extends State<ArtistEdit> {
                   TextField(
                     controller: _genreCon,
                     decoration: InputDecoration(
-                        hintText: "상세 장르는 입력하시오 ex)락",
+                        hintText: "상세 장르를 입력하시오 ex)락",
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(6))),
+                            borderRadius: BorderRadius.circular(6))
+                    ),
                   ),
               ],
             ),
