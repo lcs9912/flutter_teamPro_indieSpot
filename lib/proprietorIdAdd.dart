@@ -10,7 +10,6 @@ import 'package:path/path.dart' as path;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 
-import 'buskingReservation.dart';
 class ProprietorAdd extends StatefulWidget {
   const ProprietorAdd({super.key});
 
@@ -22,6 +21,8 @@ class _ProprietorAddState extends State<ProprietorAdd> {
   final FirebaseFirestore fs = FirebaseFirestore.instance;
   String? _userId;
   File? _selectedImage; // 사업자 등록증
+  bool imageYn = false;
+  bool allYn = false;
 
   final TextEditingController _proprietorName = TextEditingController(); // 상호명
   final TextEditingController _representativeName = TextEditingController(); // 대표자 명
@@ -68,7 +69,8 @@ class _ProprietorAddState extends State<ProprietorAdd> {
   ];
 
   String? _genreList;
-  
+
+
   @override
   void initState() {
     super.initState();
@@ -82,38 +84,107 @@ class _ProprietorAddState extends State<ProprietorAdd> {
   }
 
 
+  void allnNullCheck(){
+    if(!imageYn){
+      inputDuplicateAlert('사업자 등록증은 필수입니다');
+      return;
+    }
+    if(_proprietorName.text.isEmpty){
+      inputDuplicateAlert('상호명은 필수입니다');
+      return;
+    }
+    if(_representativeName.text.isEmpty){
+      inputDuplicateAlert('대표자명은 필수입니다');
+      return;
+    }
+    if(_proprietorNum.text.isEmpty){
+      inputDuplicateAlert('사업자번호는 필수입니다');
+      return;
+    }
+    if(_address.text.isEmpty){
+      inputDuplicateAlert('주소선택은 필수입니다');
+      return;
+    }
+    if(_managerPhone .text.isEmpty){
+      inputDuplicateAlert('관리자연락처는 필수입니다');
+      return;
+    }
+    if(_commerImageList.isEmpty){
+      inputDuplicateAlert('상업공간 이미지은 필수입니다');
+      return;
+    }
+    if(_genreList == null || _genreList == ""){
+      inputDuplicateAlert('공연가능장르는 필수입니다');
+      return;
+    }
+    if(_headCount.text.isEmpty){
+      inputDuplicateAlert('가용인원은 필수입니다');
+      return;
+    }
+    setState(() {
+      allYn = true;
+    });
+  }
+
   // 사업자 입력 쿼리문
   void addGenresToFirestore() async {
-    final imageUrl = await _uploadImage(_selectedImage!);
-    final collectionReference = fs.collection('userList').doc(_userId).collection('proprietor');
 
-    String inputProprietorNum = _proprietorNum.text; // 사업자 번호 입력
-    String formattedProprietorNum = ''; // 사업자 번호 가공
-    formattedProprietorNum = '${inputProprietorNum.substring(0, 3)}-${inputProprietorNum.substring(3, 5)}-${inputProprietorNum.substring(5)}';
-    // 중복 체크를 위한 쿼리
-    final querySnapshot = await collectionReference.where('proprietorNum', isEqualTo: formattedProprietorNum).get();
-    if (querySnapshot.docs.isEmpty) {
-      // 중복되지 않을 때만 데이터를 추가
-      collectionReference.add({
-        "businessImage": imageUrl,
-        "representativeName": _representativeName.text,
-        "proprietorNum": formattedProprietorNum,
-        "termsYn" : termsYn
-      }).then((value) => commerAdd());
-    } else {
-      showDuplicateAlert(context);
-      // 포커스 주고 테두리 빨간색 밑에 텍스트
+    allnNullCheck();
+    if(allYn){
+      final collectionReference = fs.collection('userList').doc(_userId).collection('proprietor');
+
+      final imageUrl = await _uploadImage(_selectedImage!);
+
+
+      String inputProprietorNum = _proprietorNum.text; // 사업자 번호 입력
+      String formattedProprietorNum = ''; // 사업자 번호 가공
+      formattedProprietorNum = '${inputProprietorNum.substring(0, 3)}-${inputProprietorNum.substring(3, 5)}-${inputProprietorNum.substring(5)}';
+      // 중복 체크를 위한 쿼리
+      final querySnapshot = await collectionReference.where('proprietorNum', isEqualTo: formattedProprietorNum).get();
+      if (querySnapshot.docs.isEmpty) {
+        // 중복되지 않을 때만 데이터를 추가
+        collectionReference.add({
+          "businessImage": imageUrl,
+          "representativeName": _representativeName.text,
+          "proprietorNum": formattedProprietorNum,
+          "termsYn" : termsYn
+        }).then((value) => commerAdd());
+      } else {
+        showDuplicateAlert("중복안내", "이미등록된 사업자 번호입니다.");
+        // 포커스 주고 테두리 빨간색 밑에 텍스트
+      }
     }
+
   }
 
   // 사업자 번호 중복체크
-  void showDuplicateAlert(BuildContext context) {
+  void showDuplicateAlert(String title, String content) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("중복 알림"),
-          content: Text("이미 등록된 상업공간입니다."),
+          title: Text(title),
+          content: Text(content),
+          actions: <Widget>[
+            TextButton(
+              child: Text("확인"),
+              onPressed: () {
+                Navigator.of(context).pop(); // 알림 창 닫기
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // 비어있으면 뜨는 엘럿
+  void inputDuplicateAlert(String content) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Text(content),
           actions: <Widget>[
             TextButton(
               child: Text("확인"),
@@ -132,22 +203,38 @@ class _ProprietorAddState extends State<ProprietorAdd> {
     final availableTimeslots = '$startTimeHour:$startTimeMinute ~ $endTimeHour:$endTimeMinute'; // 사용 가능 시간
     String regions = formatCity(_regions);
     final imageListUrl = await _uploadListImages(_commerImageList);
+
+    int startHour = int.parse(startTimeHour);
+    int startMinute = int.parse(startTimeMinute);
+    int endHour = int.parse(endTimeHour);
+    int endMinute = int.parse(endTimeMinute);
+
+    DateTime startTime = DateTime(2023, 1, 1, startHour, startMinute);
+    DateTime endTime = DateTime(2023, 1, 1, endHour, endMinute);
+    int rentalfee = 0;
+    if(_rentalfee.text.isEmpty){
+      rentalfee = 0;
+    } else{
+      rentalfee = int.parse(_rentalfee.text);
+    }
     try{
       DocumentReference commerCollection = await fs.collection('commercial_space').add({
         "availableTimeslots" : availableTimeslots,
         "createdate" : Timestamp.now(),
-        "description" : _description.text ?? " ",
-        "equipmentYn" : _equipmentComment.text ?? " ",
+        "description" : _description.text != "" ? _description.text : "저장된 소개메세지가 없습니다.",
+        "equipmentYn" : _equipmentComment.text != "" ? _equipmentComment.text : "제공되는 음향기기가 없습니다.",
         "headcount" : int.parse(_headCount.text),
         "managerContact" : _managerPhone.text,
         "proprietorId" : _userId,
-        "rentalfee" : int.parse(_rentalfee.text) ?? 0,
+        "rentalfee" : rentalfee,
         "spaceName" : _proprietorName.text,
         "updatetime" : Timestamp.now(),
         "spaceType" : _genreList,
         "regions" : regions,
         "parkingYn" : parkingYn,
-        "videoYn" : videoYn
+        "videoYn" : videoYn,
+        "startTime" : startTime,
+        "endTime" : endTime
       }); // 상업공간 컬렉션
 
       String commerId = commerCollection.id;
@@ -156,7 +243,7 @@ class _ProprietorAddState extends State<ProprietorAdd> {
       await fs.collection('commercial_space').doc(commerId).collection('addr').add(
           {
             'addr': _address.text,
-            'addr2': _addr2.text ?? " ",
+            'addr2': _addr2.text != "" ? _addr2.text : "저장된 상세주소가 없습니다.",
             'zipcode': _zip,
           });
 
@@ -172,19 +259,21 @@ class _ProprietorAddState extends State<ProprietorAdd> {
 
   // 파이어페이스 이미지 업로드
   Future<String> _uploadImage(File imageFile) async {
-    try {
-      String fileName = path.basename(imageFile.path);
-      Reference firebaseStorageRef = FirebaseStorage.instance.ref().child('image/$fileName');
 
-      UploadTask uploadTask = firebaseStorageRef.putFile(imageFile);
-      TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
+      try {
+        String fileName = path.basename(imageFile.path);
+        Reference firebaseStorageRef = FirebaseStorage.instance.ref().child('image/$fileName');
 
-      String downloadUrl = await taskSnapshot.ref.getDownloadURL();
-      return downloadUrl;
-    } catch (e) {
-      print('Error uploading image: $e');
-      return '';
-    }
+        UploadTask uploadTask = firebaseStorageRef.putFile(imageFile);
+        TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
+
+        String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+        return downloadUrl;
+      } catch (e) {
+        print('Error uploading image: $e');
+        return '';
+      }
+    
   }
 
   // 파이어베이스 이미지리스트 업로드
@@ -218,6 +307,7 @@ class _ProprietorAddState extends State<ProprietorAdd> {
     if (pickedImage != null) {
       setState(() {
         _selectedImage = File(pickedImage.path);
+        imageYn = true;
       });
     }
   }
@@ -228,9 +318,14 @@ class _ProprietorAddState extends State<ProprietorAdd> {
     final pickedImage = await picker.pickImage(source: ImageSource.gallery);
 
     if (pickedImage != null) {
-      setState(() {
-        _commerImageList.add(File(pickedImage.path));
-      });
+      if (_commerImageList.length < 5) {
+        setState(() {
+          _commerImageList.add(File(pickedImage.path));
+        });
+      } else {
+        showDuplicateAlert("멈춰!", "공간이미지는 5장을 초과할 수 없습니다.");
+        print("이미지는 최대 5개까지만 선택할 수 있습니다.");
+      }
     }
   }
   
@@ -565,7 +660,7 @@ class _ProprietorAddState extends State<ProprietorAdd> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(15),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -585,6 +680,7 @@ class _ProprietorAddState extends State<ProprietorAdd> {
                         onPressed: (){
                           setState(() {
                             _selectedImage = null;
+                            imageYn = false;
                           });
                         }, icon: Icon(Icons.refresh,size: 25,),
 
@@ -617,50 +713,20 @@ class _ProprietorAddState extends State<ProprietorAdd> {
                 ],
               ),
               SizedBox(height: 30,),
-              Text("상호명",style: subStyle,),
-              TextField(
-                maxLines: 1,
-                controller: _proprietorName,
-                decoration: InputDecoration(
-                    hintText: "상호명 입력",
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6))),
-              ),
-              Text("대표자명",style: subStyle,),
-              TextField(
-                maxLines: 1,
-                controller: _representativeName,
-                decoration: InputDecoration(
-                    hintText: "대표자명 입력",
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6))),
-              ),
-              Text("사업자 번호",style: subStyle,),
-              TextField(
-                keyboardType: TextInputType.number,
-                controller: _proprietorNum,
-                decoration: InputDecoration(
-                    hintText: "사업자 번호 입력(-제외)",
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6))),
-              ),
-              Text("상업 공간 소개",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
-              Text("주소(필수*)",style: subStyle,),
+              _TextField('상호명', '상호명을 입력해주세요.',  _proprietorName),
+              _TextField('대표자명', '대표자명 입력', _representativeName),
+              _TextField('사업자 번호', '사업자 번호 입력(-제외)',  _proprietorNum),
+              SizedBox(height: 30,),
+              Text("상업공간 소개",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
+              SizedBox(height: 30,),
               _maps(),
               SizedBox(height: 10,),
-              _TextField('상세주소', '상세주소를 입력해주세요.', _addr2),
-              Text("연락처(필수*)",style: subStyle,),
-              TextField(
-                keyboardType: TextInputType.number,
-                controller: _managerPhone,
-                decoration: InputDecoration(
-                    hintText: "연락처 입력(-제외)",
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6))
-                ),
-              ),
+              _TextField('상세주소', '상세주소를 입력해주세요.',  _addr2),
               SizedBox(height: 10,),
+              _TextField('연락처(필수*)', '연락처 입력(-제외)', _managerPhone),
+              SizedBox(height: 20,),
               Text("공간사진(첫번째 사진은 대표사진으로 설정됩니다. 필수*)", style: subStyle,),
+              SizedBox(height: 10,),
               Wrap(
                 children: [
                   Container(
@@ -674,10 +740,22 @@ class _ProprietorAddState extends State<ProprietorAdd> {
                     height: screenHeight * 0.1, width: screenWidth * 0.2,
                     child: OutlinedButton(
                       onPressed: _prickImageList,
-                      child: Image.asset(
-                        'assets/fileAdd.png',
-                        width: screenWidth * 0.2,
-                        height: screenHeight * 0.1,
+                      child: Stack(
+                        children: [
+                          Image.asset(
+                            'assets/fileAdd.png',
+                            width: screenWidth * 0.2,
+                            height: screenHeight * 0.1,
+                          ),
+                          Positioned(
+                            top: 1,
+                              right: 10,
+                              child: Text(
+                                '${_commerImageList.length} / 5',
+                                style: _commerImageList.length == 5 ? TextStyle(color: Colors.red) : TextStyle(color: Colors.black),
+                              )
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -685,107 +763,78 @@ class _ProprietorAddState extends State<ProprietorAdd> {
                 ],
               ),
               SizedBox(height: 10,),
-              Text("공간소개",style: subStyle,),
-              TextField(
-                maxLines: 3,
-                controller: _description,
-                decoration: InputDecoration(
-                    hintText: "공간을 소개해주세요",
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6))),
-              ),
+              _TextField2("공간소개", '공간을 소개해주세요', _description),
               Text("영업시간(필수*)",style: subStyle,),
               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      DropdownButton<String>(
-                        value: startTimeHour,
-                        items: hourItem.map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            startTimeHour = newValue!;
-                          });
-                        },
-                      ),
-                    ],
+                  DropdownButton<String>(
+                    value: startTimeHour,
+                    items: hourItem.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        startTimeHour = newValue!;
+                      });
+                    },
                   ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      DropdownButton<String>(
-                        value: startTimeMinute,
-                        items: minuteItem.map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            startTimeMinute = newValue!;
-                          });
-                        },
-                      ),
-                    ],
+                  SizedBox(width: 10,),
+                  Text(":"),
+                  SizedBox(width: 10,),
+                  DropdownButton<String>(
+                    value: startTimeMinute,
+                    items: minuteItem.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        startTimeMinute = newValue!;
+                      });
+                    },
                   ),
                   Text("  ~  "),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      DropdownButton<String>(
-                        value: endTimeHour,
-                        items: hourItem.map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            endTimeHour = newValue!;
-                          });
-                        },
-                      ),
-                    ],
+                  DropdownButton<String>(
+                    value: endTimeHour,
+                    items: hourItem.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        endTimeHour = newValue!;
+                      });
+                    },
                   ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      DropdownButton<String>(
-                        value: endTimeMinute,
-                        items: minuteItem.map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            endTimeMinute = newValue!;
-                          });
-                        },
-                      ),
-                    ],
+                  SizedBox(width: 10,),
+                  Text(":"),
+                  SizedBox(width: 10,),
+                  DropdownButton<String>(
+                    value: endTimeMinute,
+                    items: minuteItem.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        endTimeMinute = newValue!;
+                      });
+                    },
                   ),
                 ],
               ),
               Text("버스킹 공간 정보",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
-              Text("지원장비",style: subStyle,),
-              TextField(
-                maxLines: 3,
-                controller: _equipmentComment,
-                decoration: InputDecoration(
-                    hintText: "가지고 계신 음향장비를 입력해주세요",
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6))),
-              ),
+              _TextField2('지원장비', '가지고 계신 음향장비를 입력해주세요',  _equipmentComment),
               Text("장르(필수*)",style: subStyle,),
               Column(
                 children: [
@@ -794,22 +843,8 @@ class _ProprietorAddState extends State<ProprietorAdd> {
                   genreListWidget()
                 ],
               ),
-              Text("가용인원(필수*)",style: subStyle,),
-              TextField(
-                controller: _headCount,
-                decoration: InputDecoration(
-                    hintText: "공연가능 인원(숫자만)",
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6))),
-              ),
-              Text("렌탈비용(공백시 0원)",style: subStyle,),
-              TextField(
-                controller: _rentalfee,
-                decoration: InputDecoration(
-                    hintText: "장소대여 비용을 입력해주세요(시간당,)",
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6))),
-              ),
+              _TextField('가용인원(필수*)', '공연가능 인원(숫자만)', _headCount),
+              _TextField('렌탈비용(공백시 0원)', '장소대여 비용을 입력해주세요(시간당,)', _rentalfee),
               Text("주차",style: subStyle,),
               Row(
                 children: [
@@ -913,11 +948,10 @@ class _ProprietorAddState extends State<ProprietorAdd> {
 
   Container _maps() {
     return Container(
-      padding: EdgeInsets.all(15),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('주소'),
+          Text('주소(필수*)'),
           SizedBox(height: 20),
           SizedBox(
             height: 200,
@@ -972,7 +1006,6 @@ class _ProprietorAddState extends State<ProprietorAdd> {
   // TextField 위젯
   Container _TextField(String title, String hint, TextEditingController control) {
     return Container(
-      padding: EdgeInsets.all(15),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start, // 수직 가운데 정렬 설정
         children: [
@@ -981,6 +1014,7 @@ class _ProprietorAddState extends State<ProprietorAdd> {
           SizedBox(
             height: 35,
             child: TextField(
+              autofocus: true,
               style: TextStyle(
                   fontWeight: FontWeight.w500
               ),
@@ -992,9 +1026,40 @@ class _ProprietorAddState extends State<ProprietorAdd> {
                 border: OutlineInputBorder(),
               ),
             ),
-          )
+          ),
+          SizedBox(height: 10),
         ],
       ),
     );
   }
+
+  Container _TextField2(String title, String hint, TextEditingController control) {
+    return Container(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start, // 수직 가운데 정렬 설정
+        children: [
+          Text('$title'),
+          SizedBox(height: 10),
+          Container(
+            child: TextField(
+              style: TextStyle(
+                  fontWeight: FontWeight.w500
+              ),
+              maxLines: 3,
+              controller: control,
+              decoration: InputDecoration(
+                contentPadding: EdgeInsets.only(left: 10),
+                hintText: '$hint',
+                hintStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ),
+          SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+
 }
