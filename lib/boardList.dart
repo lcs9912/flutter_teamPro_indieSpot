@@ -26,7 +26,6 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
     _tabController = TabController(length: 3, vsync: this);
 
     _tabController.addListener(() {
-      print("Tab index changed: ${_tabController.index}");
       updateSelectedCategory(_tabController.index);
     });
   }
@@ -93,7 +92,6 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
           return Text("게시글이 없습니다.");
         }
 
-        print('Snap Data: ${snap.data}');
         List<DocumentSnapshot> filteredPosts = filterPostsByCategory(snap.data!.docs, subcollection);
 
         return ListView.builder(
@@ -129,7 +127,6 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
 
                   // Check if the user document exists
                   if (userSnap.data == null || !userSnap.data!.exists) {
-                    print('Error: User document does not exist.');
                     return Container();
                   }
 
@@ -146,39 +143,80 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
                       if (imageSnap.connectionState == ConnectionState.waiting) {
                         return Center(child: CircularProgressIndicator());
                       }
-
                       if (imageSnap.hasError) {
                         return Text('Error: ${imageSnap.error}');
                       }
-                      print('Snap Data: ${snap.data}');
-                      print('UserSnap Data: ${userSnap.data}');
 
                       Map<String, dynamic>? imageData = imageSnap.data?.docs.isNotEmpty ?? false
                           ? imageSnap.data!.docs.first.data() as Map<String, dynamic>?
                           : null;
 
+                      int commentCount = 0;
 
                       return Column(
                         children: [
                           ListTile(
-                            title: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            title: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  '${querySnapshot.get('nick') as String? ?? "닉네임 없음"}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                  ),
-                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${querySnapshot.get('nick') as String? ?? "닉네임 없음"}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                      ),
+                                    ),
 
-                                Text(
-                                  '${post['title']}',
-                                  style: TextStyle(
-                                    fontSize: 16
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                                    Text(
+                                      '${post['title'].length > 12 ? post['title'].substring(0, 12)+'···' : post['title']}',
+                                      style: TextStyle(
+                                        fontSize: 16
+                                      ),
+                                      overflow: TextOverflow.ellipsis
+                                    ),
+                                  ],
                                 ),
+                                Row(
+                                  children: [
+                                    StreamBuilder(
+                                      stream: FirebaseFirestore.instance
+                                          .collection("posts")
+                                          .doc("3QjunO69Eb2OroMNJKWU")
+                                          .collection(subcollection)
+                                          .doc(postDoc)
+                                          .collection('comments')
+                                          .snapshots(),
+                                      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
+                                        if (!snap.hasData) {
+                                          return Text(
+                                            '0',
+                                            style: TextStyle(
+                                              fontSize: 12
+                                            ),
+                                          );
+                                        }
+                                        commentCount = snap.data!.docs.length;
+                                        return Row(
+                                          children: [
+                                            Transform(
+                                              transform: Matrix4.rotationY(0.3),
+                                              child : Icon(Icons.mode_comment_outlined, size: 18),
+                                            ),
+                                            SizedBox(width: 4),
+                                            Text(
+                                              commentCount.toString(),
+                                              style: TextStyle(
+                                                  fontSize: 12
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                )
                               ],
                             ),
                             leading: imageData != null && imageData.isNotEmpty
@@ -246,9 +284,7 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
         elevation: 1.5,
         iconTheme: IconThemeData(color: Colors.black),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(20),
-        child: Column(
+      body: Column(
           children: [
             TabBar(
               controller: _tabController,
@@ -275,8 +311,8 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
               ),
             ),
           ],
-        )
-      ),
+        ),
+
       bottomNavigationBar: MyBottomBar(),
       floatingActionButton: Container(
         width: 380,

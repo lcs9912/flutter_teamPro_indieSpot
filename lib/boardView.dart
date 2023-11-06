@@ -4,7 +4,6 @@ import 'package:indie_spot/baseBar.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:indie_spot/boardList.dart';
 
 class BoardView extends StatefulWidget {
   final DocumentSnapshot document;
@@ -98,7 +97,7 @@ class _BoardViewState extends State<BoardView> {
                   children: [
                     SizedBox(height: 60),
                     Text(
-                      data['title'],
+                      '${data['title'].length > 18 ? data['title'].substring(0, 18)+'···' : data['title']}',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -131,20 +130,53 @@ class _BoardViewState extends State<BoardView> {
                   height: 30,
                 ),
                 SizedBox(height: 8),
-                Container(
-                  constraints: BoxConstraints(
-                    minHeight: 80,
-                    maxHeight: 180,
-                  ),
-                  child: SingleChildScrollView(
-                    physics: BouncingScrollPhysics(),
-                    child: Text(
-                      '${data['content']}',
-                      style: TextStyle(
-                          fontSize: 16
-                      ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    StreamBuilder(
+                        stream: fs
+                            .collection("posts")
+                            .doc("3QjunO69Eb2OroMNJKWU")
+                            .collection(widget.document.reference.parent.id)
+                            .doc(widget.document.id)
+                            .collection('image')
+                            .snapshots(),
+                        builder: (context,  imgSnap) {
+                          if (imgSnap.connectionState == ConnectionState.waiting) {
+                            return Center(child: CircularProgressIndicator());
+                          }
+                          if (imgSnap.hasError) {
+                            return Text('Error: ${imgSnap.error}');
+                          }
+
+                          Map<String, dynamic>? imgData = imgSnap.data?.docs.isNotEmpty ?? false
+                          ? imgSnap.data!.docs.first.data() as Map<String, dynamic>?
+                          : null;
+                          return imgData != null && imgData.isNotEmpty
+                              ? ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: Image.network(
+                              imgData['PATH'],
+                              height: 180,
+                              fit: BoxFit.fitHeight,
+                            ),
+                          )
+                              : Container();
+                        }
                     ),
-                  ),
+                    Container(
+                      constraints: BoxConstraints(
+                        minHeight: 80,
+                        maxHeight: 180,
+                      ),
+                      child: Text(
+                          '${data['content']}',
+                          style: TextStyle(
+                              fontSize: 16
+                          ),
+                        ),
+                    ),
+                  ],
                 ),
                 SizedBox(height: 14),
                 Divider(
@@ -160,7 +192,9 @@ class _BoardViewState extends State<BoardView> {
                         stream: FirebaseFirestore.instance
                             .collection("posts")
                             .doc("3QjunO69Eb2OroMNJKWU")
-                            .collection(widget.document.id)
+                            .collection(widget.document.reference.parent.id)
+                            .doc(widget.document.id)
+                            .collection('comments')
                             .snapshots(),
                         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
                           if (!snap.hasData) {
@@ -279,9 +313,8 @@ class _BoardViewState extends State<BoardView> {
               createdDate = createdDateTimestamp.toDate();
             }
 
-            String formatDate = createdDate != null
-                ? DateFormat('yyyy/MM/dd HH:mm').format(createdDate!)
-                : "Unknown Date";
+            String formatDate = DateFormat('yyyy/MM/dd HH:mm').format(createdDate!);
+
 
             return Column(
               children: [

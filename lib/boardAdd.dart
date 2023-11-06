@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/boardList.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -57,26 +55,26 @@ class _BoardAddState extends State<BoardAdd> {
   void _addBoard() async {
     String? _userId = Provider.of<UserModel>(context, listen: false).userId;
 
-    if (_selectedCategory == null) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('알림'),
-            content: Text('게시글 구분을 선택해주세요.'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('확인'),
-              ),
-            ],
-          );
-        },
-      );
-      return;
-    }
+    // if (_selectedCategory == null) {
+    //   showDialog(
+    //     context: context,
+    //     builder: (BuildContext context) {
+    //       return AlertDialog(
+    //         title: Text('알림'),
+    //         content: Text('게시글 구분을 선택해주세요.'),
+    //         actions: [
+    //           TextButton(
+    //             onPressed: () {
+    //               Navigator.of(context).pop();
+    //             },
+    //             child: Text('확인'),
+    //           ),
+    //         ],
+    //       );
+    //     },
+    //   );
+    //   return;
+    // }
 
     if (_title.text.isEmpty || _content.text.isEmpty) {
       showDialog(
@@ -116,7 +114,18 @@ class _BoardAddState extends State<BoardAdd> {
         }
       );
 
+      DocumentReference userRef = await _fs.collection('userList').doc(_userId).collection('board').add(
+        {
+          'title': _title.text,
+          'content': _content.text,
+          'createDate': FieldValue.serverTimestamp(),
+          'userId' : _userId,
+          'cnt' : 0
+        }
+      );
+
       String boardID = boardRef.id;
+      String userID = userRef.id;
 
       //서브 콜렉션에 이미지 추가'
       if (imageUrl != null) {
@@ -125,6 +134,12 @@ class _BoardAddState extends State<BoardAdd> {
               'DELETE_YN' : 'N',
               'PATH' : imageUrl,
             }
+        );
+        await _fs.collection('userList').doc(_userId).collection('board').doc(userID).collection('image').add(
+          {
+            'DELETE_YN' : 'N',
+            'PATH' : imageUrl,
+          }
         );
       }
 
@@ -137,7 +152,7 @@ class _BoardAddState extends State<BoardAdd> {
         _content.clear();
         _selectedImage = null;
       });
-      Navigator.pushReplacement(
+      Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => BoardList())
       );
@@ -217,14 +232,20 @@ class _BoardAddState extends State<BoardAdd> {
                     _selectedCategory = newValue!;
                   });
                 },
-                items: [ 'free_board', 'concert_board', 'team_board']
-                    .map<DropdownMenuItem<String>>(
-                      (String value) => DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
+                items: [
+                  DropdownMenuItem<String>(
+                    value: 'free_board',
+                    child: Text('자유'),
                   ),
-                )
-                    .toList(),
+                  DropdownMenuItem<String>(
+                    value: 'team_board',
+                    child: Text('팀모집'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'concert_board',
+                    child: Text('함께공연'),
+                  ),
+                ],
                 decoration: InputDecoration(
                   labelText: "구분",
                   border: OutlineInputBorder(
