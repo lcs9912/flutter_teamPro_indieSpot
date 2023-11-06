@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:indie_spot/adminInquiry.dart';
+import 'package:indie_spot/adminMain.dart';
 import 'package:indie_spot/announcementList.dart';
 import 'package:indie_spot/buskingList.dart';
 import 'package:indie_spot/buskingSpotList.dart';
@@ -387,7 +389,7 @@ class _MyDrawerState extends State<MyDrawer> {
               ListTile(
                 title: Text('공지사항'),
                 onTap: () {
-
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => AdminMain(),));
                 },
               ),
               ListTile(
