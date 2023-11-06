@@ -122,6 +122,7 @@ class _SpaceRentalState extends State<SpaceRental> {
         setState(() {
           this.selectedDay = selectedDay;
           selectedDay = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
+          selectedHours.clear();
           rentalCheck();
         });
       },
@@ -219,25 +220,37 @@ class _SpaceRentalState extends State<SpaceRental> {
             onPressed: isReserved
                 ? null // 만약 이미 예약된 시간이면 onPressed를 null로 설정하여 버튼을 비활성화
                 : () {
-              if (selectedHours.isEmpty) {
-                setState(() {
-                  selectedHours.add(hour);
-                });
-              } else if (selectedHours.length == 1) {
-                if (hour >= selectedHours[0]) {
-                  setState(() {
-                    selectedHours.add(hour);
-                  });
-                } else {
-                  setState(() {
-                    selectedHours.insert(0, hour);
-                  });
-                }
-              } else {
+              if (selectedHours.contains(hour)) {
+                // 이미 선택된 시간을 다시 눌렀을 때, 선택을 취소하고 리스트를 비웁니다.
                 setState(() {
                   selectedHours.clear();
-                  selectedHours.add(hour);
+                  print(selectedHours);
                 });
+              } else {
+                if (selectedHours.isEmpty) {
+                  // 아무것도 선택되어 있지 않으면 선택한 시간을 추가합니다.
+                  setState(() {
+                    selectedHours.add(hour);
+                    print(selectedHours);
+                  });
+                } else if (selectedHours.length == 1) {
+                  // 이미 선택된 시간이 있을 경우 선택한 시간들 사이의 시간들을 선택합니다.
+                  for(int i=checkHours[0]; i< checkHours[1]; i++){
+                    print(checkHours[0]);
+                    print(checkHours[1]);
+                  }
+                  setState(() {
+                    selectedHours.add(hour);
+                    selectedHours.sort();
+                    print(selectedHours);
+                  });
+                }else if(selectedHours.length == 2){
+                  setState(() {
+                    selectedHours.clear();
+                    selectedHours.add(hour);
+                  });
+                  print(selectedHours);
+                }
               }
             },
             style: ButtonStyle(
