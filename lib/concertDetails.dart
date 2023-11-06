@@ -687,28 +687,31 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                       ),
                     SizedBox(height: 30), // 간격 추가
 
-                    RatingBar.builder(
-                      initialRating: rating,
-                      minRating: 1,
-                      direction: Axis.horizontal,
-                      allowHalfRating: true,
-                      itemCount: 5,
-                      itemSize: 30.0,
-                      itemBuilder: (context, _) => Icon(
-                        Icons.star,
-                        color: Colors.amber,
+                    Padding(
+                      padding: EdgeInsets.only(right:250 ), // 왼쪽 간격을 10으로 지정
+                      child: RatingBar.builder(
+                        initialRating: rating,
+                        minRating: 1,
+                        direction: Axis.horizontal,
+                        allowHalfRating: true,
+                        itemCount: 5,
+                        itemSize: 20.0,
+                        itemBuilder: (context, _) => Icon(
+                          Icons.star,
+                          color: Colors.amber,
+                        ),
+                        onRatingUpdate: (value) {
+                          setState(() {
+                            rating = value;
+                          });
+                          // rating 값을 여기서 활용하거나 필요한 곳으로 전달할 수 있습니다.
+                          // 예를 들어, submitReview 함수 호출 등을 여기서 할 수 있습니다.
+                        },
                       ),
-                      onRatingUpdate: (value) {
-                        setState(() {
-                          rating = value;
-                        });
-                        // rating 값을 여기서 활용하거나 필요한 곳으로 전달할 수 있습니다.
-                        // 예를 들어, submitReview 함수 호출 등을 여기서 할 수 있습니다.
-                      },
                     ),
 
 
-                    SizedBox(height: 20,),
+
                     Container(
                       height: 1050,
                       width: 350,
