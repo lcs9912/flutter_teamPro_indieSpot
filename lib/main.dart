@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:indie_spot/boardList.dart';
 import 'package:indie_spot/login.dart';
 import 'package:indie_spot/pointDetailed.dart';
+import 'package:indie_spot/profile.dart';
 import 'package:indie_spot/result.dart';
 import 'package:indie_spot/userEdit.dart';
 import 'package:indie_spot/userModel.dart';
@@ -22,6 +23,8 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import 'join.dart';
+TextEditingController _nicknameController = TextEditingController();
+TextEditingController _introductionController = TextEditingController();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -111,12 +114,18 @@ class _MyAppState extends State<MyApp> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => UserEdit()),
+                        MaterialPageRoute(
+                          builder: (context) => Profile(
+                            nicknameController: _nicknameController,
+                            introductionController: _introductionController,
+                            userId: _userId,
+                          ),
+                        ),
                       );
                     },
                     icon: Icon(Icons.pages),
                   ),
-                  Text("마이페지"),
+                  Text("마이페이지"),
                 ],
               ),
               Column(
