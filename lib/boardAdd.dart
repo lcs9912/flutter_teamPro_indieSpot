@@ -23,6 +23,7 @@ class _BoardAddState extends State<BoardAdd> {
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
   final TextEditingController _title = TextEditingController();
   final TextEditingController _content = TextEditingController();
+  bool showError = false;
 
 
   Future<void> _pickImage() async {
@@ -75,6 +76,27 @@ class _BoardAddState extends State<BoardAdd> {
     //   );
     //   return;
     // }
+
+    if (_title.text.length > 20) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('알림'),
+            content: Text('제목은 20자 이하로 입력해주ㅁ세요.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('확인'),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
 
     if (_title.text.isEmpty || _content.text.isEmpty) {
       showDialog(
@@ -292,8 +314,14 @@ class _BoardAddState extends State<BoardAdd> {
                   hintText : "제목을 입력해주세요",
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(4)
-                  )
+                  ),
+                  errorText: showError ? "20자 이하로 입력하세요." : null,
                 ),
+                onChanged: (value) {
+                  setState(() {
+                    showError = value.length > 20;
+                  });
+                },
               ),
               SizedBox(height: 20),
               Text(

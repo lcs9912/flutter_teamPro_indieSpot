@@ -74,6 +74,7 @@ class _BoardViewState extends State<BoardView> {
     Map<String, dynamic> data = widget.document.data() as Map<String, dynamic>;
     String userData = data['userId'];
 
+
     return Scaffold(
       appBar: AppBar(
         title: Text('내용보기',
@@ -296,6 +297,7 @@ class _BoardViewState extends State<BoardView> {
         if (!snap.hasData) {
           return Center(child: CircularProgressIndicator());
         }
+        String? _userId = Provider.of<UserModel>(context, listen: false).userId;
 
         return ListView.builder(
           itemCount: snap.data!.docs.length,
@@ -303,9 +305,6 @@ class _BoardViewState extends State<BoardView> {
             DocumentSnapshot doc = snap.data!.docs[index];
             Map<String, dynamic> commentData = doc.data() as Map<String, dynamic>;
             String commentUserData = commentData['userId'];
-
-            // DateTime createdDate = (commentData['CREATEDATE'] as Timestamp).toDate();
-            // String formatDate = DateFormat('yyyy/MM/dd HH:mm').format(createdDate);
 
             Timestamp? createdDateTimestamp = commentData['createDate'];
             DateTime? createdDate;
@@ -325,8 +324,16 @@ class _BoardViewState extends State<BoardView> {
                         if (userSnap.connectionState == ConnectionState.waiting) {
                           return Center(child: CircularProgressIndicator());
                         }
+
                         DocumentSnapshot<Map<String, dynamic>> querySnapshot = userSnap.data as DocumentSnapshot<Map<String, dynamic>>;
-                        return Text('${querySnapshot.get('nick') as String}');
+                        return Text(
+                            '${querySnapshot.get('nick') as String}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.black54
+                          ),
+                        );
+
                       }
                   ),
                   subtitle: Column(
@@ -345,7 +352,10 @@ class _BoardViewState extends State<BoardView> {
                       ),
                     ],
                   ),
-                  trailing: Column(
+
+                  trailing:
+                  _userId == commentData['userId'] ? Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children:[
                         Row(
                           mainAxisSize: MainAxisSize.min,
@@ -353,17 +363,19 @@ class _BoardViewState extends State<BoardView> {
                             IconButton(
                               icon: Icon(Icons.edit),
                               onPressed: () => _showEditDialog(doc),
-                              iconSize: 18,
+                              iconSize: 16,
                             ),
                             IconButton(
                               icon: Icon(Icons.close),
                               onPressed: () => _showDeleteDialog(doc),
-                              iconSize: 18,
+                              iconSize: 16,
                             ),
                           ],
                         ),
                       ]
-                  ),
+                  )
+                  : SizedBox(width: 1),
+
                 ),
                 Container(
                   height: 1,
