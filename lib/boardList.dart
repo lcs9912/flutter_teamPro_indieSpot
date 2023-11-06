@@ -4,11 +4,10 @@ import 'package:indie_spot/baseBar.dart';
 import 'package:indie_spot/boardView.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:provider/provider.dart';
-
 import 'boardAdd.dart';
 
 class BoardList extends StatefulWidget {
-  const BoardList({super.key});
+  const BoardList();
 
   @override
   State<BoardList> createState() => _BoardListState();
@@ -17,8 +16,10 @@ class BoardList extends StatefulWidget {
 class _BoardListState extends State<BoardList> with SingleTickerProviderStateMixin{
   FirebaseFirestore fs = FirebaseFirestore.instance;
   late TabController _tabController;
-  String subcollection = "all";
+  String subcollection = "free_board";
   List<String> userId = [];
+
+
   @override
   void initState() {
     super.initState();
@@ -70,6 +71,7 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
         return path.contains("team_board");
       }).toList();
     }
+
   }
 
   Widget _listboard() {
@@ -81,21 +83,15 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
           .orderBy("createDate", descending: true)
           .snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
-        if (snap.connectionState == ConnectionState.waiting) {
+        if (snap.connectionState == ConnectionState.waiting || snap.hasError) {
           // 로딩 중이면 여기서 CircularProgressIndicator를 반환
           return Center(child: CircularProgressIndicator());
-        }
-
-        if (snap.hasError) {
-          // 에러가 있다면 에러 메시지를 표시
-          return Text('Error: ${snap.error}');
         }
 
         // 스냅샷이 데이터를 가지고 있지 않다면 특정 메시지를 반환
         if (!snap.hasData || snap.data!.docs.isEmpty) {
           return Text("게시글이 없습니다.");
         }
-
 
         print('Snap Data: ${snap.data}');
         List<DocumentSnapshot> filteredPosts = filterPostsByCategory(snap.data!.docs, subcollection);
@@ -115,7 +111,6 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
                   child: Text("Unknown User"),
                 );
               }
-
 
               return StreamBuilder(
                 stream: fs.collection("userList").doc(userData).snapshots(),
@@ -170,18 +165,39 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  '${querySnapshot.get('nick')}',
+                                  '${querySnapshot.get('nick') as String? ?? "닉네임 없음"}',
                                   style: TextStyle(
                                     fontSize: 12,
                                   ),
                                 ),
-                                Text('${post['title']}'),
+
+                                Text(
+                                  '${post['title']}',
+                                  style: TextStyle(
+                                    fontSize: 16
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ],
                             ),
                             leading: imageData != null && imageData.isNotEmpty
-                                ? Image.network(imageData['PATH'])
-                                : Image.asset('assets/nullimg.png'),
-
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(4),
+                                  child: Image.network(
+                                    imageData['PATH'],
+                                    width: 80,
+                                    fit: BoxFit.fitWidth,
+                            ),
+                                )
+                                : ClipRRect(
+                                    borderRadius: BorderRadius.circular(4),
+                                  child: Image.asset(
+                                    'assets/nullimg.png',
+                                    width: 80,
+                                    fit: BoxFit.fitWidth,
+                            ),
+                                ),
                             onTap: () {
                               Navigator.push(
                                 context,
@@ -251,6 +267,7 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
                 ),
               ),
             ),
+            SizedBox(height: 10),
             Expanded(
               child: TabBarView(
                 controller: _tabController,

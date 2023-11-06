@@ -4,6 +4,7 @@ import 'package:indie_spot/baseBar.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:indie_spot/boardList.dart';
 
 class BoardView extends StatefulWidget {
   final DocumentSnapshot document;
@@ -15,33 +16,44 @@ class BoardView extends StatefulWidget {
 }
 
 class _BoardViewState extends State<BoardView> {
+  FirebaseFirestore fs = FirebaseFirestore.instance;
   final TextEditingController _comment = TextEditingController();
   int commentCount = 0;
   bool TextFlg = false;
 
   void _addComment() async {
-    String? userId = Provider.of<UserModel>(context, listen: false).userId;
+    String? userId = Provider
+        .of<UserModel>(context, listen: false)
+        .userId;
+    if (userId == null) {
+      _showLoginAlert(context);
+      setState(() {
+        TextFlg = false;
+      });
+    } else{
 
     if (_comment.text.isNotEmpty) {
-      CollectionReference comments = FirebaseFirestore.instance
-          .collection('posts')
+      CollectionReference commentAdd = fs.collection('posts')
+          .doc("3QjunO69Eb2OroMNJKWU")
+          .collection(widget.document.reference.parent.id)
           .doc(widget.document.id)
           .collection('comments');
 
-      await comments.add({
-        'USER_ID' : userId,
-        'COMMENT': _comment.text,
-        'CREATEDATE': FieldValue.serverTimestamp(),
+      await commentAdd.add({
+        'userId': userId,
+        'comment': _comment.text,
+        'createDate': FieldValue.serverTimestamp(),
       });
 
       _comment.clear();
       setState(() {
         TextFlg = false;
       });
-    }else if(_comment.text.isEmpty){
+    } else if (_comment.text.isEmpty) {
       setState(() {
         TextFlg = false;
-      });
+        });
+      }
     }
   }
 
@@ -53,15 +65,15 @@ class _BoardViewState extends State<BoardView> {
 
   void _updateComment(DocumentSnapshot doc) async {
     await doc.reference.update({
-      'COMMENT': _comment.text,
+      'comment': _comment.text,
     });
     Navigator.of(context).pop();
   }
 
-
   @override
   Widget build(BuildContext context) {
     Map<String, dynamic> data = widget.document.data() as Map<String, dynamic>;
+    String userData = data['userId'];
 
     return Scaffold(
       appBar: AppBar(
@@ -86,15 +98,7 @@ class _BoardViewState extends State<BoardView> {
                   children: [
                     SizedBox(height: 60),
                     Text(
-                      "[" + data['CATEGORY'] + "] ",
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold
-                      ),
-                    ),
-                    SizedBox(width: 6),
-                    Text(
-                      data['TITLE'],
+                      data['title'],
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -102,20 +106,23 @@ class _BoardViewState extends State<BoardView> {
                     ),
                   ],
                 ),
-                Text(
-                    '${data['USER_ID']}',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500
-                  ),
+                StreamBuilder( //작성자 닉네임 표시
+                    stream: fs.collection('userList').doc(userData).snapshots(),
+                    builder: (context, userSnap) {
+                      if (userSnap.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      }
+                      DocumentSnapshot<Map<String, dynamic>> querySnapshot = userSnap.data as DocumentSnapshot<Map<String, dynamic>>;
+                      return Text('${querySnapshot.get('nick') as String}');
+                    }
                 ),
                 SizedBox(height: 2),
                 Text(
-                    '${data['CREATEDATE'].toDate().toString().substring(0, 16)}',
+                  '${data['createDate'].toDate().toString().substring(0, 16)}',
                   style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.black54
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.black54
                   ),
                 ),
                 Divider(
@@ -132,7 +139,7 @@ class _BoardViewState extends State<BoardView> {
                   child: SingleChildScrollView(
                     physics: BouncingScrollPhysics(),
                     child: Text(
-                      '${data['CONTENT']}',
+                      '${data['content']}',
                       style: TextStyle(
                           fontSize: 16
                       ),
@@ -152,15 +159,15 @@ class _BoardViewState extends State<BoardView> {
                       StreamBuilder(
                         stream: FirebaseFirestore.instance
                             .collection("posts")
-                            .doc(widget.document.id)
-                            .collection("comments")
+                            .doc("3QjunO69Eb2OroMNJKWU")
+                            .collection(widget.document.id)
                             .snapshots(),
                         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
                           if (!snap.hasData) {
-                            return Text('0개');
+                            return Text('0');
                           }
                           commentCount = snap.data!.docs.length;
-                          return Text(commentCount.toString() + "개");
+                          return Text(commentCount.toString());
                         },
                       ),
                       Divider(
@@ -177,14 +184,14 @@ class _BoardViewState extends State<BoardView> {
                     child: _listComments()
                 ),
                 TextFlg ? Container(
-                  height: 180,
+                    height: 180,
                     child : TextField(
-                  maxLines: 4,
-                  controller: _comment,
-                  decoration: InputDecoration(
-                    labelText: "댓글 입력",
-                    border: OutlineInputBorder(),
-                  ),
+                      maxLines: 4,
+                      controller: _comment,
+                      decoration: InputDecoration(
+                        labelText: "댓글 입력",
+                        border: OutlineInputBorder(),
+                      ),
                     )
                 ) : Container(height: 60)
               ],
@@ -245,9 +252,11 @@ class _BoardViewState extends State<BoardView> {
     return StreamBuilder(
       stream: FirebaseFirestore.instance
           .collection("posts")
+          .doc("3QjunO69Eb2OroMNJKWU")
+          .collection(widget.document.reference.parent.id)
           .doc(widget.document.id)
           .collection("comments")
-          .orderBy("CREATEDATE", descending: true)
+          .orderBy("createDate", descending: true)
           .snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
         if (!snap.hasData) {
@@ -259,11 +268,12 @@ class _BoardViewState extends State<BoardView> {
           itemBuilder: (context, index) {
             DocumentSnapshot doc = snap.data!.docs[index];
             Map<String, dynamic> commentData = doc.data() as Map<String, dynamic>;
+            String commentUserData = commentData['userId'];
 
             // DateTime createdDate = (commentData['CREATEDATE'] as Timestamp).toDate();
             // String formatDate = DateFormat('yyyy/MM/dd HH:mm').format(createdDate);
 
-            Timestamp? createdDateTimestamp = commentData['CREATEDATE'];
+            Timestamp? createdDateTimestamp = commentData['createDate'];
             DateTime? createdDate;
             if (createdDateTimestamp != null) {
               createdDate = createdDateTimestamp.toDate();
@@ -276,23 +286,25 @@ class _BoardViewState extends State<BoardView> {
             return Column(
               children: [
                 ListTile(
-                  title: Text(
-                      commentData['USER_ID'] ?? 'Unknown User',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black
-                    ),
+                  title: StreamBuilder( //댓글 작성자 닉네임 표시
+                      stream: fs.collection('userList').doc(commentUserData).snapshots(),
+                      builder: (context, userSnap) {
+                        if (userSnap.connectionState == ConnectionState.waiting) {
+                          return Center(child: CircularProgressIndicator());
+                        }
+                        DocumentSnapshot<Map<String, dynamic>> querySnapshot = userSnap.data as DocumentSnapshot<Map<String, dynamic>>;
+                        return Text('${querySnapshot.get('nick') as String}');
+                      }
                   ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        commentData['COMMENT'],
+                        commentData['comment'],
                         style: TextStyle(
-                          fontWeight: FontWeight.w400,
-                          fontSize: 16,
-                          color: Colors.black
+                            fontWeight: FontWeight.w400,
+                            fontSize: 16,
+                            color: Colors.black
                         ),
                       ),
                       Text(
@@ -370,7 +382,7 @@ class _BoardViewState extends State<BoardView> {
   Future<void> _showEditDialog(DocumentSnapshot doc) async {
     Map<String, dynamic> commentData = doc.data() as Map<String, dynamic>;
 
-    _comment.text = commentData['COMMENT'];
+    _comment.text = commentData['comment'];
 
     return showDialog<void>(
       context: context,
@@ -392,6 +404,25 @@ class _BoardViewState extends State<BoardView> {
               child: Text('수정하기'),
               onPressed: () => _updateComment(doc),
             ),
+          ],
+        );
+      },
+    );
+  }
+  void _showLoginAlert(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("로그인 필요"),
+          content: Text("댓글을 작성하려면 로그인이 필요합니다"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text("확인"),
+            )
           ],
         );
       },

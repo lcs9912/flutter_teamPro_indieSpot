@@ -110,8 +110,8 @@ class _BoardAddState extends State<BoardAdd> {
         {
           'title': _title.text,
           'content': _content.text,
-          'createdate': FieldValue.serverTimestamp(),
-          'USER_ID' : _userId,
+          'createDate': FieldValue.serverTimestamp(),
+          'userId' : _userId,
           'cnt' : 0
         }
       );
@@ -217,7 +217,7 @@ class _BoardAddState extends State<BoardAdd> {
                     _selectedCategory = newValue!;
                   });
                 },
-                items: [ 'free_board', 'concert_board']
+                items: [ 'free_board', 'concert_board', 'team_board']
                     .map<DropdownMenuItem<String>>(
                       (String value) => DropdownMenuItem<String>(
                     value: value,
