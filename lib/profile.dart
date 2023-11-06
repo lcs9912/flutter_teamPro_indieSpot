@@ -22,11 +22,14 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
+
   List<String> imagePaths = []; // Define the list of image paths
   String? _nickFromFirestore; // Firestore에서 가져온 'nick' 값을 저장할 변수
   String? _introductionFromFirestore;
   String? _followerCount = '0'; // 기본값으로 0 설정
-  String? _followingCount = '0'; // 기본값으로 0 설정
+  String? _followerCntFromFirestore;
+  String? _followingCntFromFirestore;
+  String? _followingCount;
   @override
   void initState() {
     super.initState();
@@ -46,10 +49,15 @@ class _ProfileState extends State<Profile> {
         if (snapshot.exists) {
           var nick = snapshot.data()!['nick'];
           var introduction = snapshot.data()!['introduction'];
+          var followingCnt = snapshot.data()!['followingCnt'];
+          var followerCnt = snapshot.data()!['followerCnt'];
           setState(() {
             _nickFromFirestore = nick;
             _introductionFromFirestore = introduction;
+            _followingCntFromFirestore = followingCnt.toString();
+            _followerCntFromFirestore = followerCnt.toString();
           });
+
         }
       }
     } catch (e) {
@@ -62,6 +70,7 @@ class _ProfileState extends State<Profile> {
       if (widget.userId != null) {
         // Get follower count
         DocumentSnapshot<
+
             Map<String, dynamic>> followerSnapshot = await FirebaseFirestore
             .instance
             .collection('userList')
@@ -75,6 +84,7 @@ class _ProfileState extends State<Profile> {
             _followerCount = followerSnapshot.data()!['count'].toString();
           });
         }
+
 
         // Get following count
         DocumentSnapshot<
@@ -96,6 +106,33 @@ class _ProfileState extends State<Profile> {
       print('Error fetching follower and following counts: $e');
     }
   }
+  // Future<void> getFollowerFollowingCnt() async {
+  //   try {
+  //     if (widget.userId != null) {
+  //       DocumentSnapshot<Map<String, dynamic>> userSnapshot = await FirebaseFirestore
+  //           .instance
+  //           .collection('userList')
+  //           .doc(widget.userId)
+  //           .get();
+  //
+  //       if (userSnapshot.exists) {
+  //         var followingCnt = userSnapshot.data()!['followingCnt'];
+  //
+  //         if (followingCnt != null) {
+  //           print('Following count is: $followingCnt'); // 올바른 값이 출력될 것입니다.
+  //           setState(() {
+  //             _followingCnt = followingCnt.toString();
+  //           });
+  //         } else {
+  //           print('followingCnt is null'); // 만약 null일 경우 출력됩니다.
+  //         }
+  //       }
+  //     }
+  //   } catch (e) {
+  //     print('Error fetching follower and following counts: $e');
+  //   }
+  // }
+
 
   Future<List<String>> getImageData() async {
     try {
@@ -196,9 +233,10 @@ class _ProfileState extends State<Profile> {
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                       ),
                       Text(
-                        'Following: $_followingCount',
+                        'Following: $_followingCntFromFirestore',
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                       ),
+
                     ],
                   ),
                 )
