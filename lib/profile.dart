@@ -344,27 +344,34 @@ class _ProfileState extends State<Profile> {
                       MaterialPageRoute(builder: (context) => FollowList()),
                     );
                   },
-                  child: Column(
-                    children: [
-                      // Text(
-                      //   'Follower: $_followerCount',
-                      //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                      // ),
-                      Text(
-                        '   Following: $_followingCntFromFirestore',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                      ),
+                  child: Container(
 
-                    ],
+                    child: Column(
+                      children: [
+                        // Text(
+                        //   'Follower: $_followerCount',
+                        //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                        // ),
+                        Text(
+                          '$_nickFromFirestore',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                        ),
+                        Text(
+                          '   Following: $_followingCntFromFirestore',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                        ),
+
+                      ],
+                    ),
                   ),
                 )
 
               ],
             ),
             SizedBox(height: 20),
-            Text(
-              '닉네임: $_nickFromFirestore',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            Divider( // 이 부분이 추가된 부분입니다.
+              color: Colors.grey[300], // 회색 줄의 색상을 지정합니다.
+              thickness: 1, // 회색 줄의 두께를 조절합니다.
             ),
             SizedBox(height: 20),
             Row(
@@ -377,6 +384,7 @@ class _ProfileState extends State<Profile> {
                         _introductionFromFirestore ?? '외않돼'),
                   ),
                 ),
+
                 Expanded(
                   flex: 1, // 버튼이 차지할 비율
                   child: Align(
@@ -389,6 +397,7 @@ class _ProfileState extends State<Profile> {
                           MaterialPageRoute(builder: (context) => UserEdit()),
                         );
                       },
+
                       child: Text(
                         '계정 수정',
                         style: TextStyle(color: Colors.white),

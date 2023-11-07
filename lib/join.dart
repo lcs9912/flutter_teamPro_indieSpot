@@ -318,13 +318,20 @@ class _JoinState extends State<Join> {
         padding: EdgeInsets.symmetric(vertical: 30.0),
       child: Scaffold(
         appBar: AppBar(
+          backgroundColor: Colors.white, // AppBar 배경색을 흰색으로 설정
           leading: IconButton(
-            icon: Icon(Icons.arrow_back),
+            icon: Icon(
+              Icons.arrow_back,
+              color: Colors.black, // 뒤로가기 아이콘 색을 검은색으로 설정
+            ),
             onPressed: () {
-              Navigator.pop(context); // This will navigate back
+              Navigator.pop(context); // 뒤로가기 기능 추가
             },
           ),
-          title: Text('회원가입'),
+          title: Text(
+            '회원가입',
+            style: TextStyle(color: Colors.black), // 텍스트 색을 검은색으로 설정
+          ),
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
