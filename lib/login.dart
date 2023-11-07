@@ -159,7 +159,6 @@ class _LoginPageState extends State<LoginPage> {
     final bytes = utf8.encode(_pwd.text + uniqueKey); // 비밀번호와 유니크 키를 바이트로 변환
     final hash = sha512.convert(bytes); // 비밀번호를 sha256을 통해 해시 코드로 변환
     String password = hash.toString();
-    print(password);
 
 
     if(email.isEmpty || _pwd.text.isEmpty){
@@ -184,43 +183,55 @@ class _LoginPageState extends State<LoginPage> {
         .where('email', isEqualTo: email)
         .where('pwd', isEqualTo: password).get();
 
-    if(!context.mounted) return;
-
     if (userDocs.docs.isNotEmpty) {
-      final userId = userDocs.docs[0].id;
-      String? artistId;
-      CollectionReference artistCollectionRef = _fs.collection('artist');
+      var data = userDocs.docs.first.data();
+      if(data['banYn'] == 'Y'){
+        if(!context.mounted) return;
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '정지된 계정입니다 \n사유 : ${data['banReason']}',
+            ),
+          ),
+        );
+      } else{
+        final userId = userDocs.docs[0].id;
+        String? artistId;
+        CollectionReference artistCollectionRef = _fs.collection('artist');
 
-      QuerySnapshot artistDocs = await artistCollectionRef.get();
+        QuerySnapshot artistDocs = await artistCollectionRef.get();
 
-      for (QueryDocumentSnapshot artistDoc in artistDocs.docs) {
-        // 각 artist 문서에서 team_members 컬렉션 참조
-        CollectionReference teamMembersRef = artistDoc.reference.collection('team_members');
+        for (QueryDocumentSnapshot artistDoc in artistDocs.docs) {
+          // 각 artist 문서에서 team_members 컬렉션 참조
+          CollectionReference teamMembersRef = artistDoc.reference.collection('team_members');
 
-        // userId를 사용하여 특정 문서 내에서 검색
-        QuerySnapshot teamMembers = await teamMembersRef.where('userId', isEqualTo: userId).get();
+          // userId를 사용하여 특정 문서 내에서 검색
+          QuerySnapshot teamMembers = await teamMembersRef.where('userId', isEqualTo: userId).get();
 
-        if (teamMembers.docs.isNotEmpty) {
-          artistId = artistDoc.id;
+          if (teamMembers.docs.isNotEmpty) {
+            artistId = artistDoc.id;
+          }
         }
+
+
+        if(!context.mounted) return;
+
+        if (artistId != null) {
+          Provider.of<UserModel>(context, listen: false).loginArtist(userId, artistId);
+          print('아티스트');
+        } else {
+          Provider.of<UserModel>(context, listen: false).login(userId);
+          print('일반');
+        }
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MyApp() ),
+        );
       }
-
-
-      if(!context.mounted) return;
-
-      if (artistId != null) {
-        Provider.of<UserModel>(context, listen: false).loginArtist(userId, artistId);
-        print('아티스트');
-      } else {
-        Provider.of<UserModel>(context, listen: false).login(userId);
-        print('일반');
-      }
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => MyApp() ),
-      );
     } else {
+      if(!context.mounted) return;
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

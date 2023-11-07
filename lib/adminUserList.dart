@@ -146,7 +146,7 @@ class _AdminUserListState extends State<AdminUserList> {
           border: Border.all(width: 1, color: Colors.black12)
       ),
       child: ListTile(
-        onTap: () => AdminUserInfo(id),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => AdminUserInfo(id),)),
         title: Text(data['nick']),
         subtitle: Text(data['email']),
       ),

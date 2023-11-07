@@ -272,7 +272,7 @@ class _JoinState extends State<Join> {
         'DELETE_YN': 'false',
         'IMAGENAME': "기본.jpg",
         'ORG_NAME': "기본.jpg",
-        'PATH': 'assets/images/기본.jpg',
+        'PATH': 'https://firebasestorage.googleapis.com/v0/b/indiespot-7d691.appspot.com/o/image%2FBasicImage.jpg?alt=media&token=bfe12916-8e3e-42be-bfa6-0974babb55fb',
         'SIZE': '120x123',
       });
 
