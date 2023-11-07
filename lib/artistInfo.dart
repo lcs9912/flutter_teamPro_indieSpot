@@ -9,7 +9,6 @@ import 'artistMembers.dart';
 import 'artistTeamJoin.dart';
 import 'baseBar.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'donationList.dart';
 import 'donationPage.dart';
 import 'userModel.dart';
