@@ -8,6 +8,7 @@ import 'package:indie_spot/result.dart';
 import 'package:indie_spot/spaceInfo.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:indie_spot/videoList.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'artistRegi.dart';
 import 'buskingList.dart';
 import 'buskingReservation.dart';
@@ -21,11 +22,17 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'join.dart';
 import 'lcsTest.dart';
+import 'notification_service.dart';
+import 'dart:async';
 TextEditingController _nicknameController = TextEditingController();
 TextEditingController _introductionController = TextEditingController();
 
 void main() async {
+  // 앱 실행 전에 NotificationService 인스턴스 생성
+  final notificationService = NotificationService();
+  // 로컬 푸시 알림 초기화
   WidgetsFlutterBinding.ensureInitialized();
+  await notificationService.init();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -72,6 +79,48 @@ class _MyAppState extends State<MyApp> {
   DateTime selectedDay = DateTime.now();
   DateTime selectedDay1 = DateTime.now();
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _requestNotificationPermissions(); // 알림 권한 요청
+    final userModel = Provider.of<UserModel>(context, listen: false);
+    if (!userModel.isLogin) {
+
+    } else {
+      _userId = userModel.userId;
+    }
+  }
+
+  // 알람 권한
+  void _requestNotificationPermissions() async {
+    //알림 권한 요청
+    final status = await NotificationService().requestNotificationPermissions();
+    if (status.isDenied  && context.mounted) {
+      showDialog(
+        // 알림 권한이 거부되었을 경우 다이얼로그 출력
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('알림 권한이 거부되었습니다.'),
+          content: Text('알림을 받으려면 앱 설정에서 권한을 허용해야 합니다.'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('설정'), //다이얼로그 버튼의 죄측 텍스트
+              onPressed: () {
+                Navigator.of(context).pop();
+                openAppSettings(); //설정 클릭시 권한설정 화면으로 이동
+              },
+            ),
+            TextButton(
+              child: Text('취소'), //다이얼로그 버튼의 우측 텍스트
+              onPressed: () => Navigator.of(context).pop(), //다이얼로그 닫기
+            ),
+          ],
+        ),
+      );
+    }
+  }
+  
   Widget _iconAni() {
     return Padding(
       padding: const EdgeInsets.all(15.0),
@@ -331,18 +380,7 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
 
-    final userModel = Provider.of<UserModel>(context, listen: false);
-    if (!userModel.isLogin) {
-
-    } else {
-      _userId = userModel.userId;
-    }
-  }
 
   // 로그인 해라
   _alertDialogWidget() {
@@ -741,36 +779,34 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
+
   Future<List<Widget>> _commercialListWidget() async {
-    final commerQuerySnapshot = await fs.collection('commercial_space').limit(2).get();
+    final commerQuerySnapshot = await FirebaseFirestore.instance.collection('commercial_space').get();
 
     if (commerQuerySnapshot.docs.isEmpty) {
-      return [Container()];
+      return [Text("상업공간에 내용이 없음")];
     }
 
-    List<Future<Widget>> commerWidgets = [];
+    List<Widget> commerWidgets = [];
 
     for (QueryDocumentSnapshot commerDoc in commerQuerySnapshot.docs) {
       final spaceName = commerDoc['spaceName'];
       final _id = commerDoc.id;
-
-      final commerRentalQuerySnapshot =
-      await fs
+      final startTime = Timestamp.fromDate(selectedDay);
+      QuerySnapshot commerRentalQuerySnapshot = await FirebaseFirestore.instance
           .collection("commercial_space")
           .doc(_id)
           .collection("rental")
-          .orderBy("startTime", descending: true)
-          .where('startTime', isGreaterThanOrEqualTo: Timestamp.fromDate(selectedDay))
+          .where('startTime', isGreaterThanOrEqualTo: startTime)
           .get();
 
-      await fs.collection('commercial_space').doc(_id)
-          .collection('rental')
-          .where('endTime', isLessThan: Timestamp.fromDate(selectedDay))
-          .get()
-          .then((querySnapshot) {
-        querySnapshot.docs.forEach((doc) async {
-          await doc.reference.delete();
-        });
+      // Remove rentals with endTime less than selectedDay
+      await Future.forEach(commerRentalQuerySnapshot.docs, (rentalDoc) async {
+        final endTime = rentalDoc['endTime'].toDate();
+        if (endTime.isBefore(selectedDay)) {
+          print('시간이 지나 삭제됨 => ${rentalDoc.id}');
+          await rentalDoc.reference.delete();
+        }
       });
 
       if (commerRentalQuerySnapshot.docs.isNotEmpty) {
@@ -782,12 +818,12 @@ class _MyAppState extends State<MyApp> {
           final endTime = DateFormat('HH:mm').format(rentalDoc['endTime'].toDate());
           final artistId = rentalDoc['artistId'];
 
-          final artistDoc = await fs.collection('artist').doc(artistId).get();
+          final artistDoc = await FirebaseFirestore.instance.collection('artist').doc(artistId).get();
 
           if (artistDoc.exists) {
             final artistName = artistDoc['artistName'];
 
-            final imageDoc = await fs
+            final imageDoc = await FirebaseFirestore.instance
                 .collection('commercial_space')
                 .doc(_id)
                 .collection('image')
@@ -796,7 +832,7 @@ class _MyAppState extends State<MyApp> {
             if (imageDoc.docs.isNotEmpty) {
               final List<dynamic> img = imageDoc.docs.first['path'];
 
-              final addrDoc = await fs
+              final addrDoc = await FirebaseFirestore.instance
                   .collection('commercial_space')
                   .doc(_id)
                   .collection('addr')
@@ -804,8 +840,6 @@ class _MyAppState extends State<MyApp> {
 
               if (addrDoc.docs.isNotEmpty) {
                 final addr = addrDoc.docs.first['addr'];
-
-
 
                 final listItem = Card(
                   child: Padding(
@@ -832,9 +866,9 @@ class _MyAppState extends State<MyApp> {
                                     width: 100,
                                     height: 100,
                                     fit: BoxFit.cover,
-                                    placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
-                                    errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
-                                  )
+                                    placeholder: (context, url) => CircularProgressIndicator(),
+                                    errorWidget: (context, url, error) => Icon(Icons.error),
+                                  ),
                                 ),
                               ),
                               Column(
@@ -849,13 +883,12 @@ class _MyAppState extends State<MyApp> {
                                   ),
                                   Text('공연팀: $artistName'),
                                   Container(
-                                    width: 200, // 원하는 너비로 설정
+                                    width: 200,
                                     child: Text(
                                       addr,
                                       style: TextStyle(fontSize: 13),
                                     ),
                                   ),
-
                                 ],
                               ),
                             ],
@@ -870,7 +903,6 @@ class _MyAppState extends State<MyApp> {
                         ],
                       ),
                       onTap: () {
-                        // 상업공간 공연 상세페이지 SpaceInfo
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => SpaceInfo(_id)),
@@ -879,7 +911,7 @@ class _MyAppState extends State<MyApp> {
                     ),
                   ),
                 );
-                commerWidgets.add(Future.value(listItem));
+                commerWidgets.add(listItem);
               }
             }
           }
@@ -887,6 +919,8 @@ class _MyAppState extends State<MyApp> {
       }
     }
 
-    return Future.wait(commerWidgets);
+    return commerWidgets;
   }
+
+
 }
