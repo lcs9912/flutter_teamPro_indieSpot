@@ -70,13 +70,20 @@ class _ProfileState extends State<Profile> {
           .where('userId', isEqualTo: userId)
           .get();
 
+      QuerySnapshot<Map<String, dynamic>> imageSnapshot = await FirebaseFirestore.instance
+          .collection('posts')
+          .doc('3QjunO69Eb2OroMNJKWU')
+          .collection('image')
+          .where('userId', isEqualTo: userId)
+          .get();
+
       List<Map<String, dynamic>> concertBoardDataList = concertBoardSnapshot.docs.map((doc) => doc.data()!).toList();
       List<Map<String, dynamic>> freeBoardDataList = freeBoardSnapshot.docs.map((doc) => doc.data()!).toList();
       List<Map<String, dynamic>> teamBoardDataList = teamBoardSnapshot.docs.map((doc) => doc.data()!).toList();
+      List<Map<String, dynamic>> imageDataList = imageSnapshot.docs.map((doc) => doc.data()!).toList();
 
-      // 모든 서브컬렉션에서 가져온 데이터를 합쳐서 _postsData에 저장합니다.
       setState(() {
-        _postsData = [...concertBoardDataList, ...freeBoardDataList, ...teamBoardDataList];
+        _postsData = [...concertBoardDataList, ...freeBoardDataList, ...teamBoardDataList, ...imageDataList];
       });
 
       // 포스트 데이터를 콘솔에 출력합니다.
@@ -86,6 +93,7 @@ class _ProfileState extends State<Profile> {
       print('포스트 데이터를 가져오는 중 오류 발생: $e');
     }
   }
+
 
 
   Future<void> getNickFromFirestore(String? userId) async {
@@ -330,7 +338,7 @@ class _ProfileState extends State<Profile> {
                       //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                       // ),
                       Text(
-                        'Following: $_followingCntFromFirestore',
+                        '   Following: $_followingCntFromFirestore',
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                       ),
 
@@ -380,14 +388,16 @@ class _ProfileState extends State<Profile> {
                 ),
               ],
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 40),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => PointDetailed()),
                 );
+
               },
+
               child: Text(
                 '포인트 상세',
                 style: TextStyle(color: Colors.white),
@@ -397,6 +407,20 @@ class _ProfileState extends State<Profile> {
                 fixedSize: Size.fromWidth(500), // 가로로 꽉 차도록 설정
               ),
             ),
+            SizedBox(height: 21,),
+            Text(
+              "post",
+              style: TextStyle(
+                fontSize: 25, // 폰트 크기 조절
+                fontWeight: FontWeight.bold, // 볼드 효과 적용
+              ),
+
+            ),
+            Divider( // 이 부분이 추가된 부분입니다.
+              color: Colors.grey[300], // 회색 줄의 색상을 지정합니다.
+              thickness: 1, // 회색 줄의 두께를 조절합니다.
+            ),
+            SizedBox(height: 21,),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: _postsData.map((postData) {
