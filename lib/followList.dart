@@ -79,15 +79,23 @@ class _FollowListState extends State<FollowList> {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        appBar: AppBar(
-          title: Text('Following Artists'),
-          bottom: TabBar(
-            tabs: [
-              Tab(text: '팔로잉'),
-              Tab(text: '팔로워'),
-            ],
+        appBar:AppBar(
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back,
+              color: Colors.black, // 뒤로가기 아이콘의 색을 검정색으로 설정
+            ),
+            onPressed: () {
+              Navigator.pop(context); // This will navigate back
+            },
           ),
+          title: Text(
+            '회원가입',
+            style: TextStyle(color: Colors.black), // 텍스트 색을 검은색으로 설정
+          ),
+          backgroundColor: Colors.white, // AppBar 배경색을 흰색으로 설정
         ),
+
         body: TabBarView(
           children: [
             Column(
