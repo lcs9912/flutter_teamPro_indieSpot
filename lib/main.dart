@@ -42,6 +42,7 @@ void main() async {
           ],
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
+            scaffoldBackgroundColor: Colors.grey[200], // 전체 페이지의 배경 색상
             fontFamily: 'Noto_Serif_KR', // 폰트 패밀리 이름을 지정
           ),
           home: MyApp(),
@@ -75,6 +76,7 @@ class _MyAppState extends State<MyApp> {
     return Padding(
       padding: const EdgeInsets.all(15.0),
       child: Container(
+        padding: EdgeInsets.only(top: 15,bottom: 15),
         decoration: BoxDecoration(
           color: Colors.grey[300], // 백그라운드 색상
           border: Border.all(
@@ -92,11 +94,14 @@ class _MyAppState extends State<MyApp> {
         ),
         child: Column(
           children: [
-            Row(
-              children: [
-                Text("많이찾는 서비스"),
-                Icon(Icons.gif)
-              ],
+            Padding(
+              padding: const EdgeInsets.only(left: 25.0),
+              child: Row(
+                children: [
+                  Text("많이찾는 서비스"),
+                  Icon(Icons.gif)
+                ],
+              ),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -369,6 +374,7 @@ class _MyAppState extends State<MyApp> {
 
   // 버스킹일정 버스킹 일정
   Future<List<Widget>> _busKinList() async {
+
     // 버스킹 컬렉션 호출
     final buskingQuerySnapshot = await fs
         .collection('busking')
@@ -409,7 +415,6 @@ class _MyAppState extends State<MyApp> {
         // 각 버스킹 아이템에 대한 비동기 작업 병렬화
         final buskingWidgetFuture = _buildBuskingWidget(buskingQuerySnapshot.docs[i]);
         buskingWidgetsFutures.add(buskingWidgetFuture);
-        print('버스킹 일정 문서id${buskingQuerySnapshot.docs[i].id}');
       }
       // 병렬로 모든 위젯 작업을 기다린 다음 반환
       final buskingWidgets = await Future.wait(buskingWidgetsFutures);
@@ -458,7 +463,7 @@ class _MyAppState extends State<MyApp> {
     if (buskingImg.docs.isNotEmpty) {
       String busImg = buskingImg.docs[0]['path'];
 
-      // 예시: ListTile을 사용하여 팀 멤버 정보를 보여주는 위젯을 만듭니다.
+
       return GestureDetector(
         onTap: () {
           Navigator.push(
@@ -468,41 +473,83 @@ class _MyAppState extends State<MyApp> {
             ),
           );
         },
-        child: Row(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(16.0),
-                  child: CachedNetworkImage(
-                    imageUrl: busImg, // 이미지 URL
-                    width: 150,
-                    height: 150,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
-                    errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
-                  )
+        child: Container(
+          margin: EdgeInsets.only(right: 30),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16.0),
+            color: Colors.white, // 배경 색상
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
+                spreadRadius: 3,
+                blurRadius: 7,
+                offset: Offset(0, 3), // 그림자 효과
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16.0),
+                  bottomLeft: Radius.circular(16.0),
                 ),
-                SizedBox(height: 10),
-                Text(buskingDoc['title']),
-                Text(buskingDoc['description']),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Icon(Icons.favorite, size: 15),
-                    Text(busLikeCnt.toString()),
-                    SizedBox(width: 70),
-                    Text('$reviewCnt 리뷰'),
-                  ],
+                child: CachedNetworkImage(
+                  imageUrl: busImg, // 이미지 URL
+                  width: 150,
+                  height: 150,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
+                  errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
                 ),
-                SizedBox(height: 10),
-              ],
-            ),
-            SizedBox(width: 20),
-          ],
+              ),
+              SizedBox(width: 20),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    buskingDoc['title'],
+                    style: TextStyle(
+                      fontSize: 18, // 제목 폰트 크기
+                      fontWeight: FontWeight.bold, // 볼드체
+                    ),
+                  ),
+                  Text(
+                    buskingDoc['description'],
+                    style: TextStyle(
+                      fontSize: 14, // 설명 폰트 크기
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.favorite, size: 15),
+                          Text(
+                            busLikeCnt.toString(),
+                            style: TextStyle(
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        '$reviewCnt 리뷰',
+                        style: TextStyle(
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(width: 20),
+            ],
+          ),
         ),
       );
+
     }
     return Container(); // 이미지가 없는 경우 빈 컨테이너 반환
   }
@@ -667,8 +714,7 @@ class _MyAppState extends State<MyApp> {
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
                                   Container(
-                                    padding: EdgeInsets.only(top: 10),
-                                    margin: EdgeInsets.all(20),
+                                    margin: EdgeInsets.all(10),
                                     child: Column(
                                       children: commersnapshot.data ?? [Container()],
                                     ),
@@ -761,72 +807,77 @@ class _MyAppState extends State<MyApp> {
 
 
 
-                final listItem = ListTile(
-                  visualDensity: VisualDensity(vertical: 4),
-                  contentPadding: EdgeInsets.all(0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  tileColor: Colors.white,
-                  title: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
+                final listItem = Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ListTile(
+                      visualDensity: VisualDensity(vertical: 4),
+                      contentPadding: EdgeInsets.all(0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      tileColor: Colors.white,
+                      title: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Container(
-                              width: 100,
-                              height: 100,
-                              child: CachedNetworkImage(
-                                imageUrl: img[0], // 이미지 URL
-                                width: 100,
-                                height: 100,
-                                fit: BoxFit.cover,
-                                placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
-                                errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
-                              )
-                            ),
+                          Row(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Container(
+                                  width: 100,
+                                  height: 100,
+                                  child: CachedNetworkImage(
+                                    imageUrl: img[0], // 이미지 URL
+                                    width: 100,
+                                    height: 100,
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
+                                    errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
+                                  )
+                                ),
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    spaceName,
+                                    style: TextStyle(
+                                      fontSize: 18.0,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text('공연팀: $artistName'),
+                                  Container(
+                                    width: 200, // 원하는 너비로 설정
+                                    child: Text(
+                                      addr,
+                                      style: TextStyle(fontSize: 13),
+                                    ),
+                                  ),
+
+                                ],
+                              ),
+                            ],
                           ),
                           Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                spaceName,
-                                style: TextStyle(
-                                  fontSize: 18.0,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text('공연팀: $artistName'),
-                              Container(
-                                width: 200, // 원하는 너비로 설정
-                                child: Text(
-                                  addr,
-                                  style: TextStyle(fontSize: 13),
-                                ),
-                              ),
-
+                              Text(date),
+                              Text(startTime),
+                              Text(endTime),
                             ],
                           ),
                         ],
                       ),
-                      Column(
-                        children: [
-                          Text(date),
-                          Text(startTime),
-                          Text(endTime),
-                        ],
-                      ),
-                    ],
+                      onTap: () {
+                        // 상업공간 공연 상세페이지 SpaceInfo
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => SpaceInfo(_id)),
+                        );
+                      },
+                    ),
                   ),
-                  onTap: () {
-                    // 상업공간 공연 상세페이지 SpaceInfo
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => SpaceInfo(_id)),
-                    );
-                  },
                 );
                 commerWidgets.add(Future.value(listItem));
               }

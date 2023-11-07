@@ -309,9 +309,22 @@ class _ProfileState extends State<Profile> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('프로필'),
+        backgroundColor: Colors.white, // AppBar 배경색을 흰색으로 설정
+        title: Text(
+          '프로필',
+          style: TextStyle(color: Colors.black), // 텍스트 색을 검은색으로 설정
+        ),
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: Colors.black, // 뒤로가기 아이콘 색을 검은색으로 설정
+          ),
+          onPressed: () {
+            Navigator.pop(context); // 뒤로가기 기능 추가
+          },
+        ),
       ),
-      body: SingleChildScrollView(
+        body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -425,16 +438,42 @@ class _ProfileState extends State<Profile> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: _postsData.map((postData) {
                 return Card(
-                  child: Column(
-                    children: [
-                      Text('포스트 제목: ${postData['title']}'),
-                      Text('포스트 내용: ${postData['content']}'),
-                      // 원하는 다른 정보들도 여기에 추가할 수 있습니다.
-                    ],
+                  elevation: 5, // 그림자 추가
+                  margin: EdgeInsets.all(10), // 카드 주위의 간격
+                  child: Padding(
+                    padding: EdgeInsets.all(10), // 내부 내용의 간격
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '제목:',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          '${postData['title']}',
+                          style: TextStyle(
+                            fontSize: 16,
+                          ),
+                        ),
+                        SizedBox(height: 10), // 간격 추가
+
+                        Text(
+                          '${postData['content']}',
+                          style: TextStyle(
+                            fontSize: 16,
+                          ),
+                        ),
+                        // 다른 정보들도 원하는대로 추가하세요.
+                      ],
+                    ),
                   ),
                 );
               }).toList(),
-            ),
+            )
+
           ],
         ),
       ),
