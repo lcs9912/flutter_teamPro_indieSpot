@@ -230,7 +230,7 @@ class _SpaceRentalState extends State<SpaceRental> {
       pointBalance = userSnap.docs.first.get("pointBalance");
     });
   }
-  void rentalAdd(){
+  void rentalAdd()async{
     String date = DateFormat('yyyy-MM-dd').format(selectedDay);
     String startTime = '$date ${(selectedHours.first).toString()+':00'}';
     DateTime startDateTime = DateFormat('yyyy-MM-dd HH:mm').parse(startTime);
@@ -240,16 +240,23 @@ class _SpaceRentalState extends State<SpaceRental> {
         .doc(widget.document.id)
         .collection("rental")
         .add({
-          'acceptYn' : "n",
           'artistId' : artistId,
           'cost' : ((selectedHours.last-selectedHours.first)*widget.document.get("rentalfee")),
           'startTime' : startDateTime,
           'endTime' : endDateTime
         });
-    fs.collection("userList").doc(userId).collection("point").doc().update(
+    QuerySnapshot doc =  await fs.collection("userList").doc(userId).collection("point").limit(1).get();
+    fs.collection("userList").doc(userId).collection("point").doc(doc.docs.first.id).update(
         {
           "pointBalance" : pointBalance-((selectedHours.last-selectedHours.first)*widget.document.get("rentalfee"))
         }
+    );
+    fs.collection("userList").doc(userId).collection("point").doc(doc.docs.first.id).collection("points_details").add(
+      {
+        "amount" : ((selectedHours.last-selectedHours.first)*widget.document.get("rentalfee")),
+        "date" : FieldValue.serverTimestamp(),
+        "type" : "예약"
+      }
     );
   }
   Widget titleText(String txt){
