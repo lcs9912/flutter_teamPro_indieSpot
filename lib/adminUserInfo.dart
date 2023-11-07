@@ -257,6 +257,27 @@ class _AdminUserInfoState extends State<AdminUserInfo> {
     ),);
   }
 
+  Future<DocumentSnapshot?> getArtistsWithMatchingTeamMember(String userId) async {
+    DocumentSnapshot? matchingArtist;
+
+    QuerySnapshot artistQuerySnapshot = await fs.collection('artist').get();
+
+    for (QueryDocumentSnapshot artistDocument in artistQuerySnapshot.docs) {
+      QuerySnapshot teamMembersQuerySnapshot = await fs
+          .collection('artist')
+          .doc(artistDocument.id)
+          .collection('team_members')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      if (teamMembersQuerySnapshot.docs.isNotEmpty) {
+        matchingArtist = artistDocument;
+      }
+    }
+
+    return matchingArtist;
+  }
+
   Future<List<Widget>?> _adminUserInfoDetails() async {
     String userId = widget.id;
 
@@ -265,6 +286,7 @@ class _AdminUserInfoState extends State<AdminUserInfo> {
     var allData = await fetchAllData();
 
     var csQuerySnapshot = await fs.collection('commercial_space').where('proprietorId', isEqualTo: userId).get();
+    var artistQuerySnapshot = await getArtistsWithMatchingTeamMember(userId);
 
     List<Map<String, dynamic>> csList = [];
 
@@ -364,9 +386,14 @@ class _AdminUserInfoState extends State<AdminUserInfo> {
                 _currentTabIndex = value;
               }),),
               if (_currentTabIndex == 0)
-                ...[
-                  Text('아티스트'),
-                ]
+                SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('aaa')
+                    ]
+                  ),
+                )
               else if (_currentTabIndex == 1)
                 SingleChildScrollView(
                   child: Column(

@@ -62,24 +62,27 @@ class _AdminUserListState extends State<AdminUserList> {
       ),
       body: ListView(
         children: [
-          TextField(
-            controller: _search,
-            decoration: InputDecoration(
-              hintText: '아이디 & 닉네임 검색',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.search),
-              suffixIcon: IconButton(
-                onPressed: () {
-                  _search.clear();
-                  setState(() {});
-                },
-                icon: Icon(Icons.cancel_outlined),
-                highlightColor: Colors.transparent, // 클릭 시 하이라이트 효과를 제거
-                splashColor: Colors.transparent,
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _search,
+              decoration: InputDecoration(
+                hintText: '아이디 & 닉네임 검색',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.search),
+                suffixIcon: IconButton(
+                  onPressed: () {
+                    _search.clear();
+                    setState(() {});
+                  },
+                  icon: Icon(Icons.cancel_outlined),
+                  highlightColor: Colors.transparent, // 클릭 시 하이라이트 효과를 제거
+                  splashColor: Colors.transparent,
+                ),
               ),
+              textInputAction: TextInputAction.go,
+              onSubmitted: (value){setState(() {}); FocusScope.of(context).unfocus();},
             ),
-            textInputAction: TextInputAction.go,
-            onSubmitted: (value){setState(() {}); FocusScope.of(context).unfocus();},
           ),
           Container(
             child: FutureBuilder<List<Widget>?>(
