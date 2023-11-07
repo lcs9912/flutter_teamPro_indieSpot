@@ -30,7 +30,6 @@ class _MembersEditState extends State<MembersEdit> {
 
   void _checkArtistName() async {
     // 활동명이 비어있는지 확인
-
     if (_artistNick.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('아티스트 활동명을 입력해주세요.')),

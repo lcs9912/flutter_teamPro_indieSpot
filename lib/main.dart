@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:indie_spot/aniTest.dart';
 import 'package:indie_spot/boardList.dart';
 import 'package:indie_spot/login.dart';
 import 'package:indie_spot/pointDetailed.dart';
@@ -306,7 +307,11 @@ class _MyAppState extends State<MyApp> {
               Column(
                 children: [
                   IconButton(
-                      onPressed: (){},
+                      onPressed: (){
+                        Navigator.of(context).push(
+                            MaterialPageRoute(builder: (context) => AnimationExample())
+                        );
+                      },
                       icon: Icon(Icons.send)
                   ),
                   Text("주는지"),
