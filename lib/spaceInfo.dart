@@ -9,6 +9,12 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:provider/provider.dart';
+import 'package:indie_spot/userModel.dart';
+
+import 'dialog.dart';
+
+
 class SpaceInfo extends StatefulWidget {
 
   String spaceId;
@@ -30,6 +36,8 @@ class _SpaceInfoState extends State<SpaceInfo> {
   LatLng? coordinates;
   Map<String,dynamic> addrData = {};
   DocumentSnapshot? doc;
+  String? artistId = "";
+  String? userId = "";
   @override
   void initState() {
     // TODO: implement initState
@@ -39,6 +47,17 @@ class _SpaceInfoState extends State<SpaceInfo> {
     spaceRental();
     deleteExpiredDocuments();
     spaceAddr();
+    final userModel = Provider.of<UserModel>(context, listen: false);
+    if(!userModel.isLogin){
+
+    }else{
+      userId = userModel.userId;
+      if(!userModel.isArtist){
+
+      }else{
+        artistId = userModel.artistId;
+      }
+    }
   }
   @override
   Widget build(BuildContext context) {
@@ -278,6 +297,7 @@ class _SpaceInfoState extends State<SpaceInfo> {
                                     Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: Container(
+                                        margin: EdgeInsets.only(bottom: 50),
                                         decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.black12))),
                                         child: ListTile(
                                           title: Text(artist['artistName']),
@@ -441,7 +461,15 @@ class _SpaceInfoState extends State<SpaceInfo> {
                       )
                   ),
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => SpaceRental(document : doc!),));
+                    if(userId == ""){
+                      DialogHelper.showUserRegistrationDialog(context);
+                    }else{
+                      if(artistId == ""){
+                        DialogHelper.showArtistRegistrationDialog(context);
+                      }else{
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => SpaceRental(document : doc!),));
+                      }
+                    }
                   },
                   child: Text('예약', style: TextStyle(fontSize: 17),),
                 ),)

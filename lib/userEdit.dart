@@ -1,17 +1,21 @@
-
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as path;
+
 import 'package:flutter/services.dart';
 import 'package:indie_spot/profile.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'package:image_picker/image_picker.dart'; // ImagePicker를 import 해주세요.
+import 'package:firebase_storage/firebase_storage.dart';
 class UserEdit extends StatefulWidget {
-  const UserEdit({Key? key}) : super(key: key);
+
 
   @override
   State<UserEdit> createState() => _UserEditState();
 }
+List<String> imagePaths = []; // Add this line to define imagePaths
 
 class _UserEditState extends State<UserEdit> {
   TextEditingController _userIdController = TextEditingController();
@@ -20,6 +24,8 @@ class _UserEditState extends State<UserEdit> {
   TextEditingController _birthdayController = TextEditingController();
   TextEditingController _introductionController = TextEditingController();
 
+  File? _selectedImage; // _selectedImage 변수를 정의합니다.
+  bool _isNameChecked = false; // _isNameChecked 변수를 정의합니다.
   String? _userId;
 
   @override
@@ -36,6 +42,7 @@ class _UserEditState extends State<UserEdit> {
     getEmailFromFirestore();
 
   }
+
 
   Future<void> showLoginDialog(BuildContext context) async {
     return showDialog<void>(
@@ -126,9 +133,37 @@ class _UserEditState extends State<UserEdit> {
       print('문서 업데이트 중 오류 발생: $e');
     }
   }
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedImage = await picker.pickImage(source: ImageSource.gallery);
 
+    if (pickedImage != null) {
+      setState(() {
+        _selectedImage = File(pickedImage.path);
+      });
+    }
+  }
 
+  void _change() {
+    setState(() {
+      _isNameChecked = false;
+    });
+  }
+  Future<String> _uploadImage(File imageFile) async {
+    try {
+      String fileName = path.basename(imageFile.path);
+      Reference firebaseStorageRef = FirebaseStorage.instance.ref().child('image/$fileName');
 
+      UploadTask uploadTask = firebaseStorageRef.putFile(imageFile);
+      TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
+
+      String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      print('Error uploading image: $e');
+      return '';
+    }
+  }
   Future<void> getEmailFromFirestore() async {
     try {
       // Firestore에서 'userList' 컬렉션의 문서를 가져옵니다.
@@ -158,6 +193,94 @@ class _UserEditState extends State<UserEdit> {
     }
   }
 
+  Future<void> _changeProfileImage() async {
+    try {
+      // 1. 새 이미지 선택
+      await _pickImage();
+
+      if (_selectedImage != null) {
+        // 2. Firebase Storage에 이미지 업로드
+        String imageUrl = await _uploadImage(_selectedImage!);
+
+        if (imageUrl.isNotEmpty) {
+          // 3. 이미지 다운로드 URL 얻기 성공
+          // 4. 사용자 정보 업데이트
+          await updateProfileImage(imageUrl);
+        } else {
+          print('Image upload failed');
+        }
+      }
+    } catch (e) {
+      print('Error changing profile image: $e');
+    }
+  }
+
+
+  Future<void> updateProfileImage(String imageUrl) async {
+    try {
+      // Firestore에서 'userList' 컬렉션의 문서를 가져옵니다.
+      DocumentReference documentReference = FirebaseFirestore.instance
+          .collection('userList')
+          .doc(_userId); // 아이디를 사용하여 문서를 가져옵니다.
+
+      // 사용자 정보를 업데이트합니다.
+      await documentReference.update({'profileImage': imageUrl});
+
+      // 업데이트가 성공하면 사용자에게 알림을 띄워줍니다.
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('프로필 이미지 변경 완료'),
+            content: Text('프로필 이미지가 성공적으로 변경되었습니다.'),
+            actions: [
+              TextButton(
+                child: Text('확인'),
+                onPressed: () {
+                  Navigator.of(context).pop(); // 다이얼로그 닫기
+                },
+              ),
+            ],
+          );
+        },
+      );
+    } catch (e) {
+      print('프로필 이미지 변경 중 오류 발생: $e');
+    }
+  }
+
+  // Widget _buildSelectedImage() {
+  //   if (_selectedImage != null) {
+  //     return Center(
+  //       child: Image.file(_selectedImage!, height: 150),
+  //     );
+  //   }
+  //   return Container(); // 이미지가 없을 경우 빈 Container 반환
+  // }
+  Future<List<String>> getImageData() async {
+    try {
+      if (_userId != null) {
+        // Get image paths
+        QuerySnapshot<Map<String, dynamic>> imageSnapshot = await FirebaseFirestore
+            .instance
+            .collection('userList')
+            .doc(_userId)
+            .collection('image')
+            .get();
+
+        // Process the image paths
+        imagePaths =
+            imageSnapshot.docs.map((doc) => doc.data()['path'].toString()).toList();
+      }
+
+      return imagePaths;
+    } catch (e) {
+      print('Error fetching image paths: $e');
+      return []; // Return an empty list in case of an error
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -170,7 +293,9 @@ class _UserEditState extends State<UserEdit> {
           // Align children to the start (left)
           crossAxisAlignment: CrossAxisAlignment.start,
           // Align children to the start (left)
+
           children: [
+
             SizedBox(height: 30),
             Row(
               children: [
@@ -181,9 +306,30 @@ class _UserEditState extends State<UserEdit> {
                   },
                 ),
                 Text("기본정보 수정",style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),),
+
               ],
             ),
+            CircleAvatar(
+              radius: 50,
+              backgroundImage: imagePaths.isNotEmpty
+                  ? AssetImage(
+                  imagePaths[0]) // Assuming you want to use the first image from the list
+                  : AssetImage('assets/기본.jpg'),
+            ),
             SizedBox(height: 30),
+            Column(
+              children: [
+                // _buildSelectedImage(),
+                ElevatedButton(
+                  onPressed: _changeProfileImage,
+                  child: Text('프로필 이미지 변경'),
+                  style: ElevatedButton.styleFrom(
+                    primary: Color(0xFF392F31),
+                  ),
+                ),
+              ],
+            ),
+
             Text("이메일", style: TextStyle(fontSize: 16),),
             SizedBox(height: 20),
             TextField(
@@ -262,6 +408,9 @@ class _UserEditState extends State<UserEdit> {
                 );
               },
               child: Text('프로필 페이지로 이동'),
+              style: ElevatedButton.styleFrom(
+                primary: Color(0xFF392F31),
+              ),
             ),
 
             SizedBox(height: 30),

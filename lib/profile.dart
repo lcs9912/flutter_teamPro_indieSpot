@@ -16,10 +16,16 @@ class Profile extends StatefulWidget {
     required this.userId,
   });
 
-
+  void main() {
+    String postId = '3QjunO69Eb2OroMNJKWU';
+    getPostsData(postId);
+  }
   @override
   _ProfileState createState() => _ProfileState();
+
+  void getPostsData(String postId) {}
 }
+List<Map<String, dynamic>> _postsData = [];
 
 class _ProfileState extends State<Profile> {
 
@@ -31,12 +37,64 @@ class _ProfileState extends State<Profile> {
   String? _followingCntFromFirestore;
   String? _followingCount;
   String? _followingCnt;
+
+
   @override
   void initState() {
     super.initState();
     getNickFromFirestore(widget.userId);
     getIntroductionFromFirestore();
+    getPostsData(widget.userId!);
   }
+
+  Future<void> getPostsData(String userId) async {
+    try {
+      QuerySnapshot<Map<String, dynamic>> concertBoardSnapshot = await FirebaseFirestore.instance
+          .collection('posts')
+          .doc('3QjunO69Eb2OroMNJKWU')
+          .collection('concert_board')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      QuerySnapshot<Map<String, dynamic>> freeBoardSnapshot = await FirebaseFirestore.instance
+          .collection('posts')
+          .doc('3QjunO69Eb2OroMNJKWU')
+          .collection('free_board')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      QuerySnapshot<Map<String, dynamic>> teamBoardSnapshot = await FirebaseFirestore.instance
+          .collection('posts')
+          .doc('3QjunO69Eb2OroMNJKWU')
+          .collection('team_board')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      QuerySnapshot<Map<String, dynamic>> imageSnapshot = await FirebaseFirestore.instance
+          .collection('posts')
+          .doc('3QjunO69Eb2OroMNJKWU')
+          .collection('image')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      List<Map<String, dynamic>> concertBoardDataList = concertBoardSnapshot.docs.map((doc) => doc.data()!).toList();
+      List<Map<String, dynamic>> freeBoardDataList = freeBoardSnapshot.docs.map((doc) => doc.data()!).toList();
+      List<Map<String, dynamic>> teamBoardDataList = teamBoardSnapshot.docs.map((doc) => doc.data()!).toList();
+      List<Map<String, dynamic>> imageDataList = imageSnapshot.docs.map((doc) => doc.data()!).toList();
+
+      setState(() {
+        _postsData = [...concertBoardDataList, ...freeBoardDataList, ...teamBoardDataList, ...imageDataList];
+      });
+
+      // 포스트 데이터를 콘솔에 출력합니다.
+      print('포스트 데이터: $_postsData');
+
+    } catch (e) {
+      print('포스트 데이터를 가져오는 중 오류 발생: $e');
+    }
+  }
+
+
 
   Future<void> getNickFromFirestore(String? userId) async {
     try {
@@ -65,6 +123,32 @@ class _ProfileState extends State<Profile> {
       print('Error fetching nick from Firestore: $e');
     }
   }
+
+  Future<void> getAllSubcollections(String postId, String userId) async {
+    try {
+      // 'posts' 컬렉션 내의 특정 문서에 대한 참조를 가져옵니다.
+      DocumentReference<Map<String, dynamic>> postRef = FirebaseFirestore.instance
+          .collection('posts')
+          .doc(postId);
+
+      // 해당 문서에 연결된 서브컬렉션의 이름을 가져옵니다.
+      CollectionReference<Map<String, dynamic>> subcollectionsRef = postRef.collection(postId);
+
+      // 해당 서브컬렉션 내의 문서들을 가져옵니다.
+      QuerySnapshot<Map<String, dynamic>> subcollectionDocumentsSnapshot = await subcollectionsRef
+          .where('userId', isEqualTo: userId) // userId와 같은 값을 가진 문서들만 가져옵니다.
+          .get();
+
+      List<Map<String, dynamic>> subcollectionDataList = subcollectionDocumentsSnapshot.docs
+          .map((doc) => doc.data()!)
+          .toList();
+
+      print('해당 사용자의 데이터: $subcollectionDataList');
+    } catch (e) {
+      print('데이터를 가져오는 중 오류 발생: $e');
+    }
+  }
+
 
   Future<void> getFollowerFollowingCounts() async {
     try {
@@ -134,6 +218,25 @@ class _ProfileState extends State<Profile> {
     }
   }
 
+  Future<void> getBoardDocumentIds(String? userId) async {
+    try {
+      if (userId != null) {
+        QuerySnapshot<Map<String, dynamic>> boardSnapshot = await FirebaseFirestore.instance
+            .collection('userList')
+            .doc(userId)
+            .collection('board')
+            .get();
+
+        List<String> documentIds = boardSnapshot.docs.map((doc) => doc.id).toList();
+
+        // 이제 'board' 서브컬렉션에서 문서의 아이디 목록을 얻었습니다.
+        print('board 서브컬렉션에서의 문서 아이디들: $documentIds');
+      }
+    } catch (e) {
+      print('board 서브컬렉션에서 문서 아이디를 가져오는 중 오류 발생: $e');
+    }
+  }
+  //3QjunO69Eb2OroMNJKWU
 
   Future<List<String>> getImageData() async {
     try {
@@ -203,6 +306,7 @@ class _ProfileState extends State<Profile> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         title: Text('프로필'),
@@ -234,7 +338,7 @@ class _ProfileState extends State<Profile> {
                       //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                       // ),
                       Text(
-                        'Following: $_followingCntFromFirestore',
+                        '   Following: $_followingCntFromFirestore',
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                       ),
 
@@ -284,14 +388,16 @@ class _ProfileState extends State<Profile> {
                 ),
               ],
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 40),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => PointDetailed()),
                 );
+
               },
+
               child: Text(
                 '포인트 상세',
                 style: TextStyle(color: Colors.white),
@@ -300,6 +406,34 @@ class _ProfileState extends State<Profile> {
                 primary: Color(0xFF392F31), // 버튼 배경색
                 fixedSize: Size.fromWidth(500), // 가로로 꽉 차도록 설정
               ),
+            ),
+            SizedBox(height: 21,),
+            Text(
+              "post",
+              style: TextStyle(
+                fontSize: 25, // 폰트 크기 조절
+                fontWeight: FontWeight.bold, // 볼드 효과 적용
+              ),
+
+            ),
+            Divider( // 이 부분이 추가된 부분입니다.
+              color: Colors.grey[300], // 회색 줄의 색상을 지정합니다.
+              thickness: 1, // 회색 줄의 두께를 조절합니다.
+            ),
+            SizedBox(height: 21,),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: _postsData.map((postData) {
+                return Card(
+                  child: Column(
+                    children: [
+                      Text('포스트 제목: ${postData['title']}'),
+                      Text('포스트 내용: ${postData['content']}'),
+                      // 원하는 다른 정보들도 여기에 추가할 수 있습니다.
+                    ],
+                  ),
+                );
+              }).toList(),
             ),
           ],
         ),

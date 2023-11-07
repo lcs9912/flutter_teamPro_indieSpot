@@ -1,20 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:indie_spot/artistInfo.dart';
-import 'package:indie_spot/artistMembers.dart';
-import 'package:indie_spot/login.dart';
-import 'package:indie_spot/membersEdit.dart';
-import 'package:indie_spot/videoDetailed.dart';
-import 'artistEdit.dart';
 import 'baseBar.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'donationList.dart';
-import 'donationPage.dart';
 import 'userModel.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 
 class ArtistMembers extends StatefulWidget {
   final DocumentSnapshot doc;

@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:indie_spot/dialog.dart';
+import 'package:indie_spot/pointRecharge.dart';
+import 'package:indie_spot/userModel.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'baseBar.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+
 
 class SpaceRental extends StatefulWidget {
   DocumentSnapshot document;
@@ -17,16 +22,29 @@ class _SpaceRentalState extends State<SpaceRental> {
   List<int> availableHours = [];
   List<int> selectedHours = [];
   List<int> checkHours = [];
+  final NumberFormat _numberFormat = NumberFormat.decimalPattern();
+  String? artistId = "";
+  String? userId = "";
+  int pointBalance = 0;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     getAvailableHours();
     rentalCheck();
+    final userModel = Provider.of<UserModel>(context, listen: false);
+    if(!userModel.isArtist){
+
+    }else{
+      artistId = userModel.artistId;
+      userId = userModel.userId;
+      userPoint();
+    }
   }
   @override
   Widget build(BuildContext context) {
-    print(checkHours);
+    print(selectedDay);
+
     return Scaffold(
       drawer: MyDrawer(),
       appBar: AppBar(
@@ -71,35 +89,180 @@ class _SpaceRentalState extends State<SpaceRental> {
       ),
       body: ListView(
         children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 20,left: 20),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("예약 날짜",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),)
-              ],
-            ),
-          ),
+          titleText("예약 날짜"),
           Padding(
             padding: const EdgeInsets.only(left: 10,right: 10),
             child: calendar(),
           ),
+          titleText("예약 시간"),
+          rentalTime(),
           Padding(
-            padding: const EdgeInsets.only(top: 20,left: 20),
+            padding: const EdgeInsets.only(left: 20,top: 10),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("예약 시간",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),)
+                Row(
+                  children: [
+                    Text("예약 장소 : ",style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold)),
+                    Text(widget.document.get("spaceName"))
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 20),
+                  child: Row(
+                    children: [
+                      Text("보유 포인트 : ",style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold)),
+                      Text("${_numberFormat.format(pointBalance)}P")
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
-          rentalTime()
+          Padding(
+            padding: const EdgeInsets.only(left: 20,right: 20,top: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("예약 일시",style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold)),
+                Text("공간 사용료",style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 8,left: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                    "${DateFormat('yyyy-MM-dd(E)','ko_KR').format(selectedDay)}"
+                    "${selectedHours.isNotEmpty? (selectedHours.first).toString()+':00' : ''}"
+                    "${selectedHours.length == 2? '~'+(selectedHours.last).toString()+':00('+(selectedHours.last-selectedHours.first).toString()+"시간)":''}"
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 30),
+                  child: Text("${selectedHours.length == 2? _numberFormat.format((selectedHours.last-selectedHours.first)*widget.document.get("rentalfee"))+"P" : ""}"),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: MyBottomBar(),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButton: Container(
+          margin: EdgeInsets.only(bottom: 40),
+          child: Row(
+            children: [
+              Expanded(child: ElevatedButton(
+                style: ButtonStyle(
+                    minimumSize: MaterialStatePropertyAll(Size(0, 48)),
+                    backgroundColor: MaterialStatePropertyAll(Color(0xFF392F31)),
+                    elevation: MaterialStatePropertyAll(0),
+                    shape: MaterialStatePropertyAll(
+                        RoundedRectangleBorder(
+                            borderRadius: BorderRadius.zero
+                        )
+                    )
+                ),
+                onPressed: () {
+                  if(selectedHours.length != 2){
+                    showDialog(context: context, builder: (context) {
+                      return AlertDialog(
+                        title: Text("알림"),
+                        content: Text("예약할 시간을 선택해주세요."),
+                        actions: [
+                          ElevatedButton(
+                              onPressed: (){
+                                Navigator.of(context).pop();
+                                return;
+                              },
+                              child: Text("확인")
+                          )
+                        ],
+                      );
+                    },);
+                    return;
+                  }else{
+                    if(((selectedHours.last-selectedHours.first)*widget.document.get("rentalfee")) > pointBalance){
+                      showDialog(context: context, builder: (context) {
+                        return AlertDialog(
+                          title: Text("알림"),
+                          content: Text("포인트가 부족합니다."),
+                          actions: [
+                            ElevatedButton(
+                                onPressed: (){
+                                  Navigator.of(context).pop();
+                                  return;
+                                },
+                                child: Text("취소")
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => PointRecharge(),)).then((value) {
+                                  if (value != null && value) {
+                                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SpaceRental(document: widget.document),));
+                                    Navigator.pop(context, true);
+                                    return;
+                                  }
+                                });
+                              },
+                              child: Text("충전"),
+                            )
+                          ],
+                        );
+                      },);
+                      return;
+                    }
+                  }
+                  rentalAdd();
+                },
+                child: Text('예약', style: TextStyle(fontSize: 17),),
+              ),)
+            ],
+          ),
+        )
     );
   }
-
+  Future<void> userPoint() async{
+    QuerySnapshot userSnap = await fs.collection("userList").doc(userId).collection("point").get();
+    setState(() {
+      pointBalance = userSnap.docs.first.get("pointBalance");
+    });
+  }
+  void rentalAdd(){
+    String date = DateFormat('yyyy-MM-dd').format(selectedDay);
+    String startTime = '$date ${(selectedHours.first).toString()+':00'}';
+    DateTime startDateTime = DateFormat('yyyy-MM-dd HH:mm').parse(startTime);
+    String endTime = '$date ${(selectedHours.last).toString()+':00'}';
+    DateTime endDateTime = DateFormat('yyyy-MM-dd HH:mm').parse(endTime);
+    fs.collection("commercial_space")
+        .doc(widget.document.id)
+        .collection("rental")
+        .add({
+          'acceptYn' : "n",
+          'artistId' : artistId,
+          'cost' : ((selectedHours.last-selectedHours.first)*widget.document.get("rentalfee")),
+          'startTime' : startDateTime,
+          'endTime' : endDateTime
+        });
+    fs.collection("userList").doc(userId).collection("point").doc().update(
+        {
+          "pointBalance" : pointBalance-((selectedHours.last-selectedHours.first)*widget.document.get("rentalfee"))
+        }
+    );
+  }
+  Widget titleText(String txt){
+    return Padding(
+      padding: const EdgeInsets.only(top: 20,left: 20),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(txt,style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),)
+        ],
+      ),
+    );
+  }
   Widget calendar(){
     final bool leftChevronVisible;
     return TableCalendar(
@@ -186,8 +349,9 @@ class _SpaceRentalState extends State<SpaceRental> {
         int endHour = int.parse(endFormattedTime.split(':')[0]);
         print(startHour);
         print(endHour);
-        checkTime.add(startHour);
-        checkTime.add(endHour);
+        for(int i= startHour; i<=endHour; i++){
+          checkTime.add(i);
+        }
       }
       setState(() {
         checkHours = checkTime;
@@ -210,15 +374,15 @@ class _SpaceRentalState extends State<SpaceRental> {
               (selectedHours.length == 2 &&
                   hour > selectedHours[0] &&
                   hour < selectedHours[1]);
-          bool isBetweenRange = selectedHours.isNotEmpty &&
-              hour > selectedHours[0] &&
-              hour < selectedHours[selectedHours.length - 1];
-          bool isReserved = checkHours.contains(hour)||(checkHours.length == 2 &&
-              hour > checkHours[0] &&
-              hour < checkHours[1]);
+          bool isReserved = checkHours.contains(hour);
+
+          bool checked = checkHours.isNotEmpty?(selectedHours.length == 1) &&
+              ((selectedHours[0] > checkHours.first && hour < checkHours.first) ||
+                  (selectedHours[0] < checkHours.last && hour > checkHours.last)) : false;
+
           return ElevatedButton(
-            onPressed: isReserved
-                ? null // 만약 이미 예약된 시간이면 onPressed를 null로 설정하여 버튼을 비활성화
+            onPressed: isReserved || checked
+                ? null // 이미 예약된 시간이거나 선택 불가능한 시간이면 onPressed를 null로 설정하여 버튼을 비활성화
                 : () {
               if (selectedHours.contains(hour)) {
                 // 이미 선택된 시간을 다시 눌렀을 때, 선택을 취소하고 리스트를 비웁니다.
@@ -235,21 +399,18 @@ class _SpaceRentalState extends State<SpaceRental> {
                   });
                 } else if (selectedHours.length == 1) {
                   // 이미 선택된 시간이 있을 경우 선택한 시간들 사이의 시간들을 선택합니다.
-                  for(int i=checkHours[0]; i< checkHours[1]; i++){
-                    print(checkHours[0]);
-                    print(checkHours[1]);
-                  }
                   setState(() {
                     selectedHours.add(hour);
                     selectedHours.sort();
                     print(selectedHours);
                   });
-                }else if(selectedHours.length == 2){
+                } else if (selectedHours.length == 2) {
+                  // 이미 두 개의 시간이 선택된 경우, 선택된 시간을 초기화하고 다시 선택합니다.
                   setState(() {
                     selectedHours.clear();
                     selectedHours.add(hour);
+                    print(selectedHours);
                   });
-                  print(selectedHours);
                 }
               }
             },
@@ -257,17 +418,18 @@ class _SpaceRentalState extends State<SpaceRental> {
               backgroundColor: MaterialStateProperty.all<Color>(
                 isSelected
                     ? Colors.green
-                    : isBetweenRange
-                    ? Colors.orange
-                    : isReserved ? Colors.grey : Colors.blue,
+                    : isReserved
+                    ? Colors.grey
+                    : checked
+                    ? Colors.grey
+                    : Colors.blue,
               ),
             ),
             child: Text(
               hour.toString() + ':00',
             ),
           );
-        }
-        ),
+        })
       ),
     );
   }
