@@ -344,26 +344,27 @@ class _ProfileState extends State<Profile> {
                       MaterialPageRoute(builder: (context) => FollowList()),
                     );
                   },
-                  child: Container(
 
-                    child: Column(
-                      children: [
-                        // Text(
-                        //   'Follower: $_followerCount',
-                        //   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                        // ),
-                        Text(
+                  child: Column(
+                    children: [
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: Text(
                           '$_nickFromFirestore',
                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                         ),
-                        Text(
+                      ),
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: Text(
                           '   Following: $_followingCntFromFirestore',
                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                         ),
-
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
+
+
                 )
 
               ],
