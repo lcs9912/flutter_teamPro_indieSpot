@@ -1,7 +1,53 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'notification_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+import 'firebase_options.dart';
+
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  print("백그라운드 메시지 처리 => ${message.notification!.body!}");
+}
+
+void initializeNotification() async {
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  await flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(const AndroidNotificationChannel(
+          'high_importance_channel', 'high_importance_notification',
+          importance: Importance.max));
+
+  await flutterLocalNotificationsPlugin.initialize(const InitializationSettings(
+    android: AndroidInitializationSettings("@mipmap/ic_launcher"),
+  ));
+
+  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+    alert: true,
+    badge: true,
+    sound: true
+  );
+}
+
+Future<void> main() async {
+
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  initializeNotification();
+  runApp(MaterialApp(
+    title: 'Flutter Demo',
+    theme: ThemeData(
+      primaryColor: Colors.blue,
+    ),
+    home: LcsTest(),
+  ));
+}
+
+
 class LcsTest extends StatefulWidget {
   const LcsTest({super.key});
 
@@ -10,121 +56,54 @@ class LcsTest extends StatefulWidget {
 }
 
 class _LcsTestState extends State<LcsTest> {
-  int _counter = 0; // _counter 변수를 0으로 초기화
-  int _targetNumber = 10; // _targetNumber 변수를 10으로 초기화
-  Timer? _timer; // 타이머를 선언
+  var messageString = "";
+
+  void getMyDeviceToken() async {
+    final token = await FirebaseMessaging.instance.getToken();
+    print("내 디바이스 토큰 => $token");
+  }
 
   @override
   void initState() {
+    getMyDeviceToken();
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async{
+      RemoteNotification? notification = message.notification;
+
+      if(notification != null){
+        FlutterLocalNotificationsPlugin().show(
+            notification.hashCode,
+            notification.title,
+            notification.body,
+            const NotificationDetails(
+              android: AndroidNotificationDetails(
+                  'high_importance_channel',
+                  'high_importance_notification',
+                  importance: Importance.max,
+              ),
+            ),
+        );
+        setState(() {
+          messageString = message.notification!.body!;
+          print("Foreground 메시지 수신: $messageString");
+        });
+      }
+    });
     super.initState();
-    _requestNotificationPermissions(); // 알림 권한 요청
   }
 
-  void _requestNotificationPermissions() async {
-    //알림 권한 요청
-    final status = await NotificationService().requestNotificationPermissions();
-    if (status.isDenied  && context.mounted) {
-      showDialog(
-        // 알림 권한이 거부되었을 경우 다이얼로그 출력
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('알림 권한이 거부되었습니다.'),
-          content: Text('알림을 받으려면 앱 설정에서 권한을 허용해야 합니다.'),
-          actions: <Widget>[
-            TextButton(
-              child: Text('설정'), //다이얼로그 버튼의 죄측 텍스트
-              onPressed: () {
-                Navigator.of(context).pop();
-                openAppSettings(); //설정 클릭시 권한설정 화면으로 이동
-              },
-            ),
-            TextButton(
-              child: Text('취소'), //다이얼로그 버튼의 우측 텍스트
-              onPressed: () => Navigator.of(context).pop(), //다이얼로그 닫기
-            ),
-          ],
-        ),
-      );
-    }
-  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('쭈미로운 생활 푸시 알림 예제')),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text('타이머: $_counter'),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('알림 시간 입력(초) : '),
-                SizedBox(
-                  width: 60,
-                  child: TextField(
-                    keyboardType: TextInputType.number,
-                    onChanged: (value) {
-                      setState(() {
-                        _targetNumber = int.parse(value);
-                      });
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: _resetCounter,
-                  child: const Text('초기화'),
-                ),
-                const SizedBox(width: 16),
-                ElevatedButton(
-                  onPressed: _toggleTimer,
-                  child: Text(_timer?.isActive == true ? '정지' : '시작'),
-                ),
-              ],
-            ),
+            Text("메시지 내용 => $messageString"),
           ],
         ),
       ),
     );
   }
 
-  void _resetCounter() {
-    setState(() {
-      _counter = 0; // _counter 변수를 0으로 초기화
-    });
-  }
-
-  void _toggleTimer() {
-    // 타이머 시작/정지 기능
-    if (_timer?.isActive == true) {
-      _stopTimer();
-    } else {
-      _startTimer();
-    }
-  }
-
-  void _startTimer() {
-    //타이머 시작
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      setState(() {
-        _counter++;
-        if (_counter == _targetNumber) {
-          NotificationService().showNotification(20);
-          _stopTimer();
-        }
-      });
-    });
-  }
-
-  void _stopTimer() {
-    //타이머 정지
-    _timer?.cancel();
-  }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:indie_spot/boardList.dart';
+import 'package:indie_spot/commercialList.dart';
 import 'package:indie_spot/login.dart';
 import 'package:indie_spot/pointDetailed.dart';
 import 'package:indie_spot/profile.dart';
@@ -22,17 +23,14 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'join.dart';
 import 'lcsTest.dart';
-import 'notification_service.dart';
 import 'dart:async';
 TextEditingController _nicknameController = TextEditingController();
 TextEditingController _introductionController = TextEditingController();
 
 void main() async {
-  // 앱 실행 전에 NotificationService 인스턴스 생성
-  final notificationService = NotificationService();
-  // 로컬 푸시 알림 초기화
+
+
   WidgetsFlutterBinding.ensureInitialized();
-  await notificationService.init();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -49,7 +47,7 @@ void main() async {
           ],
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
-            scaffoldBackgroundColor: Colors.grey[200], // 전체 페이지의 배경 색상
+            scaffoldBackgroundColor: Colors.white, // 전체 페이지의 배경 색상
             fontFamily: 'Noto_Serif_KR', // 폰트 패밀리 이름을 지정
           ),
           home: MyApp(),
@@ -83,7 +81,6 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    _requestNotificationPermissions(); // 알림 권한 요청
     final userModel = Provider.of<UserModel>(context, listen: false);
     if (!userModel.isLogin) {
 
@@ -92,34 +89,7 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  // 알람 권한
-  void _requestNotificationPermissions() async {
-    //알림 권한 요청
-    final status = await NotificationService().requestNotificationPermissions();
-    if (status.isDenied  && context.mounted) {
-      showDialog(
-        // 알림 권한이 거부되었을 경우 다이얼로그 출력
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('알림 권한이 거부되었습니다.'),
-          content: Text('알림을 받으려면 앱 설정에서 권한을 허용해야 합니다.'),
-          actions: <Widget>[
-            TextButton(
-              child: Text('설정'), //다이얼로그 버튼의 죄측 텍스트
-              onPressed: () {
-                Navigator.of(context).pop();
-                openAppSettings(); //설정 클릭시 권한설정 화면으로 이동
-              },
-            ),
-            TextButton(
-              child: Text('취소'), //다이얼로그 버튼의 우측 텍스트
-              onPressed: () => Navigator.of(context).pop(), //다이얼로그 닫기
-            ),
-          ],
-        ),
-      );
-    }
-  }
+
   
   Widget _iconAni() {
     return Padding(
@@ -476,6 +446,7 @@ class _MyAppState extends State<MyApp> {
         .collection('review')
         .get();
 
+
     if (busReviewSnapshot.docs.isNotEmpty) {
       reviewCnt = busReviewSnapshot.docs.length;
     }
@@ -534,8 +505,8 @@ class _MyAppState extends State<MyApp> {
                 ),
                 child: CachedNetworkImage(
                   imageUrl: busImg, // 이미지 URL
-                  width: 150,
-                  height: 150,
+                  width: 200,
+                  height: 200,
                   fit: BoxFit.cover,
                   placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
                   errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
@@ -612,11 +583,13 @@ class _MyAppState extends State<MyApp> {
                   return Text('Error: ${snapshot.error}');
                 } else {
                   return Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 15,right: 15,top: 15),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.only(bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16)),
+
+                        ),
+                        padding: const EdgeInsets.only(left: 20,right: 15,top: 15),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -751,6 +724,24 @@ class _MyAppState extends State<MyApp> {
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 15,right: 15,top: 5),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text("상업공간 일정",style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+                                        TextButton(
+                                            onPressed: (){
+                                              Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(builder: (_) => CommercialList()) // 상세페이지로 넘어갈것
+                                              );
+                                            },
+                                            child: Text("더보기",style: TextStyle(color: Colors.black),)
+                                        )
+                                      ],
+                                    ),
+                                  ),
                                   Container(
                                     margin: EdgeInsets.all(10),
                                     child: Column(

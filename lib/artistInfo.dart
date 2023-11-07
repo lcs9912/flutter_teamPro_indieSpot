@@ -60,7 +60,6 @@ class _ArtistInfoState extends State<ArtistInfo> {
 
   }
 
-
   // 아티스트 권한 확인
   // 아티스트 멤버 권한이 리더 인 userId 가 _userId 와 같을때
   void artistCheck() async {
@@ -133,6 +132,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
       CollectionReference followAdd =
           fs.collection('artist').doc(widget.doc.id).collection('follower');
 
+
       await followAdd.add({'userId': _userId});
       DocumentReference artistDoc = fs.collection('artist').doc(widget.doc.id);
       artistDoc.update({
@@ -177,7 +177,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
           .where('artistId', isEqualTo: widget.doc.id)
           .get()
           .then((querySnapshot) {
-        querySnapshot.docs.forEach((doc) {
+          querySnapshot.docs.forEach((doc) {
           doc.reference.delete();
         });
       });
