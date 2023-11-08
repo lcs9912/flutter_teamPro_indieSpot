@@ -92,9 +92,9 @@ class _MyDrawerState extends State<MyDrawer> {
       if(userImg.docs.isNotEmpty){
         setState(() {
           imgData = userImg.docs.first.data() as Map<String,dynamic>;
-          imageProvider = NetworkImage(imgData?['PATH']) as ImageProvider<Object>?;
+          imageProvider = NetworkImage(imgData?['PATH']);
         });
-      }else{imageProvider = NetworkImage(imgData?['PATH']) as ImageProvider<Object>?;}
+      }else{imageProvider = NetworkImage(imgData?['PATH']);}
     }
   }
 

@@ -8,6 +8,7 @@ import 'package:indie_spot/baseBar.dart';
 import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class VideoDetailed extends StatefulWidget {
   final Map<String, dynamic> videoDetailData;
@@ -116,13 +117,6 @@ class _VideoDetailedState extends State<VideoDetailed> {
       drawer: MyDrawer(),
       appBar: AppBar(
         actions: [
-          IconButton(
-            onPressed: () {
-              // 아이콘 클릭 시 수행할 작업 추가
-            },
-            icon: Icon(Icons.person),
-            color: Colors.black54,
-          ),
           Builder(
             builder: (context) {
               return IconButton(
@@ -195,11 +189,15 @@ class _VideoDetailedState extends State<VideoDetailed> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Container(
-                      width: 35,
-                      height: 50,
-                      child: CircleAvatar(
-                        radius: 40,
-                        backgroundImage: NetworkImage(img) // 프로필 이미지
+                      child: ClipOval(
+                        child: CachedNetworkImage(
+                          imageUrl: img ?? '', // 이미지 URL
+                          width: 35,
+                          height: 35,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => CircularProgressIndicator(),
+                          errorWidget: (context, url, error) => Icon(Icons.error),
+                        ) // 프로필 이미지
                       ),
                     ),
                     TextButton(

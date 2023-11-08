@@ -42,13 +42,6 @@ class _AddAnnouncementState extends State<AddAnnouncement> {
       drawer: MyDrawer(),
       appBar: AppBar(
         actions: [
-          IconButton(
-            onPressed: () {
-              // 아이콘 클릭 시 수행할 작업 추가
-            },
-            icon: Icon(Icons.person),
-            color: Colors.black54,
-          ),
           Builder(
             builder: (context) {
               return IconButton(

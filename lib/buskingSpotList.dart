@@ -136,11 +136,6 @@ class _BuskingZoneListState extends State<BuskingZoneList> {
             backgroundColor: Colors.white,
             appBar: AppBar(
               actions: [
-                IconButton(
-                    onPressed: (){
-
-                    },
-                    icon: Icon(Icons.person),color: Colors.black54),
                 Builder(
                     builder: (context) {
                       return IconButton(

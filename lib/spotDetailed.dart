@@ -153,11 +153,6 @@ class _SpotDetailedState extends State<SpotDetailed> {
     return AppBar(
       elevation: 1,
       actions: [
-        IconButton(
-            onPressed: (){
-
-            },
-            icon: Icon(Icons.person),color: Colors.black54),
         Builder(
             builder: (context) {
               return IconButton(
