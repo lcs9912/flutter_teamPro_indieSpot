@@ -7,9 +7,9 @@ import 'baseBar.dart';
 
 class DonationList extends StatefulWidget {
 
-  DocumentSnapshot artistDoc;
+  String artistId;
 
-  DonationList({required this.artistDoc});
+  DonationList({required this.artistId});
   @override
   State<DonationList> createState() => _DonationListState();
 }
@@ -47,12 +47,12 @@ class _DonationListState extends State<DonationList> {
   }
 
   void _artistDonationList() async{
-    DocumentSnapshot artistSnap = await fs.collection("artist").doc(widget.artistDoc.id).get();
+    DocumentSnapshot artistSnap = await fs.collection("artist").doc(widget.artistId).get();
     if(artistSnap.exists){
       setState(() {
         artistData = artistSnap.data() as Map<String,dynamic>;
       });
-      QuerySnapshot artistImgSnap = await fs.collection("artist").doc(widget.artistDoc.id).collection("image").get();
+      QuerySnapshot artistImgSnap = await fs.collection("artist").doc(widget.artistId).collection("image").get();
       if(artistImgSnap.docs.isNotEmpty){
         setState(() {
           artistImg = artistImgSnap.docs.first;
@@ -69,7 +69,7 @@ class _DonationListState extends State<DonationList> {
       artistSnap =
       await fs
           .collection("artist")
-          .doc(widget.artistDoc.id)
+          .doc(widget.artistId)
           .collection("donation_details")
           .orderBy("date", descending: true)
           .get();
@@ -87,7 +87,7 @@ class _DonationListState extends State<DonationList> {
       artistSnap =
       await fs
           .collection("artist")
-          .doc(widget.artistDoc.id)
+          .doc(widget.artistId)
           .collection("donation_details")
           .orderBy("date", descending: true)
           .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(firstDayOfMonth))
@@ -385,12 +385,12 @@ class _DonationListState extends State<DonationList> {
   }
 
   Future<void> _editDonationAmount() async{
-    DocumentSnapshot doc = await fs.collection('artist').doc(widget.artistDoc.id).get();
+    DocumentSnapshot doc = await fs.collection('artist').doc(widget.artistId).get();
     int donationAmount = (doc.data() as Map<String, dynamic>)['donationAmount'] as int;
     String? userId = Provider.of<UserModel>(context, listen: false).userId;
 
     if (userId != null) {
-      await fs.collection('artist').doc(widget.artistDoc.id).update({
+      await fs.collection('artist').doc(widget.artistId).update({
         'donationAmount': 0,
       }).then((value) async {
         var docFirst = await fs.collection('userList').doc(userId).collection('point').limit(1).get();

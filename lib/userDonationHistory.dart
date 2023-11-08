@@ -326,7 +326,7 @@ class _UserDonationHistoryState extends State<UserDonationHistory> {
               } else if (snapshot.hasError) {
                 return const Center(child: Text('Error fetching data'));
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('No data available'));
+                return const Center(child: Text('후원 내역이 없습니다'));
               } else {
                 return Expanded(
                   child: ListView(

@@ -45,7 +45,6 @@ class _SpaceInfoState extends State<SpaceInfo> {
     spaceImg();
     spaceData();
     spaceRental();
-    deleteExpiredDocuments();
     spaceAddr();
     final userModel = Provider.of<UserModel>(context, listen: false);
     if(!userModel.isLogin){
@@ -496,6 +495,7 @@ class _SpaceInfoState extends State<SpaceInfo> {
           titleTextStyle: TextStyle(fontWeight: FontWeight.w700)),
 
       onDaySelected: (DateTime selectedDay, DateTime focusedDay) {
+
         if (selectedDay.isBefore(DateTime.now())) {
           return;
         }
@@ -653,19 +653,4 @@ class _SpaceInfoState extends State<SpaceInfo> {
     }
   }
 
-  Future<void> deleteExpiredDocuments() async { // 지난 예약 삭제
-    final currentDate = DateTime.now();
-    final collectionRef = fs.collection('commercial_space').doc(widget.spaceId).collection("rental"); // Replace 'yourCollection' with your collection name
-
-    QuerySnapshot querySnapshot = await collectionRef.get();
-    for (QueryDocumentSnapshot doc in querySnapshot.docs) {
-      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      DateTime endTime = (data['endTime'] as Timestamp).toDate(); // Assuming endTime field is a Firestore Timestamp
-
-      if (endTime.isBefore(currentDate)) {
-        await collectionRef.doc(doc.id).delete();
-        print('Document ${doc.id} deleted.');
-      }
-    }
-  }
 }

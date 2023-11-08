@@ -119,8 +119,7 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
                                   return Padding(
                                     padding: const EdgeInsets.all(10.0),
                                     child: ListTile(
-                                      title: Text(
-                                          '${data['title']}'),
+                                      title: Text('${data['title']}  '),
                                       subtitle: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
@@ -145,6 +144,7 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
                                     title: Text('${data['artistId']}'),
                                     subtitle: Column(
                                       children: [
+                                        Text(artistData['artistName']),
                                         Text('일시 : ${data['buskingStart']}'),
                                         Text('장소: ${spotData['spotName']}')
                                       ],

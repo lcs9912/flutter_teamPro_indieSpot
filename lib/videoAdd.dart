@@ -276,29 +276,30 @@ class _YoutubeTestState extends State<YoutubeAdd> {
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _videoContent,
-              onTap: (){
-                setState(() {
-                  states3 = 0;
-                  state1 = 0;
-                });
-              },
-              decoration: InputDecoration(
-                hintText: "등록할 영상의 설명을 입력하세요",
-                enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: states3 == 1 ? Colors.red : Colors.black54)
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Colors.blue, // 활성 상태 보더 색상 설정
-                  ),
-                ),
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    _videoContent.clear();
+            child: Container(
+              child: SingleChildScrollView(
+                child: TextField(
+                  controller: _videoContent,
+                  maxLines: null,
+                  onTap: (){
+                    setState(() {
+                      states3 = 0;
+                      state1 = 0;
+                    });
                   },
-                  icon: Icon(Icons.cancel_outlined),
+                  decoration: InputDecoration(
+                    hintText: "등록할 영상의 설명을 입력하세요",
+                    enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: states3 == 1 ? Colors.red : Colors.black54)
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.blue, // 활성 상태 보더 색상 설정
+                      ),
+                    ),
+                    isCollapsed: true,
+                    contentPadding: EdgeInsets.fromLTRB(5, 10, 5, 100),
+                  ),
                 ),
               ),
             ),
