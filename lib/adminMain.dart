@@ -59,7 +59,7 @@ class _AdminMainState extends State<AdminMain> {
               onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => AdminInquiry(),)),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Color(0xFF392F31),
+                  color: Color(0xFFFF9797),
                   border: Border.all(width: 1, color: Colors.black),
                 ),
                 child: Column(
@@ -75,7 +75,7 @@ class _AdminMainState extends State<AdminMain> {
               onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => AdminUserList(),)),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Color(0xFF392F31),
+                  color: Color(0xFFFF9797),
                   border: Border.all(width: 1, color: Colors.black),
                 ),
                 child: Column(

@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'baseBar.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_cropper/image_cropper.dart';
 
 class BuskingReservation extends StatefulWidget {
   BuskingReservation();
@@ -236,13 +237,19 @@ class _BuskingReservationState extends State<BuskingReservation> {
           onTap: () async{
             var picker = ImagePicker();
             var image = await picker.pickImage(source: ImageSource.gallery);
-            if(image != null){
-              dynamic sendData = image.path;
 
-              setState(() {
-                _image = File(image.path);
-                _imageName = image.name;
-              });
+            if (image != null) {
+              final croppedImage = await ImageCropper().cropImage(
+                sourcePath: image.path,
+                aspectRatio: CropAspectRatio(ratioX: 1.5, ratioY: 1), // 원하는 가로세로 비율 설정
+              );
+
+              if (croppedImage != null) {
+                setState(() {
+                  _image = File(croppedImage.path);
+                  _imageName = image.name;
+                });
+              }
             }
           },
           child: _imageBox(),

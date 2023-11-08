@@ -9,7 +9,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
-
+import 'package:image_cropper/image_cropper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,7 +41,6 @@ class _ArtistRegiState extends State<ArtistRegi> {
 
   bool _isNameChecked = false;
   File? _selectedImage;
-
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
   final TextEditingController _basicPrice = TextEditingController(); // 기본공연비(30분기준)
   final TextEditingController _artistName = TextEditingController();
@@ -78,10 +77,17 @@ class _ArtistRegiState extends State<ArtistRegi> {
     final picker = ImagePicker();
     final pickedImage = await picker.pickImage(source: ImageSource.gallery);
 
-    if(pickedImage != null){
-      setState(() {
-        _selectedImage = File(pickedImage.path);
-      });
+    if (pickedImage != null) {
+      final croppedImage = await ImageCropper().cropImage(
+        sourcePath: pickedImage.path,
+        aspectRatio: CropAspectRatio(ratioX: 1.5, ratioY: 1), // 원하는 가로세로 비율 설정
+      );
+
+      if (croppedImage != null) {
+        setState(() {
+          _selectedImage = File(croppedImage.path);
+        });
+      }
     }
   }
 
