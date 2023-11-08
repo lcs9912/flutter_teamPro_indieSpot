@@ -40,12 +40,12 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
               onPressed: (){
 
               },
-              icon: Icon(Icons.person),color: Colors.black54),
+              icon: Icon(Icons.person),color: Colors.white),
           IconButton(
               onPressed: (){
                 Scaffold.of(context).openDrawer();
               },
-              icon: Icon(Icons.menu),color: Colors.black54),
+              icon: Icon(Icons.menu),color: Colors.white),
         ]
     );
   }
