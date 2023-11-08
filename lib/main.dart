@@ -794,7 +794,8 @@ class _MyAppState extends State<MyApp> {
       // Remove rentals with endTime less than selectedDay
       await Future.forEach(commerRentalQuerySnapshot.docs, (rentalDoc) async {
         final endTime = rentalDoc['endTime'].toDate();
-        if (endTime.isBefore(selectedDay)) {
+        DateTime threeMonthsLater = endTime.add(Duration(days: 3 * 30));
+        if (endTime.isBefore(endTime)) {
           print('시간이 지나 삭제됨 => ${rentalDoc.id}');
           await rentalDoc.reference.delete();
         }
