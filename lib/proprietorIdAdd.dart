@@ -11,7 +11,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
-
+import 'loading.dart';
 import 'concertDetails.dart';
 
 class ProprietorAdd extends StatefulWidget {
@@ -146,32 +146,32 @@ class _ProprietorAddState extends State<ProprietorAdd> {
   void addGenresToFirestore() async {
 
 
-    if(allYn){
-      final collectionReference = fs.collection('userList').doc(_userId).collection('proprietor');
-
-      final imageUrl = await _uploadImage(_selectedImage!);
-
-
-      String inputProprietorNum = _proprietorNum.text; // 사업자 번호 입력
-      String formattedProprietorNum = ''; // 사업자 번호 가공
-      formattedProprietorNum = '${inputProprietorNum.substring(0, 3)}-${inputProprietorNum.substring(3, 5)}-${inputProprietorNum.substring(5)}';
-      // 중복 체크를 위한 쿼리
-      final querySnapshot = await collectionReference.where('proprietorNum', isEqualTo: formattedProprietorNum).get();
-      if (querySnapshot.docs.isEmpty) {
-        // 중복되지 않을 때만 데이터를 추가
-        collectionReference.add({
-          "businessImage": imageUrl,
-          "representativeName": _representativeName.text,
-          "proprietorNum": formattedProprietorNum,
-          "termsYn" : termsYn
-        }).then((value) => commerAdd());
-      } else {
-        showDuplicateAlert("중복안내", "이미등록된 사업자 번호입니다.");
-        // 포커스 주고 테두리 빨간색 밑에 텍스트
-      }
-    } else {
-
-    }
+    // if(allYn){
+    //   final collectionReference = fs.collection('userList').doc(_userId).collection('proprietor');
+    //
+    //   final imageUrl = await _uploadImage(_selectedImage!);
+    //
+    //
+    //   String inputProprietorNum = _proprietorNum.text; // 사업자 번호 입력
+    //   String formattedProprietorNum = ''; // 사업자 번호 가공
+    //   formattedProprietorNum = '${inputProprietorNum.substring(0, 3)}-${inputProprietorNum.substring(3, 5)}-${inputProprietorNum.substring(5)}';
+    //   // 중복 체크를 위한 쿼리
+    //   final querySnapshot = await collectionReference.where('proprietorNum', isEqualTo: formattedProprietorNum).get();
+    //   if (querySnapshot.docs.isEmpty) {
+    //     // 중복되지 않을 때만 데이터를 추가
+    //     collectionReference.add({
+    //       "businessImage": imageUrl,
+    //       "representativeName": _representativeName.text,
+    //       "proprietorNum": formattedProprietorNum,
+    //       "termsYn" : termsYn
+    //     }).then((value) => commerAdd());
+    //   } else {
+    //     showDuplicateAlert("중복안내", "이미등록된 사업자 번호입니다.");
+    //     // 포커스 주고 테두리 빨간색 밑에 텍스트
+    //   }
+    // } else {
+    //
+    // }
 
   }
 
@@ -682,7 +682,7 @@ class _ProprietorAddState extends State<ProprietorAdd> {
     double screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFFFFB41D),
         title: Center(
           child: Text(
             '상업공간 등록',
@@ -693,9 +693,23 @@ class _ProprietorAddState extends State<ProprietorAdd> {
           ),
         ),
         iconTheme: IconThemeData(color: Colors.black),
+        actions: [
+          Builder(
+            builder: (context) {
+              return IconButton(
+                color: Color(0xFF56555B),
+                onPressed: () {
+                  Scaffold.of(context).openDrawer();
+                },
+                icon: Icon(Icons.menu),
+              );
+            },
+          )
+        ],
       ),
+
       body: Center(
-        child: isProcessing ? CircularProgressIndicator() : SingleChildScrollView(
+        child: isProcessing ? LoadingWidget() : SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(15),
             child: Column(
@@ -1051,7 +1065,6 @@ class _ProprietorAddState extends State<ProprietorAdd> {
           SizedBox(
             height: 35,
             child: TextField(
-              autofocus: true,
               style: TextStyle(
                   fontWeight: FontWeight.w500
               ),

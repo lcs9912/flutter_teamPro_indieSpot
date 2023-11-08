@@ -40,6 +40,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
   @override
   void initState() {
     _followerCount();
+    artistLoad();
     final userModel = Provider.of<UserModel>(context, listen: false);
     if (!userModel.isLogin) {
     } else {
@@ -189,8 +190,10 @@ class _ArtistInfoState extends State<ArtistInfo> {
     }
   }
 
+  // 아티스트정보 불러오기
   void artistLoad() async {
-    final artistDoc = await fs.collection('artist').get();
+    final artistDoc = await fs.collection('artist').where('').get();
+
   }
 
   // 기본 엘럿 
@@ -326,7 +329,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
         animatedIcon: AnimatedIcons.menu_close,
         visible: true,
         curve: Curves.bounceIn,
-        backgroundColor: Color(0xFFff964f),
+        backgroundColor: Color(0xFF233067),
         children: [
           SpeedDialChild(
               child: const Icon(Icons.settings_sharp, color: Colors.white),
@@ -756,13 +759,13 @@ class _ArtistInfoState extends State<ArtistInfo> {
         appBar: AppBar(
           flexibleSpace: Container(
             decoration: BoxDecoration(
-              color: Color(0xFFff964f), // 원하는 배경 색상으로 변경
+              color: Color(0xFFffffff), // 원하는 배경 색상으로 변경
             ),
           ),
           leading: Builder(
             builder: (context) {
               return IconButton(
-                color: Colors.black54,
+                color: Color(0xFF233067),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -774,14 +777,14 @@ class _ArtistInfoState extends State<ArtistInfo> {
             child: Text(
               "${widget.doc['artistName']}",
               style:
-                  TextStyle(color: Colors.black54, fontWeight: FontWeight.bold),
+                  TextStyle(color: Color(0xFF233067), fontWeight: FontWeight.bold),
             ),
           ),
           actions: [
             Builder(
               builder: (context) {
                 return IconButton(
-                  color: Color(0xFF56555B),
+                  color: Color(0xFF233067),
                   onPressed: () {
                     Scaffold.of(context).openDrawer();
                   },
@@ -793,12 +796,13 @@ class _ArtistInfoState extends State<ArtistInfo> {
           backgroundColor: Colors.white,
           bottom: TabBar(
             tabs: [
-              Tab(text: '소개'),
+              Tab(text: '소개',),
               Tab(text: '공연일정'),
               Tab(text: '클립'),
             ],
+            indicatorColor:Color(0xFF233067),
             unselectedLabelColor: Colors.black,
-            labelColor: Colors.blue,
+            labelColor: Color(0xFF233067),
             labelStyle: TextStyle(
               fontWeight: FontWeight.bold,
             ),
@@ -875,7 +879,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
                                         },
                                         child: Text(
                                           "버스킹",
-                                          style: TextStyle(color: Colors.grey),
+                                          style: TextStyle(color: Color(0xFF233067)),
                                         ),
                                       ),
                                     ),

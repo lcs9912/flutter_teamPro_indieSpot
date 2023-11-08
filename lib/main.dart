@@ -47,7 +47,7 @@ void main() async {
         ],
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          scaffoldBackgroundColor: Color(0xFFfff0da), // 전체 페이지의 배경 색상
+          scaffoldBackgroundColor: Color(0xFFffffff), // 전체 페이지의 배경 색상
           fontFamily: 'Noto_Serif_KR', // 폰트 패밀리 이름을 지정
         ),
         getPages: [
@@ -98,19 +98,13 @@ class _MyAppState extends State<MyApp> {
       child: Container(
         padding: EdgeInsets.only(top: 15,bottom: 15),
         decoration: BoxDecoration(
-          color: Color(0xFFF156F1), // 백그라운드 색상
+          color: Color(0xFFffffff), // 백그라운드 색상
           border: Border.all(
             color: Color(0xFF392F31), // 보더 색상
-            width: 2.0, // 보더 두께
+            width: 0.5, // 보더 두께
           ),
           borderRadius: BorderRadius.circular(10.0), // 모서리 라운드
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey, // 그림자 색상
-              blurRadius: 5.0, // 그림자 블러 반지름
-              offset: Offset(0, 3), // 그림자 위치 (가로, 세로)
-            ),
-          ],
+
         ),
         child: Column(
           children: [
@@ -484,7 +478,7 @@ class _MyAppState extends State<MyApp> {
           margin: EdgeInsets.only(right: 30),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16.0),
-            color: Color(0xFFFFFFFF), // 배경 색상
+            color: Color(0xFFffffff), // 배경 색상
             boxShadow: [
               BoxShadow(
                 color: Colors.grey.withOpacity(0.5),
@@ -842,7 +836,19 @@ class _MyAppState extends State<MyApp> {
               if (addrDoc.docs.isNotEmpty) {
                 final addr = addrDoc.docs.first['addr'];
                 final listItem = Card(
-                  child: Padding(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16.0),
+                      color: Color(0xFFffffff), // 배경 색상
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.5),
+                          spreadRadius: 3,
+                          blurRadius: 7,
+                          offset: Offset(0, 3), // 그림자 효과
+                        ),
+                      ],
+                    ),
                     padding: const EdgeInsets.all(8.0),
                     child: ListTile(
                       visualDensity: VisualDensity(vertical: 4),
