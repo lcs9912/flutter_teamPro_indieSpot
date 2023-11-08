@@ -559,7 +559,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                             Positioned(
                               right: 1,
                               top: 1,
-                              child: Text(folCnt.toString()),
+                              child: Text(folCnt != null ? folCnt.toString() : ''), // 데이터가 null이 아닌 경우에만 출력
                             ),
                             if (_followerFlg)
                               IconButton(
@@ -741,10 +741,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                           Row(
                             children: [
                               SizedBox(width: 10), // Add some space between avatar and nickname
-                              Text(
-                                _nick ?? '게스트', // nick 값이 null이면 '게스트'를 출력
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                              ),
+
 
                               Spacer(),
 
@@ -870,20 +867,29 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                             "${document['reviewContents']}",
                                             style: TextStyle(fontSize: 16), // Adjust font size
                                           ),
-                                          RatingBarIndicator(
-                                            rating: double.parse(document['rating'].toString()),
-                                            itemBuilder: (context, index) => Icon(
-                                              Icons.star,
-                                              color: Colors.amber,
+                                          SizedBox(height: 10,),
+                                          Align(
+                                            alignment: Alignment.bottomLeft,
+                                            child: RatingBarIndicator(
+                                              rating: double.parse(document['rating'].toString()),
+                                              itemBuilder: (context, index) => Icon(
+                                                Icons.star,
+                                                color: Colors.amber,
+                                              ),
+                                              itemCount: 5,
+                                              itemSize: 20.0,
+                                              direction: Axis.horizontal,
                                             ),
-                                            itemCount: 5,
-                                            itemSize: 20.0,
-                                            direction: Axis.horizontal,
                                           ),
-                                          Text(
-                                            "${DateFormat('yyyy-MM-dd').format(document['timestamp'].toDate())}",
-                                            style: TextStyle(fontSize: 13, color: Colors.black87), // Adjust font size and color
+
+                                          Align(
+                                            alignment: Alignment.centerRight,
+                                            child: Text(
+                                              "${DateFormat('yyyy-MM-dd').format(document['timestamp'].toDate())}",
+                                              style: TextStyle(fontSize: 13, color: Colors.black87),
+                                            ),
                                           ),
+
                                         ],
                                       ),
                                     ),
