@@ -42,7 +42,10 @@ class _ConcertDetailsState extends State<ConcertDetails> {
   String? _artistId;
   String? _path;
   String? _nick;
-
+  String updatedComment = '';
+  String currentContent = ""; // 현재 댓글 내용
+  String buskingId = ""; // 버스킹 ID
+  String reviewId = "";
   Future<void> loadBuskingData() async {
     buskingData = null;
     DocumentSnapshot<Map<String, dynamic>> buskingSnapshot = await getBuskingDetails(widget.document.id);
@@ -57,6 +60,19 @@ class _ConcertDetailsState extends State<ConcertDetails> {
       _artistId = buskingSnapshot.data()?['artistId'];
       getArtistImages(buskingSnapshot.data()?['artistId']);
     });
+  }
+  Future<void> updateReviewContent(String buskingID, String reviewID, String updatedContent) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('busking')
+          .doc(buskingID) // 기존 문서를 참조합니다.
+          .collection('review')
+          .doc(reviewID) // 업데이트할 리뷰의 ID
+          .update({'content': updatedContent});
+    } catch (e) {
+      print('Error updating review content: $e');
+      // 에러 핸들링을 여기에 추가하세요.
+    }
   }
 
   Future<void> main() async {
@@ -121,48 +137,69 @@ class _ConcertDetailsState extends State<ConcertDetails> {
       print('Error fetching email: $e');
     }
   }
-  _alertDialogWidget() {
+  _alertDialogWidget(String buskingId, String reviewId, String currentContent) {
     showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            content: Text("로그인이후 이용 가능합니다."),
-            actions: [
-              ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  }, // 기능
-                  child: Text("취소")),
-              ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => LoginPage(),
-                      ),
-                    ).then((value) => Navigator.of(context).pop());
-                  }, // 기능
-                  child: Text("로그인")),
-            ],
-          );
-        });
+      context: context,
+      builder: (BuildContext context) {
+        String updatedContent = currentContent;
+        TextEditingController textEditingController =
+        TextEditingController(text: currentContent);
+        return AlertDialog(
+          title: Text('댓글 수정'),
+          content: TextField(
+            onChanged: (value) {
+              setState(() {
+                updatedContent = value;
+              });
+            },
+            controller: textEditingController,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                // 수정 내용을 저장하는 로직 추가
+                if (updatedContent.isNotEmpty) {
+                  print('d');
+                  try {
+                    await FirebaseFirestore.instance
+                        .collection('busking')
+                        .doc(buskingId)
+                        .collection('review')
+                        .doc(reviewId)
+                        .update({'content': updatedContent});
+                  } catch (e) {
+                    print('Error updating review content: $e');
+                    // 에러 핸들링을 원하는 대로 추가하세요.
+                  }
+                }
+                Navigator.pop(context);
+              },
+              child: Text('저장'),
+            ),
+          ],
+        );
+      },
+    );
   }
+
   void _followAdd() async {
     if (_userId == null) {
-      _alertDialogWidget();
+      _alertDialogWidget('', '', ''); // 빈 문자열 전달
     } else {
-      CollectionReference followAdd =
-      fs.collection('artist').doc(_artistId).collection('follower');
+      CollectionReference followAdd = fs
+          .collection('artist')
+          .doc(_artistId)
+          .collection('follower');
 
       await followAdd.add({'userId': _userId});
       DocumentReference artistDoc = fs.collection('artist').doc(_artistId);
       artistDoc.update({
         'followerCnt': FieldValue.increment(1), // 1을 증가시킵니다.
       });
-      // 유저
+
       var myFollowingRef = fs.collection('userList').doc(_userId);
       var myFollowing = await myFollowingRef.collection('following');
-      print(_userId);
+
       await myFollowing.add({"artistId": _artistId});
       myFollowingRef.update({
         'followingCnt': FieldValue.increment(1),
@@ -171,6 +208,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
       _followCheck();
     }
   }
+
   void _followCheck() async {
     final followYnSnapshot = await fs
         .collection('artist')
@@ -858,6 +896,71 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
+                                          TextButton(
+                                            onPressed: () {
+                                              showDialog(
+                                                context: context,
+                                                builder: (BuildContext context) {
+                                                  TextEditingController textEditingController = TextEditingController(text: currentContent);
+                                                  return AlertDialog(
+                                                    title: Text('댓글 수정'),
+                                                    content: TextField(
+                                                      controller: textEditingController, // 컨트롤러 추가
+                                                      onChanged: (value) {
+                                                        // 사용자가 입력한 내용을 업데이트
+                                                        setState(() {
+                                                          updatedComment = value;
+                                                        });
+                                                      },
+                                                    ),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () async {
+                                                          // 수정 내용을 저장하는 로직 추가
+                                                          if (updatedComment.isNotEmpty) {
+                                                            try {
+                                                              await FirebaseFirestore.instance
+                                                                  .collection('busking')
+                                                                  .doc(widget.document.id)
+                                                                  .collection('review')
+                                                                  .doc(document.reference.id)
+                                                                  .update({'content': updatedComment});
+                                                              Navigator.pop(context);
+                                                            } catch (e) {
+                                                              print('Error updating review content: $e');
+                                                              // 에러 핸들링을 원하는 대로 추가하세요.
+                                                            }
+                                                          }
+                                                        },
+                                                        child: Text(
+                                                          '저장',
+                                                          style: TextStyle(color: Colors.black), // 버튼 텍스트 색상을 회색으로 설정
+                                                        ),
+                                                        style: TextButton.styleFrom(
+                                                          backgroundColor: Colors.grey, // 버튼 배경색을 회색으로 설정
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              );
+                                            },
+                                            child: SizedBox(
+                                              width: double.infinity, // 화면 전체의 너비를 차지하도록 설정
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween, // 텍스트와 간격 사이에 공간을 만듭니다.
+                                                children: [
+                                                  SizedBox(width: 8.0),
+                                                  Text(
+                                                    '수정하기',
+                                                    style: TextStyle(color: Colors.black),
+                                                  ),
+                                                  // 오른쪽 간격 조절
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+
 
                                           Text(
                                             "${document['nick']}",
