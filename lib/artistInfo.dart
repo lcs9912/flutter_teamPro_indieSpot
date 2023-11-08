@@ -188,6 +188,11 @@ class _ArtistInfoState extends State<ArtistInfo> {
       _followCheck();
     }
   }
+
+  void artistLoad() async {
+    final artistDoc = await fs.collection('artist').get();
+  }
+
   // 기본 엘럿 
   void inputDuplicateAlert(String content) {
     showDialog(
@@ -243,7 +248,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
         animatedIcon: AnimatedIcons.menu_close,
         visible: true,
         curve: Curves.bounceIn,
-        backgroundColor: Color(0xFF392F31),
+        backgroundColor: Color(0xFF56555B),
         children: [
           SpeedDialChild(
               child: const Icon(Icons.settings_sharp, color: Colors.white),
@@ -321,7 +326,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
         animatedIcon: AnimatedIcons.menu_close,
         visible: true,
         curve: Curves.bounceIn,
-        backgroundColor: Color(0xFF392F31),
+        backgroundColor: Color(0xFFff964f),
         children: [
           SpeedDialChild(
               child: const Icon(Icons.settings_sharp, color: Colors.white),
@@ -749,6 +754,11 @@ class _ArtistInfoState extends State<ArtistInfo> {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              color: Color(0xFFff964f), // 원하는 배경 색상으로 변경
+            ),
+          ),
           leading: Builder(
             builder: (context) {
               return IconButton(
@@ -771,7 +781,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
             Builder(
               builder: (context) {
                 return IconButton(
-                  color: Colors.black54,
+                  color: Color(0xFF56555B),
                   onPressed: () {
                     Scaffold.of(context).openDrawer();
                   },

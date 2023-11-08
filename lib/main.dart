@@ -47,7 +47,7 @@ void main() async {
         ],
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          scaffoldBackgroundColor: Colors.white, // 전체 페이지의 배경 색상
+          scaffoldBackgroundColor: Color(0xFFfff0da), // 전체 페이지의 배경 색상
           fontFamily: 'Noto_Serif_KR', // 폰트 패밀리 이름을 지정
         ),
         getPages: [
@@ -98,7 +98,7 @@ class _MyAppState extends State<MyApp> {
       child: Container(
         padding: EdgeInsets.only(top: 15,bottom: 15),
         decoration: BoxDecoration(
-          color: Colors.grey[300], // 백그라운드 색상
+          color: Color(0xFFF156F1), // 백그라운드 색상
           border: Border.all(
             color: Color(0xFF392F31), // 보더 색상
             width: 2.0, // 보더 두께
@@ -484,7 +484,7 @@ class _MyAppState extends State<MyApp> {
           margin: EdgeInsets.only(right: 30),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16.0),
-            color: Colors.white, // 배경 색상
+            color: Color(0xFFFFFFFF), // 배경 색상
             boxShadow: [
               BoxShadow(
                 color: Colors.grey.withOpacity(0.5),
@@ -646,12 +646,20 @@ class _MyAppState extends State<MyApp> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        "공연등록", style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white
-                                      ),
+                                      TextButton(
+                                        child: Text(
+                                          "공연등록", style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white
+                                        ),
+                                       ),
+                                        onPressed: (){
+                                          Navigator.push(
+                                              context,
+                                              MaterialPageRoute(builder: (_) => BuskingReservation()) // 상세페이지로 넘어갈것
+                                          );
+                                        },
                                       ),
                                       Text(
                                         "나의 재능을 홍보해보세요",
@@ -777,8 +785,11 @@ class _MyAppState extends State<MyApp> {
     }
 
     List<Widget> commerWidgets = [];
-
+    int count = 0;
     for (QueryDocumentSnapshot commerDoc in commerQuerySnapshot.docs) {
+      if(count == 3){
+        break;
+      }
       final spaceName = commerDoc['spaceName'];
       final _id = commerDoc.id;
       final startTime = Timestamp.fromDate(selectedDay);
@@ -830,7 +841,6 @@ class _MyAppState extends State<MyApp> {
 
               if (addrDoc.docs.isNotEmpty) {
                 final addr = addrDoc.docs.first['addr'];
-
                 final listItem = Card(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -907,10 +917,8 @@ class _MyAppState extends State<MyApp> {
           }
         }
       }
+      count++;
     }
-
     return commerWidgets;
   }
-
-
 }

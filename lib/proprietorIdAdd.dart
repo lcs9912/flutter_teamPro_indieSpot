@@ -73,8 +73,7 @@ class _ProprietorAddState extends State<ProprietorAdd> {
   ];
 
   String? _genreList;
-
-
+  bool isLoading = true; // 로딩창
   @override
   void initState() {
     super.initState();
@@ -130,10 +129,23 @@ class _ProprietorAddState extends State<ProprietorAdd> {
     });
   }
 
+  bool isProcessing = false; // 로딩 상태 변수
+
+// 쿼리 실행 버튼 클릭 이벤트 핸들러
+  void handleQueryButtonClicked() {
+    allnNullCheck();
+
+    setState(() {
+      isProcessing = true; // 로딩 상태 활성화
+    });
+
+      addGenresToFirestore();
+  }
+
   // 사업자 입력 쿼리문
   void addGenresToFirestore() async {
 
-    allnNullCheck();
+
     if(allYn){
       final collectionReference = fs.collection('userList').doc(_userId).collection('proprietor');
 
@@ -157,6 +169,8 @@ class _ProprietorAddState extends State<ProprietorAdd> {
         showDuplicateAlert("중복안내", "이미등록된 사업자 번호입니다.");
         // 포커스 주고 테두리 빨간색 밑에 텍스트
       }
+    } else {
+
     }
 
   }
@@ -259,6 +273,10 @@ class _ProprietorAddState extends State<ProprietorAdd> {
         'cDateTime' : Timestamp.now(),
         'path' : imageListUrl
       });
+      setState(() {
+        isProcessing = false;
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('등록이 완료되었습니다.'),
             dismissDirection: DismissDirection.up,
@@ -676,268 +694,272 @@ class _ProprietorAddState extends State<ProprietorAdd> {
         ),
         iconTheme: IconThemeData(color: Colors.black),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(15),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("사업자 정보(필수*)",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
-                  SizedBox(height: 15,),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text("사업자등록증 사진 첨부",style: subStyle,),
-                      if(_selectedImage != null)
-                      IconButton(
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black),
-                        onPressed: (){
-                          setState(() {
-                            _selectedImage = null;
-                            imageYn = false;
-                          });
-                        }, icon: Icon(Icons.refresh,size: 25,),
+      body: Center(
+        child: isProcessing ? CircularProgressIndicator() : SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("사업자 정보(필수*)",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
+                    SizedBox(height: 15,),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("사업자등록증 사진 첨부",style: subStyle,),
+                        if(_selectedImage != null)
+                        IconButton(
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.black),
+                          onPressed: (){
+                            setState(() {
+                              _selectedImage = null;
+                              imageYn = false;
+                            });
+                          }, icon: Icon(Icons.refresh,size: 25,),
 
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 14,),
-                  Center(
-                    child: _buildSelectedImage() ??
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10.0),
-                              border: Border.all(
-                                color: Colors.black54,  // 테두리 색상 설정
-                                width: 2.0,           // 테두리 두께 설정
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 14,),
+                    Center(
+                      child: _buildSelectedImage() ??
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10.0),
+                                border: Border.all(
+                                  color: Colors.black54,  // 테두리 색상 설정
+                                  width: 2.0,           // 테두리 두께 설정
+                                ),
+                              ),
+                              height: screenHeight * 0.25, width: screenWidth * 0.5,
+                              child: OutlinedButton(
+                                onPressed: _pickImage,
+                                child: Image.asset(
+                                  'assets/fileAdd.png',
+                                  width: screenWidth * 0.2,
+                                  height: screenHeight * 0.1,
+                                ),
                               ),
                             ),
-                            height: screenHeight * 0.25, width: screenWidth * 0.5,
-                            child: OutlinedButton(
-                              onPressed: _pickImage,
-                              child: Image.asset(
-                                'assets/fileAdd.png',
-                                width: screenWidth * 0.2,
-                                height: screenHeight * 0.1,
-                              ),
+
+                    ),
+                  ],
+                ),
+                SizedBox(height: 30,),
+                _TextField('상호명', '상호명을 입력해주세요.',  _proprietorName),
+                _TextField('대표자명', '대표자명 입력', _representativeName),
+                _TextField('사업자 번호', '사업자 번호 입력(-제외)',  _proprietorNum),
+                SizedBox(height: 30,),
+                Text("상업공간 소개",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
+                SizedBox(height: 30,),
+                _maps(),
+                SizedBox(height: 10,),
+                _TextField('상세주소', '상세주소를 입력해주세요.',  _addr2),
+                SizedBox(height: 10,),
+                _TextField('연락처(필수*)', '연락처 입력(-제외)', _managerPhone),
+                SizedBox(height: 20,),
+                Text("공간사진(첫번째 사진은 대표사진으로 설정됩니다. 필수*)", style: subStyle,),
+                SizedBox(height: 10,),
+                Wrap(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10.0),
+                        border: Border.all(
+                          color: Colors.black54,  // 테두리 색상 설정
+                          width: 2.0,           // 테두리 두께 설정
+                        ),
+                      ),
+                      height: screenHeight * 0.1, width: screenWidth * 0.2,
+                      child: OutlinedButton(
+                        onPressed: _prickImageList,
+                        child: Stack(
+                          children: [
+                            Image.asset(
+                              'assets/fileAdd.png',
+                              width: screenWidth * 0.2,
+                              height: screenHeight * 0.1,
                             ),
-                          ),
-
-                  ),
-                ],
-              ),
-              SizedBox(height: 30,),
-              _TextField('상호명', '상호명을 입력해주세요.',  _proprietorName),
-              _TextField('대표자명', '대표자명 입력', _representativeName),
-              _TextField('사업자 번호', '사업자 번호 입력(-제외)',  _proprietorNum),
-              SizedBox(height: 30,),
-              Text("상업공간 소개",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
-              SizedBox(height: 30,),
-              _maps(),
-              SizedBox(height: 10,),
-              _TextField('상세주소', '상세주소를 입력해주세요.',  _addr2),
-              SizedBox(height: 10,),
-              _TextField('연락처(필수*)', '연락처 입력(-제외)', _managerPhone),
-              SizedBox(height: 20,),
-              Text("공간사진(첫번째 사진은 대표사진으로 설정됩니다. 필수*)", style: subStyle,),
-              SizedBox(height: 10,),
-              Wrap(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10.0),
-                      border: Border.all(
-                        color: Colors.black54,  // 테두리 색상 설정
-                        width: 2.0,           // 테두리 두께 설정
+                            Positioned(
+                              top: 1,
+                                right: 10,
+                                child: Text(
+                                  '${_commerImageList.length} / 5',
+                                  style: _commerImageList.length == 5 ? TextStyle(color: Colors.red) : TextStyle(color: Colors.black),
+                                )
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    height: screenHeight * 0.1, width: screenWidth * 0.2,
-                    child: OutlinedButton(
-                      onPressed: _prickImageList,
-                      child: Stack(
-                        children: [
-                          Image.asset(
-                            'assets/fileAdd.png',
-                            width: screenWidth * 0.2,
-                            height: screenHeight * 0.1,
-                          ),
-                          Positioned(
-                            top: 1,
-                              right: 10,
-                              child: Text(
-                                '${_commerImageList.length} / 5',
-                                style: _commerImageList.length == 5 ? TextStyle(color: Colors.red) : TextStyle(color: Colors.black),
-                              )
-                          ),
-                        ],
-                      ),
+                    _commerImageListWidget()!,
+                  ],
+                ),
+                SizedBox(height: 10,),
+                _TextField2("공간소개", '공간을 소개해주세요', _description),
+                Text("영업시간(필수*)",style: subStyle,),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    DropdownButton<String>(
+                      value: startTimeHour,
+                      items: hourItem.map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          startTimeHour = newValue!;
+                        });
+                      },
                     ),
-                  ),
-                  _commerImageListWidget()!,
-                ],
-              ),
-              SizedBox(height: 10,),
-              _TextField2("공간소개", '공간을 소개해주세요', _description),
-              Text("영업시간(필수*)",style: subStyle,),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  DropdownButton<String>(
-                    value: startTimeHour,
-                    items: hourItem.map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        startTimeHour = newValue!;
-                      });
-                    },
-                  ),
-                  SizedBox(width: 10,),
-                  Text(":"),
-                  SizedBox(width: 10,),
-                  DropdownButton<String>(
-                    value: startTimeMinute,
-                    items: minuteItem.map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        startTimeMinute = newValue!;
-                      });
-                    },
-                  ),
-                  Text("  ~  "),
-                  DropdownButton<String>(
-                    value: endTimeHour,
-                    items: hourItem.map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        endTimeHour = newValue!;
-                      });
-                    },
-                  ),
-                  SizedBox(width: 10,),
-                  Text(":"),
-                  SizedBox(width: 10,),
-                  DropdownButton<String>(
-                    value: endTimeMinute,
-                    items: minuteItem.map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        endTimeMinute = newValue!;
-                      });
-                    },
-                  ),
-                ],
-              ),
-              Text("버스킹 공간 정보",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
-              _TextField2('지원장비', '가지고 계신 음향장비를 입력해주세요',  _equipmentComment),
-              Text("장르(필수*)",style: subStyle,),
-              Column(
-                children: [
-                  _customRadioBut(),
-                  _wrapWidget(_genre),
-                  genreListWidget()
-                ],
-              ),
-              _TextField('가용인원(필수*)', '공연가능 인원(숫자만)', _headCount),
-              _TextField('렌탈비용(공백시 0원)', '장소대여 비용을 입력해주세요(시간당,)', _rentalfee),
-              Text("주차",style: subStyle,),
-              Row(
-                children: [
-                  Radio(
-                    value: "가능",
-                    groupValue: parkingYn,
-                    onChanged: (value) {
-                      setState(() {
-                        parkingYn = value;
-                      });
-                    }
-
-                  ),
-                  Text("가능"),
-                  SizedBox(width: 15,),
-                  Radio(
-                    value: "불가능",
-                    groupValue: parkingYn,
-                    onChanged: (value) {
-                      setState(() {
-                        parkingYn = value;
-                      });
-                    }
-                  ),
-                  Text("불가능"),
-                ],
-              ),
-              Text("영상촬영",style: subStyle,),
-              Row(
-                children: [
-                  Radio(
+                    SizedBox(width: 10,),
+                    Text(":"),
+                    SizedBox(width: 10,),
+                    DropdownButton<String>(
+                      value: startTimeMinute,
+                      items: minuteItem.map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          startTimeMinute = newValue!;
+                        });
+                      },
+                    ),
+                    Text("  ~  "),
+                    DropdownButton<String>(
+                      value: endTimeHour,
+                      items: hourItem.map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          endTimeHour = newValue!;
+                        });
+                      },
+                    ),
+                    SizedBox(width: 10,),
+                    Text(":"),
+                    SizedBox(width: 10,),
+                    DropdownButton<String>(
+                      value: endTimeMinute,
+                      items: minuteItem.map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          endTimeMinute = newValue!;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                Text("버스킹 공간 정보",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
+                _TextField2('지원장비', '가지고 계신 음향장비를 입력해주세요',  _equipmentComment),
+                Text("장르(필수*)",style: subStyle,),
+                Column(
+                  children: [
+                    _customRadioBut(),
+                    _wrapWidget(_genre),
+                    genreListWidget()
+                  ],
+                ),
+                _TextField('가용인원(필수*)', '공연가능 인원(숫자만)', _headCount),
+                _TextField('렌탈비용(공백시 0원)', '장소대여 비용을 입력해주세요(시간당,)', _rentalfee),
+                Text("주차",style: subStyle,),
+                Row(
+                  children: [
+                    Radio(
                       value: "가능",
-                      groupValue: videoYn,
+                      groupValue: parkingYn,
                       onChanged: (value) {
                         setState(() {
-                          videoYn = value;
+                          parkingYn = value;
                         });
                       }
 
-                  ),
-                  Text("가능"),
-                  SizedBox(width: 15,),
-                  Radio(
+                    ),
+                    Text("가능"),
+                    SizedBox(width: 15,),
+                    Radio(
                       value: "불가능",
-                      groupValue: videoYn,
+                      groupValue: parkingYn,
                       onChanged: (value) {
                         setState(() {
-                          videoYn = value;
+                          parkingYn = value;
                         });
                       }
-                  ),
-                  Text("불가능"),
-                ],
-              ),
-              Text("약관동의",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
-              Row(
-                children: [
-                  Radio(
-                      value: "Y",
-                      groupValue: termsYn,
-                      onChanged: (value) {
-                        setState(() {
-                          termsYn = value;
-                        });
-                      }
-                  ),
-                  Text("사업주 이용약관(필수)")
-                ],
-              ),
-            ],
+                    ),
+                    Text("불가능"),
+                  ],
+                ),
+                Text("영상촬영",style: subStyle,),
+                Row(
+                  children: [
+                    Radio(
+                        value: "가능",
+                        groupValue: videoYn,
+                        onChanged: (value) {
+                          setState(() {
+                            videoYn = value;
+                          });
+                        }
+
+                    ),
+                    Text("가능"),
+                    SizedBox(width: 15,),
+                    Radio(
+                        value: "불가능",
+                        groupValue: videoYn,
+                        onChanged: (value) {
+                          setState(() {
+                            videoYn = value;
+                          });
+                        }
+                    ),
+                    Text("불가능"),
+                  ],
+                ),
+                Text("약관동의",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
+                Row(
+                  children: [
+                    Radio(
+                        value: "Y",
+                        groupValue: termsYn,
+                        onChanged: (value) {
+                          setState(() {
+                            termsYn = value;
+                          });
+                        }
+                    ),
+                    Text("사업주 이용약관(필수)")
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
       bottomNavigationBar: BottomAppBar(
+        // 하단 바 정의
         child: ElevatedButton(
+          onPressed: handleQueryButtonClicked, // 버튼 클릭 처리
           style: ElevatedButton.styleFrom(
             backgroundColor: termsYn != null ? Color(0xFF392F31) : Colors.grey, // 버튼의 배경색
             shape: RoundedRectangleBorder(
@@ -947,16 +969,13 @@ class _ProprietorAddState extends State<ProprietorAdd> {
               ),
             ),
           ),
-          onPressed:  termsYn != null ? (){
-            addGenresToFirestore();
-          } : null,
           child: Container(
             height: 60,
             child: Center(
-                child: Text(
-                  "등록완료",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,color: Colors.white),
-                )
+              child: Text(
+                "등록완료",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
             ),
           ),
         ),

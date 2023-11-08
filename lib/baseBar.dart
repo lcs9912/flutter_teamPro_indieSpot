@@ -33,7 +33,7 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
         title: Text("indieSpot"),
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFFff964f),
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
