@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
+import 'package:indie_spot/commercialList.dart';
+import 'package:indie_spot/spaceInfo.dart';
 import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
 import 'dart:io';
@@ -9,6 +11,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
+
+import 'concertDetails.dart';
 
 class ProprietorAdd extends StatefulWidget {
   const ProprietorAdd({super.key});
@@ -52,7 +56,7 @@ class _ProprietorAddState extends State<ProprietorAdd> {
   final _addr2 = TextEditingController();
   int? _zip;
   String _regions = '';
-
+  String? commerId;
   String startTimeHour = '00'; // 영업시작 시간
   String startTimeMinute = '00'; // 영업시작 분
   String endTimeHour = '00'; // 영업 종료 시작
@@ -178,6 +182,8 @@ class _ProprietorAddState extends State<ProprietorAdd> {
     );
   }
 
+
+
   // 비어있으면 뜨는 엘럿
   void inputDuplicateAlert(String content) {
     showDialog(
@@ -196,6 +202,8 @@ class _ProprietorAddState extends State<ProprietorAdd> {
         );
       },
     );
+
+
   }
 
   // 상업공간 입력 쿼리문
@@ -237,7 +245,7 @@ class _ProprietorAddState extends State<ProprietorAdd> {
         "endTime" : endTime
       }); // 상업공간 컬렉션
 
-      String commerId = commerCollection.id;
+      commerId = commerCollection.id;
 
       //서브 컬렉션 addr 추가
       await fs.collection('commercial_space').doc(commerId).collection('addr').add(
@@ -251,6 +259,16 @@ class _ProprietorAddState extends State<ProprietorAdd> {
         'cDateTime' : Timestamp.now(),
         'path' : imageListUrl
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('등록이 완료되었습니다.'),
+            dismissDirection: DismissDirection.up,
+            behavior: SnackBarBehavior.floating,
+          )
+      );
+
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => SpaceInfo(commerId!), // HomeScreen은 대상 화면의 위젯입니다.
+      ));
 
     }catch (e){
       print('에러에러에러$e');

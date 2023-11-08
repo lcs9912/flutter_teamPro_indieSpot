@@ -118,8 +118,7 @@ class _MyAppState extends State<MyApp> {
               padding: const EdgeInsets.only(left: 25.0),
               child: Row(
                 children: [
-                  Text("많이찾는 서비스"),
-                  Icon(Icons.gif)
+                  Text("많이찾는 서비스 👀",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
                 ],
               ),
             ),
@@ -790,11 +789,11 @@ class _MyAppState extends State<MyApp> {
           .where('startTime', isGreaterThanOrEqualTo: startTime)
           .get();
 
-      // Remove rentals with endTime less than selectedDay
       await Future.forEach(commerRentalQuerySnapshot.docs, (rentalDoc) async {
         final endTime = rentalDoc['endTime'].toDate();
-        DateTime threeMonthsLater = endTime.add(Duration(days: 3 * 30));
-        if (endTime.isBefore(endTime)) {
+        DateTime threeMonthsAgo = selectedDay.subtract(const Duration(days: 3 * 30));
+
+        if (endTime.isBefore(threeMonthsAgo)) {
           print('시간이 지나 삭제됨 => ${rentalDoc.id}');
           await rentalDoc.reference.delete();
         }
