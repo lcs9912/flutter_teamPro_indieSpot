@@ -90,7 +90,7 @@ class _FollowListState extends State<FollowList> {
             },
           ),
           title: Text(
-            '회원가입',
+            '팔로잉',
             style: TextStyle(color: Colors.black), // 텍스트 색을 검은색으로 설정
           ),
           backgroundColor: Colors.white, // AppBar 배경색을 흰색으로 설정
@@ -115,7 +115,10 @@ class _FollowListState extends State<FollowList> {
 
                       return ListTile(
                         leading: _imagePaths[artistId] != null
-                            ? Image.network(_imagePaths[artistId]!)
+                            ? Image.network(_imagePaths[artistId]!, height: 50, // 원하는 높이로 설정
+                          width: 50,  // 원하는 너비로 설정
+                          fit: BoxFit.cover,)
+
                             : Placeholder(),
                         title: Text(artistName ?? ''),
                         subtitle: Text(artistInfo ?? ''),

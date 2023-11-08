@@ -22,7 +22,7 @@ class Profile extends StatefulWidget {
   void getPostsData(String postId) {}
 }
 List<Map<String, dynamic>> _postsData = [];
-
+List<QueryDocumentSnapshot<Map<String, dynamic>>>? userImages;
 class _ProfileState extends State<Profile> {
 
   List<String> imagePaths = []; // Define the list of image paths
@@ -33,6 +33,8 @@ class _ProfileState extends State<Profile> {
   String? _followingCntFromFirestore;
   String? _followingCount;
   String? _followingCnt;
+  String? _path;
+
 
 
   @override
@@ -41,6 +43,28 @@ class _ProfileState extends State<Profile> {
     getNickFromFirestore(widget.userId);
     getIntroductionFromFirestore();
     getPostsData(widget.userId!);
+  }
+
+  Future<void> getArtistImages(String artistId) async {
+    QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance
+        .collection('artist')
+        .doc(artistId)
+        .collection('image')
+        .limit(1)
+        .get();
+
+    String path = '';
+
+    if(snapshot.docs.isNotEmpty){
+      var firstImageDocument = snapshot.docs.first;
+      var data = firstImageDocument.data();
+      print('111111111');
+      print('${data['path']}');
+      path = data['path'];
+    }
+    setState(() {
+      _path = path;
+    });
   }
 
   Future<void> getPostsData(String userId) async {
@@ -298,7 +322,40 @@ class _ProfileState extends State<Profile> {
     }
     return widgets;
   }
+  List<Widget> getUserImageWidgets() {
+    List<Widget> imageWidgets = [];
+    if (userImages != null) { // artistImages가 null인지 확인합니다.
+      for (var index = 0; index < userImages!.length; index++) {
+        var imagePath = userImages![index]['path'];
 
+        // 이미지 URL이 유효한지 확인
+        if (Uri.parse(imagePath).isAbsolute) {
+          // 유효한 URL일 경우 Image.network 사용
+          imageWidgets.add(
+            Image.network(
+              imagePath,
+              height: 130,
+              width: double.infinity,
+              fit: BoxFit.cover,
+
+            ),
+          );
+          print(userImages![index]['path']);
+        } else {
+          // 잘못된 URL이면 에러 핸들링 또는 대체 이미지를 사용할 수 있습니다.
+          imageWidgets.add(
+            Placeholder(
+              fallbackHeight: 130,
+              fallbackWidth: double.infinity,
+            ),
+          );
+          print(userImages![index]['path']);
+        }
+      }
+    }
+
+    return imageWidgets;
+  }
 
   @override
   Widget build(BuildContext context) {

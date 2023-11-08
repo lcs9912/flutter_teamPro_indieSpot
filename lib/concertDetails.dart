@@ -20,6 +20,7 @@ class ConcertDetails extends StatefulWidget {
   _ConcertDetailsState createState() => _ConcertDetailsState();
 }
 
+
 class _ConcertDetailsState extends State<ConcertDetails> {
   bool isLoading = true;
   Map<String, dynamic>? buskingData;
@@ -28,10 +29,10 @@ class _ConcertDetailsState extends State<ConcertDetails> {
   FirebaseFirestore fs = FirebaseFirestore.instance;
 
   bool _followerFlg = false; // 팔로우 했는지!
-
+  bool showLatestFirst = true;
   bool scheduleFlg = false;
   int? folCnt; // 팔로워
-
+  List<Map<String, dynamic>>? buskingReview2;
 
   List<QueryDocumentSnapshot<Map<String, dynamic>>>? artistImages;
 
@@ -70,6 +71,10 @@ class _ConcertDetailsState extends State<ConcertDetails> {
   @override
   void initState() {
     super.initState();
+    if (buskingReview2 != null) {
+      buskingReview2!.sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
+    }
+
     _userId = Provider
         .of<UserModel>(context, listen: false)
         .userId;
@@ -726,7 +731,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                               });
                             },
                             decoration: InputDecoration(
-                              labelText: '리뷰를 작성하세요...',
+
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10.0),
                               ),
@@ -784,7 +789,6 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                             color: Colors.black.withOpacity(0.1),
                           ),
                           Column(
-
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Padding(
@@ -794,12 +798,16 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                     setState(() {
                                       if (buskingReview != null) {
                                         buskingReview!.sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
+                                        showLatestFirst = true;
                                       }
                                     });
                                   },
                                   child: Text(
                                     "최신순",
-                                    style: TextStyle(fontSize: 13,fontWeight: FontWeight.bold), // 글자 크기 조절
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: showLatestFirst ? FontWeight.bold : FontWeight.normal,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -810,12 +818,16 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                     setState(() {
                                       if (buskingReview != null) {
                                         buskingReview!.sort((a, b) => a['timestamp'].compareTo(b['timestamp']));
+                                        showLatestFirst = false;
                                       }
                                     });
                                   },
                                   child: Text(
                                     "오래된순",
-                                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold ), // 글자 크기 조절
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: showLatestFirst ? FontWeight.normal : FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -835,16 +847,21 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                       margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                                       padding: EdgeInsets.all(16.0),
                                       decoration: BoxDecoration(
-                                        color: Colors.grey[200], // Adjust background color as needed
+                                        color: Colors.white60, // 흰색 배경색으로 설정
                                         borderRadius: BorderRadius.circular(10.0),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.grey.withOpacity(0.5),
+                                            spreadRadius: 1,
+                                            blurRadius: 3,
+                                            offset: Offset(0, 2), // 그림자의 위치 조정
+                                          ),
+                                        ],
                                       ),
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(
-                                            "${DateFormat('yyyy-MM-dd').format(document['timestamp'].toDate())}",
-                                            style: TextStyle(fontSize: 14, color: Colors.black87), // Adjust font size and color
-                                          ),
+
                                           Text(
                                             "${document['nick']}",
                                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold), // Adjust font size and weight
@@ -862,6 +879,10 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                             itemCount: 5,
                                             itemSize: 20.0,
                                             direction: Axis.horizontal,
+                                          ),
+                                          Text(
+                                            "${DateFormat('yyyy-MM-dd').format(document['timestamp'].toDate())}",
+                                            style: TextStyle(fontSize: 13, color: Colors.black87), // Adjust font size and color
                                           ),
                                         ],
                                       ),
