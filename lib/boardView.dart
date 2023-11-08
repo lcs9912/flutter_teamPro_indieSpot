@@ -19,7 +19,6 @@ class _BoardViewState extends State<BoardView> {
   FirebaseFirestore fs = FirebaseFirestore.instance;
   final TextEditingController _comment = TextEditingController();
   int commentCount = 0;
-  bool TextFlg = false;
 
   void _addComment() async {
     String? userId = Provider
@@ -27,9 +26,6 @@ class _BoardViewState extends State<BoardView> {
         .userId;
     if (userId == null) {
       _showLoginAlert(context);
-      setState(() {
-        TextFlg = false;
-      });
     } else{
 
     if (_comment.text.isNotEmpty) {
@@ -46,21 +42,8 @@ class _BoardViewState extends State<BoardView> {
       });
 
       _comment.clear();
-      setState(() {
-        TextFlg = false;
-      });
-    } else if (_comment.text.isEmpty) {
-      setState(() {
-        TextFlg = false;
-        });
-      }
     }
-  }
-
-  void _regiComment(){
-    setState(() {
-      TextFlg = true;
-    });
+    }
   }
 
   void _updateComment(DocumentSnapshot doc) async {
@@ -74,7 +57,6 @@ class _BoardViewState extends State<BoardView> {
   Widget build(BuildContext context) {
     Map<String, dynamic> data = widget.document.data() as Map<String, dynamic>;
     String userData = data['userId'];
-
 
     return Scaffold(
       appBar: AppBar(
@@ -248,21 +230,20 @@ class _BoardViewState extends State<BoardView> {
                   ),
                 ),
                 Expanded(
-                    child: _listComments()
+                    child: _listComments(),
                 ),
-                TextFlg ? TextField(
+                TextField(
                       maxLines: 2,
                       controller: _comment,
                       decoration: InputDecoration(
                         labelText: "댓글 입력",
                         border: OutlineInputBorder(),
                       ),
-                    )
-                 : Container(height: 60)
+                    ),
               ],
             ),
       ),
-      floatingActionButton: TextFlg ? _commentAdd() : _commentRegi(),
+      floatingActionButton: _commentAdd(),
       bottomNavigationBar: MyBottomBar(),
     );
   }
@@ -276,28 +257,6 @@ class _BoardViewState extends State<BoardView> {
         backgroundColor: Colors.black54,
         child: Text(
           "댓글 등록",
-          style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold
-          ),
-        ),
-        elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-    );
-  }
-
-  Widget _commentRegi(){
-    return  Container(
-      width: 380,
-      height: 50,
-      child: FloatingActionButton(
-        onPressed:  _regiComment,
-        backgroundColor: Colors.black54,
-        child: Text(
-          "댓글 쓰기",
           style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold
@@ -339,9 +298,7 @@ class _BoardViewState extends State<BoardView> {
             if (createdDateTimestamp != null) {
               createdDate = createdDateTimestamp.toDate();
             }
-
             String formatDate = DateFormat('yyyy/MM/dd HH:mm').format(createdDate!);
-
 
             return Column(
               children: [
@@ -352,7 +309,6 @@ class _BoardViewState extends State<BoardView> {
                         if (userSnap.connectionState == ConnectionState.waiting) {
                           return Center(child: CircularProgressIndicator());
                         }
-
                         DocumentSnapshot<Map<String, dynamic>> querySnapshot = userSnap.data as DocumentSnapshot<Map<String, dynamic>>;
                         return Text(
                             '${querySnapshot.get('nick') as String}',
@@ -361,7 +317,6 @@ class _BoardViewState extends State<BoardView> {
                             color: Colors.black54
                           ),
                         );
-
                       }
                   ),
                   subtitle: Column(
@@ -380,7 +335,6 @@ class _BoardViewState extends State<BoardView> {
                       ),
                     ],
                   ),
-
                   trailing:
                   _userId == commentData['userId'] ? Column(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,

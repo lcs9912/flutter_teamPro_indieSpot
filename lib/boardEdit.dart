@@ -154,7 +154,7 @@ class _BoardEditState extends State<BoardEdit> {
               'PATH' : imageUrl,
             }
         );
-        await userRef.collection('image').doc().update(
+        await userRef.collection('image').doc(widget.document.id).update(
             {
               'DELETE_YN' : 'N',
               'PATH' : imageUrl,
