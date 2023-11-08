@@ -352,7 +352,10 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
           children: [
             Column(
               children: [
-                sharedTextField,
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: sharedTextField,
+                ),
                 _buskingList()
               ],
             ),
@@ -360,6 +363,7 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
             genreWidget(),
           ],
         ),
+        bottomNavigationBar: MyBottomBar(),
       ),
     );
   }
