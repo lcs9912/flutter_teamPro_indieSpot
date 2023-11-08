@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:indie_spot/adminInquiry.dart';
 import 'package:indie_spot/adminMain.dart';
 import 'package:indie_spot/announcementList.dart';
+import 'package:indie_spot/artistRegi.dart';
 import 'package:indie_spot/buskingList.dart';
 import 'package:indie_spot/buskingSpotList.dart';
 import 'package:indie_spot/dialog.dart';
@@ -226,7 +227,15 @@ class _MyDrawerState extends State<MyDrawer> {
               ListTile(
                 title: Text('아티스트 등록'),
                 onTap: () {
+                  var user = Provider.of<UserModel>(context, listen: false);
+                  if(user.isArtist){
 
+                  } else {
+                    Get.to(
+                      ArtistRegi(),
+                      preventDuplicates: true,
+                    );
+                  }
                 },
               ),
               ListTile(
