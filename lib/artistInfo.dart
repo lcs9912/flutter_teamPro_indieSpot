@@ -287,7 +287,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
               if(_artistId != null){
                 Navigator.of(context)
                     .push(MaterialPageRoute(
-                  builder: (context) => DonationList(artistDoc: widget.doc),
+                  builder: (context) => DonationList(artistId: widget.doc.id),
                 ))
                     .then((value) => setState(() {}));
               } else {
