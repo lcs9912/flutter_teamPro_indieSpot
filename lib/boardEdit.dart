@@ -1,29 +1,52 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:indie_spot/boardList.dart';
 import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
+import 'package:indie_spot/boardView.dart';
+import 'package:http/http.dart' as http;
 
-class BoardAdd extends StatefulWidget {
-  const BoardAdd({super.key});
+class BoardEdit extends StatefulWidget {
+  final DocumentSnapshot document;
+  BoardEdit({required this.document});
 
   @override
-  State<BoardAdd> createState() => _BoardAddState();
+  State<BoardEdit> createState() => _BoardEditState();
 }
 
-class _BoardAddState extends State<BoardAdd> {
-
-  String _selectedCategory = 'free_board';
+class _BoardEditState extends State<BoardEdit> {
   File? _selectedImage;
-
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
   final TextEditingController _title = TextEditingController();
   final TextEditingController _content = TextEditingController();
   bool showError = false;
+
+  @override
+  void initState(){
+    super.initState();
+    _loadImage();
+    _title.text = widget.document['title'];
+    _content.text = widget.document['content'];
+  }
+
+  void _loadImage() async {
+    try {
+      QuerySnapshot imageSnapshot = await widget.document.reference.collection('image').get();
+      if (imageSnapshot.docs.isNotEmpty) {
+        String imageUrl = imageSnapshot.docs[0]['PATH'];
+        var response = await http.get(Uri.parse(imageUrl));
+        setState(() {
+          _selectedImage = File(path.basename(imageUrl))
+            ..writeAsBytesSync(response.bodyBytes);
+        });
+      }
+    } catch (e) {
+      print('Error loading image: $e');
+    }
+  }
 
 
   Future<void> _pickImage() async {
@@ -53,29 +76,8 @@ class _BoardAddState extends State<BoardAdd> {
     }
   }
 
-  void _addBoard() async {
+  void _editBoard() async {
     String? _userId = Provider.of<UserModel>(context, listen: false).userId;
-
-    // if (_selectedCategory == null) {
-    //   showDialog(
-    //     context: context,
-    //     builder: (BuildContext context) {
-    //       return AlertDialog(
-    //         title: Text('알림'),
-    //         content: Text('게시글 구분을 선택해주세요.'),
-    //         actions: [
-    //           TextButton(
-    //             onPressed: () {
-    //               Navigator.of(context).pop();
-    //             },
-    //             child: Text('확인'),
-    //           ),
-    //         ],
-    //       );
-    //     },
-    //   );
-    //   return;
-    // }
 
     if (_title.text.length > 20) {
       showDialog(
@@ -126,42 +128,37 @@ class _BoardAddState extends State<BoardAdd> {
       QuerySnapshot firstDocumentSnapshot = await _fs.collection('posts').limit(1).get();
       String firstDocumentId = firstDocumentSnapshot.docs.isNotEmpty ? firstDocumentSnapshot.docs.first.id : '3QjunO69Eb2OroMNJKWU';
 
-      DocumentReference boardRef = await _fs.collection('posts').doc(firstDocumentId).collection(_selectedCategory).add(
+      DocumentReference boardRef = _fs.collection('posts').doc(firstDocumentId).collection(widget.document.reference.parent.id).doc(widget.document.id);
+      await boardRef.update(
         {
           'title': _title.text,
           'content': _content.text,
-          'createDate': FieldValue.serverTimestamp(),
-          'userId' : _userId,
-          'cnt' : 0
-        }
+        },
       );
 
-      DocumentReference userRef = await _fs.collection('userList').doc(_userId).collection('board').add(
+
+      DocumentReference userRef = _fs.collection('userList').doc(_userId).collection('board').doc(widget.document.id);
+      await userRef.update(
         {
           'title': _title.text,
           'content': _content.text,
-          'createDate': FieldValue.serverTimestamp(),
-          'userId' : _userId,
-          'cnt' : 0
-        }
+        },
       );
 
-      String boardID = boardRef.id;
-      String userID = userRef.id;
 
-      //서브 콜렉션에 이미지 추가'
+      //서브 콜렉션에 이미지 수정
       if (imageUrl != null) {
-        await _fs.collection('posts').doc(firstDocumentId).collection(_selectedCategory).doc(boardID).collection('image').add(
+        await boardRef.collection('image').doc().update(
             {
               'DELETE_YN' : 'N',
               'PATH' : imageUrl,
             }
         );
-        await _fs.collection('userList').doc(_userId).collection('board').doc(userID).collection('image').add(
-          {
-            'DELETE_YN' : 'N',
-            'PATH' : imageUrl,
-          }
+        await userRef.collection('image').doc().update(
+            {
+              'DELETE_YN' : 'N',
+              'PATH' : imageUrl,
+            }
         );
       }
 
@@ -169,18 +166,14 @@ class _BoardAddState extends State<BoardAdd> {
         SnackBar(content: Text("등록되었습니다")),
       );
 
-      setState(() {
-        _title.clear();
-        _content.clear();
-        _selectedImage = null;
-      });
       Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => BoardList())
+          MaterialPageRoute(builder: (context) => BoardView(document: widget.document)
+          )
       );
     }catch (e){
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Error: $e')),
       );
     }
   }
@@ -201,13 +194,13 @@ class _BoardAddState extends State<BoardAdd> {
               });
             },
             style: OutlinedButton.styleFrom(
-              fixedSize: Size(100, 30),
-              backgroundColor: Colors.grey[700]
+                fixedSize: Size(100, 30),
+                backgroundColor: Colors.grey[700]
             ),
             child: Text(
               '선택 취소',
               style: TextStyle(
-                color: Colors.white
+                  color: Colors.white
               ),
 
             ), // X 아이콘
@@ -223,9 +216,9 @@ class _BoardAddState extends State<BoardAdd> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "게시물 쓰기",
+          "게시물 수정",
           style: TextStyle(
-            color: Colors.black
+              color: Colors.black
           ),
         ),
         iconTheme: IconThemeData(color: Colors.black),
@@ -240,39 +233,10 @@ class _BoardAddState extends State<BoardAdd> {
             children: [
               SizedBox(height: 20),
               Text(
-                  '게시글 구분',
+                '게시글 수정',
                 style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 18
-                ),
-              ),
-              SizedBox(height: 10),
-              DropdownButtonFormField<String>(
-                value: _selectedCategory,
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedCategory = newValue!;
-                  });
-                },
-                items: [
-                  DropdownMenuItem<String>(
-                    value: 'free_board',
-                    child: Text('자유'),
-                  ),
-                  DropdownMenuItem<String>(
-                    value: 'team_board',
-                    child: Text('팀모집'),
-                  ),
-                  DropdownMenuItem<String>(
-                    value: 'concert_board',
-                    child: Text('함께공연'),
-                  ),
-                ],
-                decoration: InputDecoration(
-                  labelText: "구분",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 18
                 ),
               ),
               SizedBox(height: 20),
@@ -296,9 +260,7 @@ class _BoardAddState extends State<BoardAdd> {
                 ],
               ),
               SizedBox(height: 10),
-              _buildSelectedImage() ?? Container(
-
-              ),
+              _buildSelectedImage() ?? Container(),
               SizedBox(height: 16),
               Text(
                 '제목',
@@ -313,7 +275,7 @@ class _BoardAddState extends State<BoardAdd> {
                 decoration: InputDecoration(
                   hintText : "제목을 입력해주세요",
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(4)
+                      borderRadius: BorderRadius.circular(4)
                   ),
                   errorText: showError ? "20자 이하로 입력하세요." : null,
                 ),
@@ -344,7 +306,7 @@ class _BoardAddState extends State<BoardAdd> {
               ),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _addBoard,
+                onPressed: _editBoard,
                 child: Text(
                   "게시물 등록",
                   style: TextStyle(
@@ -353,8 +315,8 @@ class _BoardAddState extends State<BoardAdd> {
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  fixedSize: Size(380, 50),
-                  backgroundColor: Colors.grey[600]
+                    fixedSize: Size(380, 50),
+                    backgroundColor: Colors.grey[600]
                 ),
               ),
               SizedBox(height: 20),

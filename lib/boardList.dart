@@ -18,13 +18,14 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
   late TabController _tabController;
   String subcollection = "free_board";
   List<String> userId = [];
-
+  late TextEditingController _searchController;
+  bool _isSearch = false;
 
   @override
   void initState() {
     super.initState();
+    _searchController = TextEditingController();
     _tabController = TabController(length: 3, vsync: this);
-
     _tabController.addListener(() {
       updateSelectedCategory(_tabController.index);
     });
@@ -33,6 +34,7 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
   @override
   void dispose() {
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -70,7 +72,13 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
         return path.contains("team_board");
       }).toList();
     }
+  }
 
+  List<DocumentSnapshot> filterPostsByKeyword(List<DocumentSnapshot> posts, String keyword) {
+    return posts.where((post) {
+      Map<String, dynamic> postMap = post.data() as Map<String, dynamic>;
+      return postMap['title'].toString().toLowerCase().contains(keyword.toLowerCase());
+    }).toList();
   }
 
   Widget _listboard() {
@@ -92,7 +100,11 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
           return Text("게시글이 없습니다.");
         }
 
+        String keyword = _searchController.text;
         List<DocumentSnapshot> filteredPosts = filterPostsByCategory(snap.data!.docs, subcollection);
+        if (keyword.isNotEmpty) {
+          filteredPosts = filterPostsByKeyword(filteredPosts, keyword);
+        }
 
         return ListView.builder(
           itemCount: filteredPosts.length,
@@ -163,9 +175,11 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '${querySnapshot.get('nick') as String? ?? "닉네임 없음"}',
+                                      '${querySnapshot.get('nick') as String? ?? "Unknown User"}',
                                       style: TextStyle(
                                         fontSize: 12,
+                                        color: Colors.black54,
+                                        fontWeight: FontWeight.w500
                                       ),
                                     ),
 
@@ -176,6 +190,27 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
                                       ),
                                       overflow: TextOverflow.ellipsis
                                     ),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          '${post['createDate'].toDate().toString().substring(0, 16)}',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                              color: Colors.grey,
+                                              fontWeight: FontWeight.w500
+                                          ),
+                                        ),
+                                        SizedBox(width: 10),
+                                        Text(
+                                            '조회 : ${post['cnt']}',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: Colors.grey,
+                                              fontWeight: FontWeight.w500
+                                          ),
+                                        ),
+                                      ],
+                                    )
                                   ],
                                 ),
                                 Row(
@@ -237,6 +272,7 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
                             ),
                                 ),
                             onTap: () {
+                              _incrementViewCount(postDoc);
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -250,6 +286,7 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
                             thickness: 1,
                             height: 30,
                           ),
+
                         ],
                       );
                     },
@@ -283,6 +320,14 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
         backgroundColor: Colors.white,
         elevation: 1.5,
         iconTheme: IconThemeData(color: Colors.black),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.search),
+            onPressed: (){
+              _toggleSearch();
+            },
+          )
+        ],
       ),
       body: Column(
           children: [
@@ -294,16 +339,10 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
                 Tab(text: "함께공연")
               ],
               labelColor: Colors.black,
-              indicator: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: Colors.black, // 경계의 색상을 설정
-                    width: 2.0, // 경계의 두께를 설정
-                  ),
-                ),
-              ),
+              indicatorColor: Colors.black,
             ),
-            SizedBox(height: 10),
+            SizedBox(height: 2),
+            _buildSearchBar(),
             Expanded(
               child: TabBarView(
                 controller: _tabController,
@@ -343,6 +382,59 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
         ),
       ),
     );
+  }
+
+  void _incrementViewCount(String postId) async {
+    try {
+      DocumentReference postRef = fs.collection("posts")
+          .doc("3QjunO69Eb2OroMNJKWU")
+          .collection(subcollection)
+          .doc(postId);
+
+      DocumentSnapshot postSnapshot = await postRef.get();
+      int currentCount = postSnapshot.get('cnt') ?? 0;
+
+      postRef.update({
+        'cnt': currentCount + 1,
+      });
+    } catch (e) {
+      print('Error updating view count: $e');
+    }
+  }
+
+  Widget _buildSearchBar() {
+    return _isSearch ? Column(
+      children: [
+        TextField(
+          controller: _searchController,
+          decoration: InputDecoration(
+            hintText: '제목으로 검색하기',
+            contentPadding: EdgeInsets.symmetric(vertical: 9, horizontal: 14), // 패딩 설정
+            suffixIcon: IconButton(
+              icon: Icon(Icons.clear),
+              onPressed: () {
+                _searchController.clear();
+              },
+            ),
+          ),
+          onChanged: (value) {
+            setState(() {});
+          },
+        ),
+        SizedBox(height: 4),
+      ],
+    ) : Container();
+  }
+
+
+  void _toggleSearch() {
+    setState(() {
+      _isSearch = !_isSearch;
+      if (!_isSearch) {
+        _searchController.clear();
+        updateSelectedCategory(_tabController.index);
+      }
+    });
   }
 
   void _showLoginAlert(BuildContext context) {
