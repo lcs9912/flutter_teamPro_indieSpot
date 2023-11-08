@@ -13,7 +13,7 @@
     >
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAo72hnij2zaCRszQEvikOavWMDWnQAX_c" />
+            android:value="AIzaSyAo72anim2zaCRszQEvilOavWMDWnQAX_c" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -36,11 +36,18 @@
              android:name="com.google.firebase.messaging.default_notification_channel_id"
              android:value="high_importance_channel"
             />
+            <meta-data
+                android:name="firebase_messaging_auto_init_enabled"
+                android:value="false" />
+            <meta-data
+                android:name="firebase_analytics_collection_enabled"
+                android:value="false" />
+<!--  바로위에 meta-data2개 11-08 에 추가함 -->
             <intent-filter>
                 <action android:name="FLUTTER_NOTIFICATION_CLICK" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-            출처: https://totally-developer.tistory.com/144 [Totally 개발자:티스토리]
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

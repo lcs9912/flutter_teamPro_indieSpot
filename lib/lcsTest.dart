@@ -6,7 +6,11 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'firebase_options.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print("백그라운드 메시지 처리 => ${message.notification!.body!}");
+  if (message.notification != null && message.notification!.body != null) {
+    print("백그라운드 메시지 처리 => ${message.notification!.body}");
+  } else{
+    print("백그라운드 메시지 처리 오류");
+  }
 }
 
 void initializeNotification() async {
@@ -33,9 +37,17 @@ void initializeNotification() async {
 
 Future<void> main() async {
 
+  FirebaseOptions firebaseOptions = FirebaseOptions(
+    appId: '1:747945249445:android:585efff7364ef9166c5b4c',
+    apiKey: 'AIzaSyBAEerXfvy9qSD_etVmxm4ymhj8bP8q9Qc',
+    messagingSenderId: '747945249445',
+    projectId: 'indiespot-7d691',
+    storageBucket: 'gs://indiespot-7d691.appspot.com', // 시발 이거 어딨어
+  );
+
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+    options: firebaseOptions,
   );
   initializeNotification();
   runApp(MaterialApp(
@@ -95,6 +107,9 @@ class _LcsTestState extends State<LcsTest> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text("되라 알림 제발"),
+      ),
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
