@@ -81,7 +81,7 @@ class _AdminUserInfoState extends State<AdminUserInfo> {
         // ),
       ),
       body: DefaultTabController(
-        length: 3,
+        length: 2,
         child: Container(
           child: FutureBuilder<List<Widget>?>(
             future: _adminUserInfoDetails(),
@@ -139,7 +139,7 @@ class _AdminUserInfoState extends State<AdminUserInfo> {
                       fontSize: 13.0),
                   backgroundColor: Color(0xFF392F31),
                   labelBackgroundColor: Color(0xFF392F31),
-                  onTap: () => _blockUser()
+                  onTap: () => _unBlockUser()
               ),
             ],
           SpeedDialChild(
@@ -210,6 +210,43 @@ class _AdminUserInfoState extends State<AdminUserInfo> {
 
     return allData;
   }
+
+  Future<void> _unBlockUser() async{
+    String userId = widget.id;
+    final pwdControl = TextEditingController();
+    showDialog(context: context, builder: (context) => AlertDialog(
+      title: Text('회원 정지 해제'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('관리자 비밀번호를 입력해주세요'),
+          TextField(
+            controller: pwdControl,
+            decoration: InputDecoration(
+                hintText: '비밀번호'
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('취소')),
+        TextButton(onPressed: () async{
+          if(pwdControl.text == 'test123'){
+            await fs.collection('userList').doc(userId).update({
+              'banYn' : 'N',
+            });
+            if(!context.mounted) return;
+            Navigator.of(context).pop();
+            setState(() {});
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('관리자 비밀번호가 다릅니다.')));
+          }
+        }, child: Text('정지 해제')),
+      ],
+    ),);
+  }
+
 
   Future<void> _blockUser() async{
     String userId = widget.id;
@@ -379,22 +416,12 @@ class _AdminUserInfoState extends State<AdminUserInfo> {
                 ),
               ),
               TabBar(tabs: [
-                Tab(child: Text('아티스트', style: TextStyle(color: Colors.black),)),
                 Tab(child: Text('게시판', style: TextStyle(color: Colors.black),)),
                 Tab(child: Text('상업공간', style: TextStyle(color: Colors.black),)),
               ], onTap: (value) => setState(() {
                 _currentTabIndex = value;
               }),),
               if (_currentTabIndex == 0)
-                SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('aaa')
-                    ]
-                  ),
-                )
-              else if (_currentTabIndex == 1)
                 SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -411,7 +438,7 @@ class _AdminUserInfoState extends State<AdminUserInfo> {
                     }).toList(),
                   ),
                 )
-              else if (_currentTabIndex == 2)
+              else if (_currentTabIndex == 1)
                   SingleChildScrollView(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:indie_spot/artistInfo.dart';
+import 'package:indie_spot/dialog.dart';
 import 'package:indie_spot/login.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -87,19 +88,7 @@ class _VideoDetailedState extends State<VideoDetailed> {
   Future<void> addComment() async{
     final userModel = Provider.of<UserModel>(context, listen: false);
     if(!userModel.isLogin){
-      showDialog(context: context, builder: (context) {
-        return AlertDialog(
-          title: Text('로그인 하세요'),
-          actions: [
-            TextButton(onPressed: (){
-              Navigator.of(context).pop();
-            }, child: Text('취소')),
-            TextButton(onPressed: (){
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoginPage(),));
-            }, child: Text('로그인'))
-          ],
-        );
-      },);
+      DialogHelper.showUserRegistrationDialog(context);
     } else {
       if(_editflg) {
         fs.collection('video').doc(widget.videoId).collection('comment').doc(_commentId).update({
@@ -123,7 +112,7 @@ class _VideoDetailedState extends State<VideoDetailed> {
   Widget build(BuildContext context) {
 
     return Scaffold(
-      backgroundColor: Color(0xFFC4C4C4),
+      backgroundColor: Color(0xFFEEEEEE),
       drawer: MyDrawer(),
       appBar: AppBar(
         actions: [
@@ -236,7 +225,14 @@ class _VideoDetailedState extends State<VideoDetailed> {
                   controller: _commentControl,
                   focusNode: _focusNode,
                   decoration: InputDecoration(
-                      hintText: '댓글을 남겨주세요',
+                    hintText: '댓글을 남겨주세요',
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        addComment();
+                        _commentControl.clear();
+                      },
+                      icon: Icon(Icons.send),
+                    )
                   ),
                   textInputAction: TextInputAction.go,
                   onSubmitted: (value) {

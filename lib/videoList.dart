@@ -175,7 +175,7 @@ class _VideoListState extends State<VideoList> {
                   imageUrl: 'https://img.youtube.com/vi/$url/0.jpg', // 이미지 URL
                   height: 270,
                   fit: BoxFit.cover,
-                  placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
+                  placeholder: (context, url) => Center(child: CircularProgressIndicator()), // 이미지 로딩 중에 표시될 위젯
                   errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
                 ),
               )
