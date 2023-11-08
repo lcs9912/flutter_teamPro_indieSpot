@@ -4,6 +4,7 @@ import 'package:indie_spot/adminMain.dart';
 import 'package:indie_spot/announcementList.dart';
 import 'package:indie_spot/buskingList.dart';
 import 'package:indie_spot/buskingSpotList.dart';
+import 'package:indie_spot/dialog.dart';
 import 'package:indie_spot/donationArtistList.dart';
 import 'package:indie_spot/donationList.dart';
 import 'package:indie_spot/login.dart';
@@ -28,6 +29,7 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
         title: Text("indieSpot"),
         backgroundColor: Colors.white,
+        automaticallyImplyLeading: false,
         actions: [
           IconButton(
               onPressed: (){
@@ -56,7 +58,7 @@ class _MyDrawerState extends State<MyDrawer> {
   Map<String,dynamic>? imgData;
   ImageProvider<Object>? imageProvider;
   FirebaseFirestore fs = FirebaseFirestore.instance;
-  DocumentSnapshot? _artistId;
+  String? _artistId = "";
   bool _artistLeader = false;
   DocumentSnapshot? doc;
   DocumentSnapshot? artistDoc;
@@ -70,7 +72,9 @@ class _MyDrawerState extends State<MyDrawer> {
     } else {
       _userId = userModel.userId;
       userInfo();
-      artistCheck();
+      if(!userModel.isArtist){
+        _artistId = userModel.artistId;
+      }
     }
   }
   void userInfo() async{
@@ -88,36 +92,7 @@ class _MyDrawerState extends State<MyDrawer> {
       }else{imageProvider = NetworkImage(imgData?['PATH']) as ImageProvider<Object>?;}
     }
   }
-  void artistCheck() async{
-    QuerySnapshot art = await fs.collection("artist").get();
-    if(art.docs.isNotEmpty){
-      for(int i =0; i<art.docs.length; i++){
-        var docId=art.docs[i].id;
 
-        QuerySnapshot teamSnap = await fs.collection("artist").doc(docId).collection("team_members").get();
-        for(int j=0; j<teamSnap.docs.length; j++){
-          DocumentSnapshot artistDoc = teamSnap.docs[j];
-          Map<String,dynamic>teamData = artistDoc.data() as Map<String,dynamic>;
-          if(teamData['userId'] == _userId){
-            setState(() {
-
-              doc = art.docs[i];
-
-            });
-            if(teamData['status'] == "Y"){ // 유저가 리더라면
-              _artistLeader = true;
-              _artistId = doc;
-              // 'image' 컬렉션에 접근
-              await fs.collection("artist").doc(docId).collection("image").get()
-                  .then((imageSnap) => artistImg = imageSnap.docs.first['path']);
-
-            }
-          }
-
-        }
-      }
-    }
-  }
   Widget _userInfo(){
     if(_userId==null){
       return DrawerHeader(
@@ -180,138 +155,9 @@ class _MyDrawerState extends State<MyDrawer> {
       ),
     );
   }
-  void showUserRegistrationDialog(BuildContext context){
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5.0),
-          ),
-          elevation: 0.0,
-          backgroundColor: Colors.white,
-          child: Container(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 330,
-                  height: 45,
-                  color: Colors.black12,
-                  child:Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 13, 0, 0),
-                    child: Text("알림",style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold),),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 20, 20, 0),
-                  child: Text("로그인 후 이용 가능 합니다"),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 2, 20, 30),
-                  child: Text("로그인 페이지로 이동하시겠습니까?"),
-                ),
-                Container(
-                  color: Colors.black12,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 5, 4, 5),
-                        child: ElevatedButton(
-                            onPressed: (){
-                              Navigator.of(context).pop();
-                            },
-                            child: Text("취소")
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 5, 8, 5),
-                        child: ElevatedButton(
-                          onPressed: (){
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage(),));
-                          },
-                          child: Text("확인"),
-                        ),
-                      )
-                    ],
-                  ),
-                )
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
 
-  void showArtistRegistrationDialog(BuildContext context){
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5.0),
-          ),
-          elevation: 0.0,
-          backgroundColor: Colors.white,
-          child: Container(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 330,
-                  height: 45,
-                  color: Colors.black12,
-                  child:Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 13, 0, 0),
-                    child: Text("알림",style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold),),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 20, 20, 0),
-                  child: Text("아티스트 등록을 먼저 한 후에 이용이 가능합니다."),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 2, 20, 30),
-                  child: Text("아티스트 등록 페이지로 이동하시겠습니까?"),
-                ),
-                Container(
-                  color: Colors.black12,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 5, 4, 5),
-                        child: ElevatedButton(
-                            onPressed: (){
-                              Navigator.of(context).pop();
-                            },
-                            child: Text("취소")
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 5, 8, 5),
-                        child: ElevatedButton(
-                          onPressed: (){},
-                          child: Text("확인"),
-                        ),
-                      )
-                    ],
-                  ),
-                )
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
   @override
   Widget build(BuildContext context) {
-    print(_artistId);
     return Drawer(
       child: ListView(
         children: <Widget>[
@@ -338,7 +184,7 @@ class _MyDrawerState extends State<MyDrawer> {
                   if(_userId != null){
                     Navigator.push(context, MaterialPageRoute(builder: (context) => DonationArtistList(),));
                   }else{
-                    showUserRegistrationDialog(context);
+                    DialogHelper.showUserRegistrationDialog(context);
                   }
                 },
               ),
@@ -354,7 +200,7 @@ class _MyDrawerState extends State<MyDrawer> {
                   if(_artistId != null){
                     Navigator.push(context, MaterialPageRoute(builder: (context) => DonationList(artistDoc : doc!),));
                   }else {
-                    showArtistRegistrationDialog(context);
+                    DialogHelper.showArtistRegistrationDialog(context);
                   }// 아티스트 권한
                 },
               ),
@@ -371,7 +217,7 @@ class _MyDrawerState extends State<MyDrawer> {
                       Navigator.push(context, MaterialPageRoute(
                         builder: (context) => ProprietorAdd()));
                   }else{
-                    showUserRegistrationDialog(context);
+                    DialogHelper.showUserRegistrationDialog(context);
                   }
                 },
               ),
