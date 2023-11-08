@@ -35,6 +35,12 @@ class _RenTalHistoryState extends State<RenTalHistory> {
   }
   @override
   Widget build(BuildContext context) {
+    if(rentalList.isNotEmpty){
+      rentalList.sort((a, b) => a['rentalDate'].compareTo(b['rentalDate']));
+    }
+    if(pastRentalList.isNotEmpty){
+      pastRentalList.sort((b, a) => a['rentalDate'].compareTo(b['rentalDate']));
+    }
     return Scaffold(
       drawer: MyDrawer(),
       appBar: AppBar(
@@ -161,7 +167,7 @@ class _RenTalHistoryState extends State<RenTalHistory> {
       CollectionReference rentalCollection = fs.collection("commercial_space").doc(spaceId).collection("rental");
       CollectionReference rentalImg = fs.collection("commercial_space").doc(spaceId).collection("image");
       try {
-        QuerySnapshot rentalSnap = await rentalCollection.orderBy('startTime', descending: true).get();
+        QuerySnapshot rentalSnap = await rentalCollection.get();
         QuerySnapshot spaceImg = await rentalImg.get();
 
         rentalSnap.docs.forEach((doc) {
