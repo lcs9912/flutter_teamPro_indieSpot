@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:indie_spot/baseBar.dart';
+import 'package:indie_spot/boardEdit.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -86,12 +87,29 @@ class _BoardViewState extends State<BoardView> {
         ),
         backgroundColor: Colors.white,
         iconTheme: IconThemeData(color: Colors.black),
+        actions: [
+          if (Provider.of<UserModel>(context, listen: false).userId == data['userId'])
+            IconButton(
+                onPressed: (){
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => BoardEdit(document: widget.document),
+                    ),
+                  );
+                },
+                icon: Icon(Icons.edit)
+            ),
+          if (Provider.of<UserModel>(context, listen: false).userId == data['userId'])
+            IconButton(
+                onPressed: () => _showDeletePage(widget.document),
+                icon: Icon(Icons.delete)
+            ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Stack(
-          children: [
-            Column(
+        child:  Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
@@ -117,13 +135,26 @@ class _BoardViewState extends State<BoardView> {
                     }
                 ),
                 SizedBox(height: 2),
-                Text(
-                  '${data['createDate'].toDate().toString().substring(0, 16)}',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.black54
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      '${data['createDate'].toDate().toString().substring(0, 16)}',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.black54
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    Text(
+                      '조회수 : ${data['cnt']}',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.black54
+                      ),
+                    )
+                  ],
                 ),
                 Divider(
                   color: Colors.grey[400],
@@ -131,10 +162,8 @@ class _BoardViewState extends State<BoardView> {
                   height: 30,
                 ),
                 SizedBox(height: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    StreamBuilder(
+                Container(
+                  child: StreamBuilder(
                         stream: fs
                             .collection("posts")
                             .doc("3QjunO69Eb2OroMNJKWU")
@@ -154,30 +183,33 @@ class _BoardViewState extends State<BoardView> {
                           ? imgSnap.data!.docs.first.data() as Map<String, dynamic>?
                           : null;
                           return imgData != null && imgData.isNotEmpty
-                              ? ClipRRect(
+                              ? Align(
+                            alignment: Alignment.center,
+                                child: ClipRRect(
                             borderRadius: BorderRadius.circular(4),
                             child: Image.network(
-                              imgData['PATH'],
-                              height: 180,
-                              fit: BoxFit.fitHeight,
+                                imgData['PATH'],
+                                height: 160,
+                                fit: BoxFit.fitHeight,
                             ),
-                          )
+                          ),
+                              )
                               : Container();
                         }
                     ),
-                    Container(
-                      constraints: BoxConstraints(
-                        minHeight: 80,
-                        maxHeight: 180,
-                      ),
-                      child: Text(
-                          '${data['content']}',
-                          style: TextStyle(
-                              fontSize: 16
-                          ),
-                        ),
+                ),
+                SizedBox(height: 20),
+                Container(
+                  constraints: BoxConstraints(
+                    minHeight: 80,
+                    maxHeight: 180,
+                  ),
+                  child: Text(
+                    '${data['content']}',
+                    style: TextStyle(
+                        fontSize: 16
                     ),
-                  ],
+                  ),
                 ),
                 SizedBox(height: 14),
                 Divider(
@@ -218,21 +250,17 @@ class _BoardViewState extends State<BoardView> {
                 Expanded(
                     child: _listComments()
                 ),
-                TextFlg ? Container(
-                    height: 180,
-                    child : TextField(
-                      maxLines: 4,
+                TextFlg ? TextField(
+                      maxLines: 2,
                       controller: _comment,
                       decoration: InputDecoration(
                         labelText: "댓글 입력",
                         border: OutlineInputBorder(),
                       ),
                     )
-                ) : Container(height: 60)
+                 : Container(height: 60)
               ],
             ),
-          ],
-        ),
       ),
       floatingActionButton: TextFlg ? _commentAdd() : _commentRegi(),
       bottomNavigationBar: MyBottomBar(),
@@ -390,6 +418,7 @@ class _BoardViewState extends State<BoardView> {
     );
   }
 
+
   Future<void> _showDeleteDialog(DocumentSnapshot doc) async {
     return showDialog<void>(
       context: context,
@@ -401,6 +430,39 @@ class _BoardViewState extends State<BoardView> {
             child: Column(
               children: [
                 Text('이 댓글을 삭제하시겠습니까?'),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: Text('취소'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('삭제'),
+              onPressed: () {
+                doc.reference.delete();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+  Future<void> _showDeletePage(DocumentSnapshot doc) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('게시글 삭제'),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                Text('게시글을 정말 삭제하시겠습니까?'),
               ],
             ),
           ),

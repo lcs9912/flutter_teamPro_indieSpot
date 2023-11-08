@@ -89,7 +89,14 @@ class _AdminUserInfoState extends State<AdminUserInfo> {
               } else if (snapshot.hasError) {
                 // Handle error case
               }
-              return CircularProgressIndicator(); // Display a loading indicator while waiting for data.
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                  ],
+                ),
+              ); // Display a loading indicator while waiting for data.
             },
           )
         ),

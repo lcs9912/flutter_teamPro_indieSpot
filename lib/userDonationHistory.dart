@@ -132,9 +132,14 @@ class _UserDonationHistoryState extends State<UserDonationHistory> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xFFEEE9DA),
       drawer: MyDrawer(),
       appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            color: Color(0xFF6096B4)
+          ),
+        ),
         actions: [
           IconButton(
             onPressed: () {
@@ -177,7 +182,7 @@ class _UserDonationHistoryState extends State<UserDonationHistory> {
       body: Column(
         children: [
           Container(
-            color: const Color(0xFF392F31),
+            color: const Color(0xFFBDCDD6),
             height: 200,
             child: Container(
               padding: const EdgeInsets.all(15),
@@ -224,7 +229,7 @@ class _UserDonationHistoryState extends State<UserDonationHistory> {
                                     borderRadius: BorderRadius.zero,
                                     side: _num == 30 ? BorderSide(color: Colors.white, width: 1) : BorderSide.none,
                                   )),
-                                  backgroundColor: MaterialStateProperty.all(const Color(0xFF634F52)),
+                                  backgroundColor: MaterialStateProperty.all(const Color(0xFF93BFCF)),
                                 ),
                                 child: const Padding(
                                   padding: EdgeInsets.only(top: 13, bottom: 13),
@@ -243,7 +248,7 @@ class _UserDonationHistoryState extends State<UserDonationHistory> {
                                     borderRadius: BorderRadius.zero,
                                     side: _num == 90 ? BorderSide(color: Colors.white, width: 1) : BorderSide.none,
                                   )),
-                                  backgroundColor: MaterialStateProperty.all(const Color(0xFF634F52)),
+                                  backgroundColor: MaterialStateProperty.all(const Color(0xFF93BFCF)),
                                 ),
                                 child: const Padding(
                                   padding: EdgeInsets.only(top: 13, bottom: 13),
@@ -255,8 +260,8 @@ class _UserDonationHistoryState extends State<UserDonationHistory> {
                                 height: 46,
                                 padding: const EdgeInsets.only(left: 13),
                                 decoration: BoxDecoration(
-                                  border: Border.all(width: 1, color: _num == 0 ? Colors.white : Colors.black),
-                                  color: const Color(0xFF634F52),
+                                  border: Border.all(width: _num == 0 ? 1 : 0, color: Colors.white),
+                                  color: const Color(0xFF93BFCF),
                                 ),
                                 child: DropdownButton<String>(
                                   underline: Container(),
@@ -295,23 +300,23 @@ class _UserDonationHistoryState extends State<UserDonationHistory> {
             child: Table(
               children: <TableRow>[
                 TableRow(
-                  decoration: BoxDecoration(color: Colors.grey), // 헤더의 배경색 지정
+                  decoration: BoxDecoration(color: Color(0xFF93BFCF)), // 헤더의 배경색 지정
                   children: <Widget>[
                     Container(
                       height: 50,
-                      child:  Center(child: Text('날짜', style: TextStyle(fontWeight: FontWeight.bold))),
+                      child:  Center(child: Text('날짜', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
                     ),
                     Container(
                       height: 50,
-                      child:  Center(child: Text('닉네임', style: TextStyle(fontWeight: FontWeight.bold))),
+                      child:  Center(child: Text('닉네임', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
                     ),
                     Container(
                       height: 50,
-                      child: Center(child: Text('금액', style: TextStyle(fontWeight: FontWeight.bold))),
+                      child: Center(child: Text('금액', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
                     ),
                     Container(
                       height: 50,
-                      child: Center(child: Text('메시지', style: TextStyle(fontWeight: FontWeight.bold))),
+                      child: Center(child: Text('메시지', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
                     ),
                   ],
                 ),
@@ -420,7 +425,7 @@ class _UserDonationHistoryState extends State<UserDonationHistory> {
                                             },
                                           );
                                         },
-                                        child: const Text("보기"),
+                                        child: const Text("보기", style: TextStyle(color: Color(0xFF6096B4)),),
                                       ),
                                     ),
                                   ),
