@@ -9,6 +9,7 @@ import 'package:indie_spot/donationArtistList.dart';
 import 'package:indie_spot/donationList.dart';
 import 'package:indie_spot/login.dart';
 import 'package:indie_spot/main.dart';
+import 'package:indie_spot/profile.dart';
 import 'package:indie_spot/proprietorIdAdd.dart';
 import 'package:indie_spot/rentalHistory.dart';
 import 'package:indie_spot/support.dart';
@@ -21,6 +22,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'artistEdit.dart';
 import 'artistList.dart';
 import 'commercialList.dart';
+import 'package:get/get.dart';
 
 class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
 
@@ -156,7 +158,7 @@ class _MyDrawerState extends State<MyDrawer> {
                       onPressed: (){
                         setState(() {
                           Provider.of<UserModel>(context, listen: false).logout();
-                          Navigator.pop(context);
+                          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => MyApp(),));
                         });
                       },
                       style: TextButton.styleFrom(
@@ -326,57 +328,54 @@ class _MyBottomBarState extends State<MyBottomBar> {
                 children: [
                   InkWell(
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => ArtistList()),
+                      Get.to(
+                        ArtistList(),
+                        preventDuplicates: true,
                       );
                     },
                     child: Image.asset('assets/mic.png',width: 23,),
                   ),
                   InkWell(
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => BuskingList()),
+                      Get.to(
+                        BuskingList(),
+                        preventDuplicates: true,
                       );
                     },
                     child: Icon(Icons.calendar_month_outlined,color: Colors.black54,),
                   ),
                   InkWell(
                     onTap: () {
-                      if (Navigator.of(context).canPop()) {
-                        Navigator.of(context).pop(); // 현재 페이지를 제거
-                      }
-
-                      Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) {
-                          return MyApp(); // 새 페이지로 이동
-                        },
-                      ));
+                      Get.toNamed(
+                        '/',
+                        preventDuplicates: true, // 현재 페이지와 동일한 페이지로의 이동 방지
+                      );
                     },
                     child: Icon(Icons.home_outlined,color: Colors.black54,),
                   ),
                   InkWell(
                     onTap: () {
-                      if (Navigator.of(context).canPop()) {
-                        Navigator.of(context).pop(); // 현재 페이지를 제거
-                      }
-
-                      Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) {
-                          return VideoList(); // 새 페이지로 이동
-                        },
-                      ));
+                      Get.to(
+                        VideoList(),
+                        preventDuplicates: true,
+                      );
                     },
                     child: Icon(Icons.play_circle_outline,color: Colors.black54,),
                   ),
                   InkWell(
-                    /*onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => ),
+                    onTap: () {
+                      var user = Provider.of<UserModel>(context, listen: false);
+                      if(user.isLogin) {
+                        Get.to(
+                          Profile(
+                              userId: user.userId,
+                          ),
+                          preventDuplicates: true,
                         );
-                      },*/
+                      } else{
+                        DialogHelper.showUserRegistrationDialog(context);
+                      }
+                    },
                     child: Icon(Icons.person,color: Colors.black54,),
                   )
                 ]

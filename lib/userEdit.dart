@@ -401,8 +401,6 @@ class _UserEditState extends State<UserEdit> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => Profile(
-                      nicknameController: _nicknameController,
-                      introductionController: _introductionController,
                       userId: _userId,
                     ),
                   ),

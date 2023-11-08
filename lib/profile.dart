@@ -6,13 +6,9 @@ import 'package:indie_spot/userEdit.dart';
 import 'followList.dart';
 
 class Profile extends StatefulWidget {
-  final TextEditingController nicknameController;
-  final TextEditingController introductionController;
   final String? userId;
 
-  Profile({
-    required this.nicknameController,
-    required this.introductionController,
+  Profile({super.key,
     required this.userId,
   });
 

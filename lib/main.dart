@@ -24,40 +24,41 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'join.dart';
 import 'lcsTest.dart';
 import 'dart:async';
+import 'package:get/get.dart';
+
 TextEditingController _nicknameController = TextEditingController();
 TextEditingController _introductionController = TextEditingController();
 
 void main() async {
-
-
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   runApp(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => UserModel())
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserModel())
+      ],
+      child: GetMaterialApp( // GetMaterialApp 사용
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        supportedLocales: [
+          const Locale('ko', 'KR'), // 한국어
+          const Locale('en'), // 한국어
         ],
-        child: MaterialApp(
-          localizationsDelegates: GlobalMaterialLocalizations.delegates,
-          supportedLocales: [
-            const Locale('ko', 'KR'), // 한국어
-            const Locale('en'), // 한국어
-          ],
-          debugShowCheckedModeBanner: false,
-          theme: ThemeData(
-            scaffoldBackgroundColor: Colors.white, // 전체 페이지의 배경 색상
-            fontFamily: 'Noto_Serif_KR', // 폰트 패밀리 이름을 지정
-          ),
-          home: MyApp(),
-          routes: {
-            '/result': (context) => Result(), // '/result' 경로와 연결된 페이지
-            '/pointDetailed': (context) => PointDetailed()
-            // 다른 경로와 페이지 설정
-          },
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          scaffoldBackgroundColor: Colors.white, // 전체 페이지의 배경 색상
+          fontFamily: 'Noto_Serif_KR', // 폰트 패밀리 이름을 지정
         ),
-      )
+        getPages: [
+          GetPage(name: '/result', page: () => Result()), // GetX에서의 페이지 설정
+          GetPage(name: '/pointDetailed', page: () => PointDetailed()),
+          GetPage(name: '/', page: () => MyApp()),
+          // 다른 경로와 페이지 설정
+        ],
+        initialRoute: '/',
+      ),
+    ),
   );
 }
 
@@ -151,8 +152,6 @@ class _MyAppState extends State<MyApp> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => Profile(
-                              nicknameController: _nicknameController,
-                              introductionController: _introductionController,
                               userId: _userId,
                             ),
                           ),
