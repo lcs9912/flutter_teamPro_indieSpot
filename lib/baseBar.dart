@@ -10,6 +10,7 @@ import 'package:indie_spot/donationList.dart';
 import 'package:indie_spot/login.dart';
 import 'package:indie_spot/main.dart';
 import 'package:indie_spot/proprietorIdAdd.dart';
+import 'package:indie_spot/rentalHistory.dart';
 import 'package:indie_spot/support.dart';
 import 'package:indie_spot/userDonationHistory.dart';
 import 'package:indie_spot/userModel.dart';
@@ -148,7 +149,23 @@ class _MyDrawerState extends State<MyDrawer> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text("${userData?['nick']}", style: TextStyle(color: Colors.black54, fontSize: 18,fontWeight: FontWeight.bold),),
-              Text("${userData?['email']}",style: TextStyle(color: Colors.black54))
+              Row(
+                children: [
+                  Icon(Icons.logout,size: 20),
+                  TextButton(
+                      onPressed: (){
+                        setState(() {
+                          Provider.of<UserModel>(context, listen: false).logout();
+                          Navigator.pop(context);
+                        });
+                      },
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero, // 패딩 조정
+                        // 다른 스타일 속성들도 추가할 수 있습니다.
+                      ),
+                      child: Text("로그아웃")),
+                ],
+              )
             ],
           ),
         ],
@@ -260,6 +277,20 @@ class _MyDrawerState extends State<MyDrawer> {
                 title: Text('공연 신청 관리'),
                 onTap: () {
 
+                },
+              ),
+              ListTile(
+                title: Text('장소 예약 내역'),
+                onTap: () {
+                  if(_userId == null){
+                    DialogHelper.showUserRegistrationDialog(context);
+                  }else{
+                    if(_artistId == null){
+                      DialogHelper.showArtistRegistrationDialog(context);
+                    }else{
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => RenTalHistory(),));
+                    }
+                  }
                 },
               ),
               if(_artistLeader)
