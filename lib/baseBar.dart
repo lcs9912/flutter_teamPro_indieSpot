@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:indie_spot/adminInquiry.dart';
 import 'package:indie_spot/adminMain.dart';
 import 'package:indie_spot/announcementList.dart';
+import 'package:indie_spot/artistInfo.dart';
 import 'package:indie_spot/artistRegi.dart';
 import 'package:indie_spot/buskingList.dart';
 import 'package:indie_spot/buskingSpotList.dart';
@@ -189,20 +190,29 @@ class _MyDrawerState extends State<MyDrawer> {
               ListTile(
                 title: Text('공지사항'),
                 onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => AnnouncementList(),));
+                  Get.to(
+                    AnnouncementList(),
+                    preventDuplicates: true,
+                  );
                 },
               ),
               ListTile(
                 title: Text('공연일정'),
                 onTap: () {
-
+                  Get.to(
+                    BuskingList(),
+                    preventDuplicates: true,
+                  );
                 },
               ),
               ListTile(
                 title: Text('후원하기'),
                 onTap: () {
                   if(_userId != null){
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => DonationArtistList(),));
+                    Get.to(
+                      DonationArtistList(),
+                      preventDuplicates: true,
+                    );
                   }else{
                     DialogHelper.showUserRegistrationDialog(context);
                   }
@@ -211,17 +221,27 @@ class _MyDrawerState extends State<MyDrawer> {
               ListTile(
                 title: Text('후원내역조회'),
                 onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => UserDonationHistory(),));
+                  if(_userId != null){
+                    Get.to(
+                      UserDonationHistory(),
+                      preventDuplicates: true,
+                    );
+                  }else{
+                    DialogHelper.showUserRegistrationDialog(context);
+                  }
                 },
               ),
               ListTile(
                 title: Text('받은 후원 내역'),
                 onTap: () {
                   if(_artistId != null){
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => DonationList(artistDoc : doc!),));
-                  }else {
+                    Get.to(
+                      DonationList(artistId: _artistId!,),
+                      preventDuplicates: true,
+                    );
+                  }else{
                     DialogHelper.showArtistRegistrationDialog(context);
-                  }// 아티스트 권한
+                  }
                 },
               ),
               ListTile(
@@ -229,7 +249,9 @@ class _MyDrawerState extends State<MyDrawer> {
                 onTap: () {
                   var user = Provider.of<UserModel>(context, listen: false);
                   if(user.isArtist){
-
+                    Get.to(
+                      ArtistInfo(doc!, 'aaa')
+                    );
                   } else {
                     Get.to(
                       ArtistRegi(),
@@ -242,8 +264,10 @@ class _MyDrawerState extends State<MyDrawer> {
                 title: Text('사업자 등록'),
                 onTap: () {
                   if(_userId != null) {
-                      Navigator.push(context, MaterialPageRoute(
-                        builder: (context) => ProprietorAdd()));
+                     Get.to(
+                       ProprietorAdd(),
+                       preventDuplicates: true,
+                     );
                   }else{
                     DialogHelper.showUserRegistrationDialog(context);
                   }
@@ -252,7 +276,10 @@ class _MyDrawerState extends State<MyDrawer> {
               ListTile(
                 title: Text('고객센터'),
                 onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => Support(),)); // Support 클래스로 이동
+                  Get.to(
+                    Support(),
+                    preventDuplicates: true
+                  );
                 },
               ),
             ],
@@ -263,25 +290,36 @@ class _MyDrawerState extends State<MyDrawer> {
               ListTile(
                 title: Text('공지사항'),
                 onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => AdminMain(),));
+                  Get.to(
+                    AdminMain(),
+                    preventDuplicates: true
+                  );
                 },
               ),
               ListTile(
-                title: Text('팀·솔로 등록/관리'),
+                title: Text('팀·솔로 관리'),
                 onTap: () {
-
+                  // Get.to(
+                  //   ArtistInfo(doc, artistImg)
+                  // );
                 },
               ),
               ListTile(
                 title: Text('버스킹존'),
                 onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => BuskingZoneList(),));
+                  Get.to(
+                    BuskingZoneList(),
+                    preventDuplicates: true
+                  );
                 },
               ),
               ListTile(
-                title: Text('공연 신청'),
+                title: Text('상업 공간'),
                 onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => CommercialList(),));
+                  Get.to(
+                    CommercialList(),
+                    preventDuplicates: true
+                  );
                 },
               ),
               ListTile(
@@ -299,7 +337,10 @@ class _MyDrawerState extends State<MyDrawer> {
                     if(_artistId == null){
                       DialogHelper.showArtistRegistrationDialog(context);
                     }else{
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => RenTalHistory(),));
+                      Get.to(
+                        RenTalHistory(),
+                        preventDuplicates: true
+                      );
                     }
                   }
                 },
