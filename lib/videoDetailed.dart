@@ -202,7 +202,7 @@ class _VideoDetailedState extends State<VideoDetailed> {
                     ),
                     TextButton(
                       onPressed: (){
-                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => ArtistInfo(widget.artistName as DocumentSnapshot<Object?>, img),));
+                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => ArtistInfo(widget.artistName?.id as String),));
                       },
                       style: ButtonStyle(
                         padding: MaterialStatePropertyAll(EdgeInsets.zero), // 패딩 없음

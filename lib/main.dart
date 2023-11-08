@@ -664,7 +664,6 @@ class _MyAppState extends State<MyApp> {
                                 ),
                               ],
                             ),
-
                             Stack(
                               children: [
                                 ElevatedButton(
@@ -707,6 +706,28 @@ class _MyAppState extends State<MyApp> {
                                 )
                               ],
                             ),
+                          ],
+                        ),
+                      ),
+                      Text("best artist"), // 인기많은 아티스트
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          children: [
+                            Column(
+                              children: [
+                                ClipOval(
+                                  child: Image.asset(
+                                    'assets/기본.jpg',
+                                    width: 100, // 원 모양 이미지의 너비
+                                    height: 100, // 원 모양 이미지의 높이
+                                    fit: BoxFit.cover, // 이미지를 화면에 맞게 조절
+                                  ),
+                                ),
+                                Text("루시")
+                              ],
+                            ),
+                            
                           ],
                         ),
                       ),
@@ -835,86 +856,77 @@ class _MyAppState extends State<MyApp> {
 
               if (addrDoc.docs.isNotEmpty) {
                 final addr = addrDoc.docs.first['addr'];
-                final listItem = Card(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16.0),
-                      color: Color(0xFFffffff), // 배경 색상
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
-                          spreadRadius: 3,
-                          blurRadius: 7,
-                          offset: Offset(0, 3), // 그림자 효과
+                final listItem = Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16.0),
+                    color: Color(0xFFffffff), // 배경 색상
+                  ),
+                  padding: const EdgeInsets.all(8.0),
+                  child: ListTile(
+                    visualDensity: VisualDensity(vertical: 4),
+                    contentPadding: EdgeInsets.all(0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6.0),
+                    ),
+                    tileColor: Colors.white,
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Container(
+                                width: 100,
+                                height: 100,
+                                child: CachedNetworkImage(
+                                  imageUrl: img[0], // 이미지 URL
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => CircularProgressIndicator(),
+                                  errorWidget: (context, url, error) => Icon(Icons.error),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 10,),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  spaceName,
+                                  style: TextStyle(
+                                    fontSize: 18.0,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text('공연팀: $artistName'),
+                                Container(
+                                  width: 200,
+                                  child: Text(
+                                    addr,
+                                    style: TextStyle(fontSize: 13),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        Column(
+                          children: [
+                            Text(date),
+                            Text(startTime),
+                            Text(endTime),
+                          ],
                         ),
                       ],
                     ),
-                    padding: const EdgeInsets.all(8.0),
-                    child: ListTile(
-                      visualDensity: VisualDensity(vertical: 4),
-                      contentPadding: EdgeInsets.all(0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      tileColor: Colors.white,
-                      title: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Container(
-                                  width: 100,
-                                  height: 100,
-                                  child: CachedNetworkImage(
-                                    imageUrl: img[0], // 이미지 URL
-                                    width: 100,
-                                    height: 100,
-                                    fit: BoxFit.cover,
-                                    placeholder: (context, url) => CircularProgressIndicator(),
-                                    errorWidget: (context, url, error) => Icon(Icons.error),
-                                  ),
-                                ),
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    spaceName,
-                                    style: TextStyle(
-                                      fontSize: 18.0,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Text('공연팀: $artistName'),
-                                  Container(
-                                    width: 200,
-                                    child: Text(
-                                      addr,
-                                      style: TextStyle(fontSize: 13),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          Column(
-                            children: [
-                              Text(date),
-                              Text(startTime),
-                              Text(endTime),
-                            ],
-                          ),
-                        ],
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => SpaceInfo(_id)),
-                        );
-                      },
-                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => SpaceInfo(_id)),
+                      );
+                    },
                   ),
                 );
                 commerWidgets.add(listItem);

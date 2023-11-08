@@ -132,8 +132,7 @@ class _FollowListState extends State<FollowList> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => ArtistInfo(
-                                artistDoc,
-                                _imagePaths[artistId]!,
+                                artistDoc.id,
                               ),
                             ),
                           );

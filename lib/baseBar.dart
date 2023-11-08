@@ -33,7 +33,7 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
         title: Text("indieSpot"),
-        backgroundColor: Color(0xFFffffff),
+        backgroundColor: Color(0xFF233067),
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
@@ -250,7 +250,7 @@ class _MyDrawerState extends State<MyDrawer> {
                   var user = Provider.of<UserModel>(context, listen: false);
                   if(user.isArtist){
                     Get.to(
-                      ArtistInfo(doc!, 'aaa')
+                      ArtistInfo(_artistId!)
                     );
                   } else {
                     Get.to(
