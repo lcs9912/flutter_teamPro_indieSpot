@@ -741,10 +741,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                           Row(
                             children: [
                               SizedBox(width: 10), // Add some space between avatar and nickname
-                              Text(
-                                _nick ?? '게스트', // nick 값이 null이면 '게스트'를 출력
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                              ),
+
 
                               Spacer(),
 
