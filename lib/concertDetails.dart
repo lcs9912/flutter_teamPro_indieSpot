@@ -878,6 +878,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                 for (var document in buskingReview!)
                                   if (document['rating'] != null)
                                     Container(
+                                      height: 160,
                                       width: double.infinity,
                                       margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                                       padding: EdgeInsets.all(16.0),
@@ -950,6 +951,10 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                               child: Row(
                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween, // 텍스트와 간격 사이에 공간을 만듭니다.
                                                 children: [
+                                                  Text(
+                                                    "${document['nick']}",
+                                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color: Colors.black), // Adjust font size and weight
+                                                  ),
                                                   SizedBox(width: 8.0),
                                                   Text(
                                                     '수정하기',
@@ -962,10 +967,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                           ),
 
 
-                                          Text(
-                                            "${document['nick']}",
-                                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold), // Adjust font size and weight
-                                          ),
+
                                           Text(
                                             "${document['reviewContents']}",
                                             style: TextStyle(fontSize: 16), // Adjust font size
