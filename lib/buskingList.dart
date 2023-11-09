@@ -28,7 +28,7 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
     super.initState();
     _buskingList2();
   }
-  Future<void> _buskingList2()async{
+  Future<List> _buskingList2()async{
     busKingList.clear();
     DateTime now = DateTime.now();
     DateTime today = DateTime(now.year, now.month, now.day);
@@ -132,52 +132,64 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
         }
       }
     }
-    setState(() {
-      busKingList = buskingData;
-    });
+      return buskingData;
   }
   Widget _buskingList() {
-    return Expanded(
-      child: busKingList.isNotEmpty?
-      ListView.builder(
-        itemCount: busKingList.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            title: Text(busKingList[index]["title"]),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("일시 : ${busKingList[index]["buskingStart"]}"),
-                Text("장소 : ${busKingList[index]["spotName"]}")
-              ],
-            ),
-            leading:DateTime.now().isBefore(busKingList[index]["startTime"]) ? Container(
-                width: 100,
-                child: Image.network("${busKingList[index]['path']}",fit: BoxFit.fill,)
-            ):Stack(
-              children: [
-                Container(
-                    width: 100,
-                    child: Image.network("${busKingList[index]['path']}",fit: BoxFit.fill,)
-                ),
-                Container(
-                  width: 100,
-                  height: 60,
-                  color: Color.fromRGBO(0, 0, 0, 0.5),
-                  child: Center(child: Text("종료",style: TextStyle(
-                      color: Colors.white,fontSize: 15,fontWeight: FontWeight.bold),)
-                  ),
-                ),
-              ],
-            ) ,
-            onTap: () {
-              Navigator.push(context,
-                  MaterialPageRoute(
-                    builder: (context) =>ConcertDetails(document: busKingList[index]["doc"], spotName : busKingList[index]['spotName']),));
-            },
-          );
-        },
-      ) : LoadingWidget(),
+    return FutureBuilder(
+      future: _buskingList2(),
+      builder: (BuildContext context, AsyncSnapshot<List> snapshot) {
+        if(snapshot.connectionState == ConnectionState.waiting){
+          return SizedBox(
+              height : 400,
+              child: LoadingWidget());
+        }else{
+          if (snapshot.hasData && snapshot.data!.isNotEmpty){
+            return Expanded(
+              child:ListView.builder(
+                itemCount: snapshot.data?.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text(snapshot.data?[index]["title"]),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("일시 : ${snapshot.data?[index]["buskingStart"]}"),
+                        Text("장소 : ${snapshot.data?[index]["spotName"]}")
+                      ],
+                    ),
+                    leading:DateTime.now().isBefore(snapshot.data?[index]["startTime"]) ? Container(
+                        width: 100,
+                        child: Image.network("${snapshot.data?[index]['path']}",fit: BoxFit.fill,)
+                    ):Stack(
+                      children: [
+                        Container(
+                            width: 100,
+                            child: Image.network("${snapshot.data?[index]['path']}",fit: BoxFit.fill,)
+                        ),
+                        Container(
+                          width: 100,
+                          height: 60,
+                          color: Color.fromRGBO(0, 0, 0, 0.5),
+                          child: Center(child: Text("종료",style: TextStyle(
+                              color: Colors.white,fontSize: 15,fontWeight: FontWeight.bold),)
+                          ),
+                        ),
+                      ],
+                    ) ,
+                    onTap: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(
+                            builder: (context) =>ConcertDetails(document: snapshot.data?[index]["doc"], spotName : snapshot.data?[index]['spotName']),));
+                    },
+                  );
+                },
+              )
+            );
+          }else{
+            return Container();
+          }
+        }
+      },
     );
   }
   final List<String> _regions = ['서울', '부산', '인천', '강원', '경기', '경남', '경북', '광주', '대구', '대전', '울산', '전남', '전북', '제주', '충남', '충북'];
