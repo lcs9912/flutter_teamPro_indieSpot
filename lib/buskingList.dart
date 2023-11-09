@@ -128,7 +128,18 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
                                         ],
                                       ),
                                       /*leading: Image.asset('assets/기본.jpg'),*/
-                                      leading: Container(
+                                      leading:DateTime.now().isBefore(date) ? Stack(
+                                        children: [
+                                          Container(
+                                              width: 100,
+                                              child: Image.network(firstImage['path'],fit: BoxFit.fill,)
+                                          ),
+                                          Container(
+                                            width: 100,
+                                            color: Color.fromRGBO(0, 0, 0, 0.3),
+                                          )
+                                        ],
+                                      ) :Container(
                                         width: 100,
                                           child: Image.network(firstImage['path'],fit: BoxFit.fill,)
                                       ),

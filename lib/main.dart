@@ -382,7 +382,8 @@ class _MyAppState extends State<MyApp> {
         .where('buskingStart', isGreaterThan: Timestamp.fromDate(selectedDay))
         .get();
     // Firestore 쿼리를 생성하여 "busking" 컬렉션에서 현재 날짜를 지난 문서를 삭제합니다.
-    fs.collection('busking').where('buskingStart', isLessThan: Timestamp.fromDate(selectedDay)).get().then((querySnapshot) {
+    DateTime threeMonthsAgo = selectedDay.subtract(Duration(days: 3 * 30));
+    fs.collection('busking').where('buskingStart', isLessThan: Timestamp.fromDate(threeMonthsAgo)).get().then((querySnapshot) {
       querySnapshot.docs.forEach((doc) async {
         // "image" 서브컬렉션 삭제
         QuerySnapshot imageSubcollection = await doc.reference.collection('image').get();
