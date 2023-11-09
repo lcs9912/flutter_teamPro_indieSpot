@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/pointDetailed.dart';
 import 'package:indie_spot/userEdit.dart';
 
+import 'boardList.dart';
 import 'followList.dart';
 
 class Profile extends StatefulWidget {
@@ -403,6 +404,8 @@ class _ProfileState extends State<Profile> {
                       ? ClipOval(
                     child: Image.network(
                       _path!,
+                      width: 100,
+                      height: 100,
                       fit: BoxFit.cover, // 이미지를 둥글게 자르기
                     ),
                   )
@@ -518,42 +521,54 @@ class _ProfileState extends State<Profile> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: _postsData.map((postData) {
-                return Card(
-                  elevation: 5, // 그림자 추가
-                  margin: EdgeInsets.all(10), // 카드 주위의 간격
-                  child: Padding(
-                    padding: EdgeInsets.all(10), // 내부 내용의 간격
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '제목:',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                return GestureDetector(
+                  onTap: () {
+                    // 클릭 시 boardList.dart로 이동
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BoardList(),
+                      ),
+                    );
+                  },
+                  child: Card(
+                    elevation: 5, // 그림자 추가
+                    margin: EdgeInsets.all(10), // 카드 주위의 간격
+                    child: Padding(
+                      padding: EdgeInsets.all(10), // 내부 내용의 간격
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '제목:',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        Text(
-                          '${postData['title']}',
-                          style: TextStyle(
-                            fontSize: 16,
+                          Text(
+                            '${postData['title']}',
+                            style: TextStyle(
+                              fontSize: 16,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 10), // 간격 추가
+                          SizedBox(height: 10), // 간격 추가
 
-                        Text(
-                          '${postData['content']}',
-                          style: TextStyle(
-                            fontSize: 16,
+                          Text(
+                            '${postData['content']}',
+                            style: TextStyle(
+                              fontSize: 16,
+                            ),
                           ),
-                        ),
-                        // 다른 정보들도 원하는대로 추가하세요.
-                      ],
+                          // 다른 정보들도 원하는대로 추가하세요.
+                        ],
+                      ),
                     ),
                   ),
                 );
               }).toList(),
             )
+
 
           ],
         ),
