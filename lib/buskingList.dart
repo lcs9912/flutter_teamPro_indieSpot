@@ -26,7 +26,6 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
   void initState() {
     // TODO: implement initState
     super.initState();
-    _buskingList2();
   }
   Future<List> _buskingList2()async{
     busKingList.clear();
@@ -250,7 +249,7 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
                             });
                           },
                           child: Text(genre, style: TextStyle(
-                              color: selectGenre == genre? Colors.lightBlue : Colors.black),
+                              color: selectGenre == genre? Color(0xFF233067) : Colors.black),
                           ),
                         ),
                       ),]
