@@ -25,8 +25,6 @@ class _ArtistEditState extends State<ArtistEdit> {
   bool _isNameChecked = false;
   File? _selectedImage;
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
-  final TextEditingController _basicPrice =
-      TextEditingController(); // 기본공연비(30분기준)
   final TextEditingController _artistName = TextEditingController();
   final TextEditingController _artistInfo = TextEditingController();
   final TextEditingController _mainPlace = TextEditingController();
@@ -41,7 +39,6 @@ class _ArtistEditState extends State<ArtistEdit> {
     // TODO: implement initState
     super.initState();
     _artistName.text = widget.doc['artistName'];
-    _basicPrice.text = widget.doc['basicPrice'].toString();
     _artistInfo.text = widget.doc['artistInfo'];
     _genre = widget.doc['genre'];
     _mainPlace.text = widget.doc['mainPlace'];
@@ -103,7 +100,6 @@ class _ArtistEditState extends State<ArtistEdit> {
         });
       }
     }
-
   }
 
   void _change() {
@@ -156,8 +152,7 @@ class _ArtistEditState extends State<ArtistEdit> {
     if (_artistName.text.isEmpty ||
         _artistInfo.text.isEmpty ||
         _mainPlace.text.isEmpty ||
-        _genre == null ||
-        _basicPrice.text.isEmpty) {
+        _genre == null) {
       ScaffoldMessenger.of(dialogContext)
           .showSnackBar(SnackBar(content: Text("모든 정보를 입력해주세요.")));
       return;
@@ -201,7 +196,6 @@ class _ArtistEditState extends State<ArtistEdit> {
         'genre': _genre,
         'mainPlace': _mainPlace.text,
         'udatetime': Timestamp.now(),
-        'basicPrice': int.parse(_basicPrice.text),
         "detailedGenre" : _genreCheck == "직접입력" ? _genreCon.text : _genreCheck
       });
 
@@ -551,20 +545,7 @@ class _ArtistEditState extends State<ArtistEdit> {
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(6))),
             ),
-            Text(
-              '기본공연비(30분 기중)',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            SizedBox(height: 14),
-            TextField(
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              keyboardType: TextInputType.number,
-              controller: _basicPrice,
-              decoration: InputDecoration(
-                  hintText: widget.doc['basicPrice'].toString(),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6))),
-            ),
+
             SizedBox(height: 40),
             Text(
               '장르',
@@ -589,7 +570,6 @@ class _ArtistEditState extends State<ArtistEdit> {
                   ),
               ],
             ),
-            SizedBox(height: 40),
             SizedBox(height: 40),
             Align(
               alignment: Alignment.center,

@@ -46,7 +46,24 @@ class _ArtistRegiState extends State<ArtistRegi> {
   final TextEditingController _artistName = TextEditingController();
   final TextEditingController _artistInfo = TextEditingController();
   final TextEditingController _mainPlace = TextEditingController();
-  final TextEditingController _genre = TextEditingController();
+  final TextEditingController _position = TextEditingController();
+  final TextEditingController _genreCon =
+  TextEditingController(); // 직접 입력할 상세 장르
+
+  String _genre = '음악'; // 검색에 이용될 장르
+  String? _genreCheck; // 체크한 상세 장르
+  bool selfCon = false; // 직접입력선택시
+  String? _userId;
+  @override
+  void initState() {
+
+    final userModel = Provider.of<UserModel>(context, listen: false);
+    if (!userModel.isLogin) {
+    } else {
+      _userId = userModel.userId;
+    }
+    super.initState();
+  }
 
   void _checkArtistName() async {
     // 활동명이 비어있는지 확인
@@ -139,13 +156,13 @@ class _ArtistRegiState extends State<ArtistRegi> {
     if(_artistName.text.isEmpty ||
         _artistInfo.text.isEmpty ||
         _mainPlace.text.isEmpty ||
-        _genre.text.isEmpty ||
         _selectedImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("모든 정보를 입력해주세요."))
       );
       return;
     }
+    _genreCheck ??= "";
     final imageUrl = await _uploadImage(_selectedImage!);
 
     try {
@@ -154,14 +171,13 @@ class _ArtistRegiState extends State<ArtistRegi> {
         {
           'artistName' : _artistName.text,
           'artistInfo' : _artistInfo.text,
-          'genre' : _genre.text,
           'mainPlace' : _mainPlace.text,
           'createdate' : Timestamp.now(),
           'donationAmount' : 0,
-          'udatetime' : " ",
+          'udatetime' : Timestamp.now(),
           "followerCnt" : 0,
-          "basicPrice" : _basicPrice.text != "" ?  _basicPrice.text : 0
-
+          "detailedGenre" : _genreCheck == "직접입력" ? _genreCon.text : _genreCheck,
+          'genre': _genre,
         }
       );
 
@@ -174,6 +190,13 @@ class _ArtistRegiState extends State<ArtistRegi> {
         'path' : imageUrl,
       });
 
+      await _fs.collection('artist').doc(artistID).collection('team_members').add(
+          {
+            'status' : 'Y',
+            'position' : _position.text,
+            'userId' : _userId,
+            'createtime' : Timestamp.now()
+          });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('등록되었습니다.')),
       );
@@ -182,7 +205,7 @@ class _ArtistRegiState extends State<ArtistRegi> {
         _artistName.clear();
         _artistInfo.clear();
         _mainPlace.clear();
-        _genre.clear();
+        _position.clear();
         _selectedImage = null;
       });
 
@@ -203,12 +226,176 @@ class _ArtistRegiState extends State<ArtistRegi> {
   Widget? _buildSelectedImage() {
     if (_selectedImage != null) {
       // 이미지를 미리보기로 보여줄 수 있음
-      return Image.file(
-          _selectedImage!,
-          height: 150
+      return Center(
+        child: Image.file(_selectedImage!, height: 150),
       );
     }
-    return null; // 이미지가 없을 경우 null을 반환
+    return null; // 이미지가 없을 경우// null을 반환
+  }
+
+  // 검색에 사용될 장르 라디오 버튼
+  Widget _customRadioBut() {
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        OutlinedButton(
+          onPressed: () {
+            setState(() {
+              _genreCheck = null;
+              selfCon = false;
+              _genre = '음악';
+            });
+          },
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
+              if (_genre == '음악') {
+                return Color(0xFF392F31); // 선택된 경우의 색상
+              }
+              return Colors.white; // 선택되지 않은 경우의 색상
+            }),
+          ),
+          child: Text(
+            '음악',
+            style: TextStyle(
+              color: _genre == '음악' ? Colors.white : Color(0xFF392F31),
+            ),
+          ),
+        ),
+        OutlinedButton(
+          onPressed: () {
+            setState(() {
+              _genreCheck = null;
+              selfCon = false;
+              _genre = '댄스';
+            });
+          },
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
+              if (_genre == '댄스') {
+                return Color(0xFF392F31);
+              }
+              return Colors.white;
+            }),
+          ),
+          child: Text(
+            '댄스',
+            style: TextStyle(
+              color: _genre == '댄스' ? Colors.white : Color(0xFF392F31),
+            ),
+          ),
+        ),
+        OutlinedButton(
+          onPressed: () {
+            setState(() {
+              selfCon = false;
+              _genreCheck = null;
+              _genre = '퍼포먼스';
+            });
+          },
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
+              if (_genre == '퍼포먼스') {
+                return Color(0xFF392F31);
+              }
+              return Colors.white;
+            }),
+          ),
+          child: Text(
+            '퍼포먼스',
+            style: TextStyle(
+              color: _genre == '퍼포먼스' ? Colors.white : Color(0xFF392F31),
+            ),
+          ),
+        ),
+        OutlinedButton(
+          onPressed: () {
+            setState(() {
+              selfCon = false;
+              _genreCheck = null;
+              _genre = '마술';
+            });
+          },
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
+              if (_genre == '마술') {
+                selfCon = false;
+                return Color(0xFF392F31);
+              }
+              return Colors.white;
+            }),
+          ),
+          child: Text(
+            '마술',
+            style: TextStyle(
+              color: _genre == '마술' ? Colors.white : Color(0xFF392F31),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 상세 장르 선택
+  Widget? _wrapWidget(String genre) {
+
+
+    Map<String, List<String>> genreButtonMap = {
+      "음악": ["밴드", "발라드", "힙합", "클래식", "악기연주", "싱어송라이터", "직접입력"],
+      "댄스": ["팝핀", "비보잉", "힙합", "하우스", "크럼프", "락킹", "왁킹", "직접입력"],
+      "퍼포먼스": ["행위예술", "현대미술", "직접입력"],
+    };
+
+    if (genre.isEmpty) {
+      return null;
+    }
+
+    final buttonList = genreButtonMap[genre];
+    if (buttonList != null && buttonList.isNotEmpty) {
+      return Wrap(
+        spacing: 5.0,
+        runSpacing: 0.1,
+        children: buttonList.map((label) {
+          return OutlinedButton(
+            onPressed: () {
+              setState(() {
+                if (label == "직접입력") {
+                  _genreCheck = label;
+                  selfCon = true;
+                } else {
+                  selfCon = false;
+                  _genreCheck = label;
+                }
+              });
+            },
+            style: ButtonStyle(
+              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25), // 둥근 모서리 반경 설정
+                ),
+              ),
+              padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
+                EdgeInsets.all(8.0), // 버튼의 내부 여백 설정
+              ),
+              side: MaterialStateProperty.all<BorderSide>(
+                BorderSide(
+                  color: label == _genreCheck
+                      ? Color(0xFF392F31)
+                      : Colors.white, // 선택된 버튼인지 여부에 따라 테두리 색 변경
+                  width: 2.0, // 테두리 두께 설정
+                ),
+              ),
+            ),
+            child: Text(
+              label,
+              style: TextStyle(color: Color(0xFF392F31)),
+            ),
+          );
+        }).toList(),
+      );
+    } else {
+      return Container();
+    }
   }
 
   @override
@@ -302,7 +489,7 @@ class _ArtistRegiState extends State<ArtistRegi> {
 
               ],
             ),
-            SizedBox(height: 14), 
+            SizedBox(height: 14),
             TextField(
               controller: _artistName,
               decoration: InputDecoration(
@@ -358,15 +545,20 @@ class _ArtistRegiState extends State<ArtistRegi> {
                   fontWeight: FontWeight.w600
               ),
             ),
-            SizedBox(height: 14),
-            TextField(
-              controller: _genre,
-              decoration: InputDecoration(
-                  hintText: '음악 장르를 입력해주세요. (ex. 락발라드)',
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6)
-                  )
-              ),
+            Column(
+              children: [
+                _customRadioBut(),
+                _wrapWidget(_genre)!,
+                if (selfCon)
+                  TextField(
+                    controller: _genreCon,
+                    decoration: InputDecoration(
+                        hintText: "상세 장르를 입력하시오 ex)락",
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(6))
+                    ),
+                  ),
+              ],
             ),
             SizedBox(height: 40),
             Align(

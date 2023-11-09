@@ -46,12 +46,12 @@ class _ArtistInfoState extends State<ArtistInfo> {
     _followerCount();
     _infoTitle();
     _followCheck();
-    artistCheck();
+
     final userModel = Provider.of<UserModel>(context, listen: false);
     if (!userModel.isLogin) {
     } else {
       _userId = userModel.userId;
-
+      artistCheck();
         // 데이터 로딩이 완료된 경우 artistCheck 함수 호출
 
         isDataLoaded = true; // 데이터 로드 완료 표시
@@ -71,7 +71,6 @@ class _ArtistInfoState extends State<ArtistInfo> {
         .where('status', isEqualTo: 'Y')
         .where('userId', isEqualTo: _userId)
         .get();
-
     final artistMemberCheck = await fs.collection('artist')
         .doc(widget.docId)
         .collection('team_members')
@@ -271,7 +270,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
         animatedIcon: AnimatedIcons.menu_close,
         visible: true,
         curve: Curves.bounceIn,
-        backgroundColor: Color(0xFF56555B),
+        backgroundColor: Color(0xFF233067),
         children: [
           SpeedDialChild(
               child: const Icon(Icons.settings_sharp, color: Colors.white),
@@ -280,8 +279,8 @@ class _ArtistInfoState extends State<ArtistInfo> {
                   fontWeight: FontWeight.w500,
                   color: Colors.white,
                   fontSize: 13.0),
-              backgroundColor: Color(0xFF392F31),
-              labelBackgroundColor: Color(0xFF392F31),
+              backgroundColor: Color(0xFF233067),
+              labelBackgroundColor: Color(0xFF233067),
               onTap: () {
 
                 if(_artistId != null){ // 리더가 맞다면
@@ -305,8 +304,8 @@ class _ArtistInfoState extends State<ArtistInfo> {
               color: Colors.white,
             ),
             label: "내 후원기록",
-            backgroundColor: Color(0xFF392F31),
-            labelBackgroundColor: Color(0xFF392F31),
+            backgroundColor: Color(0xFF233067),
+            labelBackgroundColor: Color(0xFF233067),
             labelStyle: const TextStyle(
                 fontWeight: FontWeight.w500,
                 color: Colors.white,
@@ -329,18 +328,18 @@ class _ArtistInfoState extends State<ArtistInfo> {
                   color: Colors.white,
                 ),
                 label: "팀 관리",
-                backgroundColor: Color(0xFF392F31),
-                labelBackgroundColor: Color(0xFF392F31),
+                backgroundColor: Color(0xFF233067),
+                labelBackgroundColor: Color(0xFF233067),
                 labelStyle: const TextStyle(
                     fontWeight: FontWeight.w500,
                     color: Colors.white,
                     fontSize: 13.0),
                 onTap: () {
-                  // Navigator.of(context)
-                  //     .push(MaterialPageRoute(
-                  //   builder: (context) => ArtistMembers(widget.doc, widget.artistImg, _artistId),
-                  // ))
-                  //     .then((value) => setState(() {}));
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(
+                    builder: (context) => ArtistMembers(documentSnapshotoc!, artistImg!, _artistId),
+                  ))
+                      .then((value) => setState(() {}));
                 }),
         ],
       );
@@ -358,8 +357,8 @@ class _ArtistInfoState extends State<ArtistInfo> {
                   fontWeight: FontWeight.w500,
                   color: Colors.white,
                   fontSize: 13.0),
-              backgroundColor: Color(0xFF392F31),
-              labelBackgroundColor: Color(0xFF392F31),
+              backgroundColor: Color(0xFF233067),
+              labelBackgroundColor: Color(0xFF233067),
               onTap: () {
                 if (_userId != null) {
                   Navigator.of(context).push(MaterialPageRoute(
@@ -377,18 +376,18 @@ class _ArtistInfoState extends State<ArtistInfo> {
                 color: Colors.white,
               ),
               label: "팀 가입신청",
-              backgroundColor: Color(0xFF392F31),
-              labelBackgroundColor: Color(0xFF392F31),
+              backgroundColor: Color(0xFF233067),
+              labelBackgroundColor: Color(0xFF233067),
               labelStyle: const TextStyle(
                   fontWeight: FontWeight.w500,
                   color: Colors.white,
                   fontSize: 13.0),
               onTap: () {
                 if(_userId != null){
-                  // Navigator.of(context)
-                  //     .push(MaterialPageRoute(
-                  //   builder: (context) => ArtistTeamJoin(widget.doc),
-                  // )).then((value) => setState(() {}));
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(
+                    builder: (context) => ArtistTeamJoin(documentSnapshotoc!),
+                  )).then((value) => setState(() {}));
                 } else{
                   _alertDialogWidget();
                 }
@@ -410,7 +409,8 @@ class _ArtistInfoState extends State<ArtistInfo> {
         .collection('artist')
         .doc(widget.docId)
         .collection('team_members')
-        .get(); // 데이터를 검색하기 위해 get()를 사용합니다.
+        .orderBy('createtime', descending: false) // 'createtime'을 기준으로 최신 순으로 정렬
+        .get();
 
     List<Widget> memberWidgets = [];
 
