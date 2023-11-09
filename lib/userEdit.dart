@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
-
+import 'package:image_cropper/image_cropper.dart';
 import 'package:flutter/services.dart';
 import 'package:indie_spot/profile.dart';
 import 'package:indie_spot/userModel.dart';
@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart'; // ImagePicker를 import 해주세요.
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:get/get.dart';
 class UserEdit extends StatefulWidget {
 
 
@@ -139,11 +140,19 @@ class _UserEditState extends State<UserEdit> {
     final pickedImage = await picker.pickImage(source: ImageSource.gallery);
 
     if (pickedImage != null) {
-      setState(() {
-        _selectedImage = File(pickedImage.path);
-      });
+      final croppedImage = await ImageCropper().cropImage(
+        sourcePath: pickedImage.path,
+        aspectRatio: CropAspectRatio(ratioX: 1.5, ratioY: 1), // 원하는 가로세로 비율 설정
+      );
+
+      if (croppedImage != null) {
+        setState(() {
+          _selectedImage = File(croppedImage.path);
+        });
+      }
     }
   }
+
 
   void _change() {
     setState(() {
@@ -440,14 +449,7 @@ class _UserEditState extends State<UserEdit> {
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => Profile(
-                      userId: _userId,
-                    ),
-                  ),
-                );
+                Get.to(Profile(userId: _userId));
               },
               child: Text('프로필 페이지로 이동'),
               style: ElevatedButton.styleFrom(

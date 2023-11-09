@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/pointDetailed.dart';
 import 'package:indie_spot/userEdit.dart';
-
+import 'package:get/get.dart';
 import 'boardList.dart';
+import 'donationArtistList.dart';
 import 'followList.dart';
 
 class Profile extends StatefulWidget {
@@ -413,12 +414,13 @@ class _ProfileState extends State<Profile> {
                 ),
 
                 GestureDetector(
-                  onTap: () {
-                    Navigator.of(context, rootNavigator: true).push(
-                      MaterialPageRoute(builder: (context) => FollowList()),
+                  onTap: () async {
+                    await Get.to(
+                      FollowList(), // 이동하려는 페이지
+                      preventDuplicates: true, // 중복 페이지 이동 방지
+                      transition: Transition.noTransition, // 이동 애니메이션 off
                     );
                   },
-
                   child: Column(
                     children: [
                       Align(
@@ -437,8 +439,6 @@ class _ProfileState extends State<Profile> {
                       ),
                     ],
                   ),
-
-
                 )
 
               ],
@@ -466,13 +466,13 @@ class _ProfileState extends State<Profile> {
                     alignment: Alignment.topRight,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Navigate to userEdit.dart
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => UserEdit()),
+                        // Navigate to DonationArtistList
+                        Get.to(
+                          UserEdit(),
+                          preventDuplicates: true,
+                          transition: Transition.noTransition,
                         );
                       },
-
                       child: Text(
                         '계정 수정',
                         style: TextStyle(color: Colors.white),
@@ -483,18 +483,14 @@ class _ProfileState extends State<Profile> {
                     ),
                   ),
                 ),
+
               ],
             ),
             SizedBox(height: 40),
             ElevatedButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => PointDetailed()),
-                );
-
+                Get.to(PointDetailed());
               },
-
               child: Text(
                 '포인트 상세',
                 style: TextStyle(color: Colors.white),
@@ -504,6 +500,7 @@ class _ProfileState extends State<Profile> {
                 fixedSize: Size.fromWidth(500), // 가로로 꽉 차도록 설정
               ),
             ),
+
             SizedBox(height: 21,),
             Text(
               "post",
@@ -523,13 +520,7 @@ class _ProfileState extends State<Profile> {
               children: _postsData.map((postData) {
                 return GestureDetector(
                   onTap: () {
-                    // 클릭 시 boardList.dart로 이동
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => BoardList(),
-                      ),
-                    );
+                    Get.to(BoardList());
                   },
                   child: Card(
                     elevation: 5, // 그림자 추가
@@ -568,6 +559,7 @@ class _ProfileState extends State<Profile> {
                 );
               }).toList(),
             )
+
 
 
           ],

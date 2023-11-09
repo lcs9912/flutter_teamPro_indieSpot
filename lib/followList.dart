@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'package:get/get.dart';
 import 'artistInfo.dart';
 
 class FollowList extends StatefulWidget {
@@ -128,14 +128,7 @@ class _FollowListState extends State<FollowList> {
                               .doc(artistId)
                               .get();
 
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ArtistInfo(
-                                artistDoc.id,
-                              ),
-                            ),
-                          );
+                          Get.to(ArtistInfo(artistDoc.id));
                         },
                       );
                     },
