@@ -79,28 +79,28 @@ class _PointHistoryState extends State<PointHistory> {
                   Scaffold.of(context).openDrawer();
                 },
                 icon: Icon(Icons.menu),
-                color: Colors.black54,
+                color: Colors.white,
               );
             },
           ),
         ],
-        elevation: 1,
+        elevation: 0,
         automaticallyImplyLeading: false,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: Colors.black54,
+            color: Colors.white,
           ),
           onPressed: () {
             // 뒤로가기 버튼을 눌렀을 때 수행할 작업
             Navigator.of(context).pop();
           },
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFF233067),
         centerTitle: true,
         title: Text(
           '포인트 내역',
-          style: TextStyle(color: Colors.black,),
+          style: TextStyle(color: Colors.white,),
         ),
       ),
       body: ListView(
@@ -150,7 +150,7 @@ class _PointHistoryState extends State<PointHistory> {
 
   Container _container() {
     return Container(
-      color: Color(0xFF392F31),
+      color: Colors.white,
       height: 200,
       child: Container(
         padding: EdgeInsets.all(15),
@@ -162,13 +162,13 @@ class _PointHistoryState extends State<PointHistory> {
                 Row(
                   children: [
                     Image.asset('assets/point2.png', height: 30, width: 30,),
-                    Text(' 총 충전 포인트', style: TextStyle(color: Colors.white, fontSize: 15),),
+                    Text(' 총 충전 포인트', style: TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.w500),),
                   ],
                 ),
                 Row(
                   children: [
-                    Text('$_totalRecharge', style: TextStyle(color: Colors.white, fontSize: 25),),
-                    Text('P', style: TextStyle(color: Colors.white, fontSize: 17),)
+                    Text('$_totalRecharge', style: TextStyle(color: Colors.black, fontSize: 25),),
+                    Text('P', style: TextStyle(color: Colors.black, fontSize: 17),)
                   ],
                 )
               ],
@@ -180,7 +180,7 @@ class _PointHistoryState extends State<PointHistory> {
                   children: [
                     Container(
                       margin: EdgeInsets.only(bottom: 5),
-                      child: Text('기간별 조회', style: TextStyle(color: Colors.white, fontSize: 15),)
+                      child: Text('기간별 조회', style: TextStyle(color: Colors.black, fontSize: 15),)
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -195,12 +195,12 @@ class _PointHistoryState extends State<PointHistory> {
                               });
                             },
                             style: ButtonStyle(
-                              shape: MaterialStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.zero), side: _num == 30 ? BorderSide(color: Colors.white, width: 1) : BorderSide())),
-                              backgroundColor: MaterialStatePropertyAll(Color(0xFF634F52))
+                              shape: MaterialStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.zero), side: _num == 30 ? BorderSide(color: Color(0xFF233067), width: 1) : BorderSide())),
+                                backgroundColor: MaterialStatePropertyAll(Color(_num == 30 ? 0xFF233067 : 0xFFFFFFFF))
                             ),
                             child: Padding(
                               padding: const EdgeInsets.only(top: 13, bottom: 13),
-                              child: Text('최근 1개월'),
+                              child: Text('최근 1개월', style: TextStyle(color: Color(_num == 30 ? 0xFFFFFFFF : 0xFF233067)),),
                             )
                           ),
                         ),
@@ -211,12 +211,12 @@ class _PointHistoryState extends State<PointHistory> {
                               });
                             },
                             style: ButtonStyle(
-                                shape: MaterialStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.zero), side: _num == 90 ? BorderSide(color: Colors.white, width: 1) : BorderSide())),
-                                backgroundColor: MaterialStatePropertyAll(Color(0xFF634F52))
+                                shape: MaterialStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.zero), side: _num == 90 ? BorderSide(color: Color(0xFF233067), width: 1) : BorderSide())),
+                                backgroundColor: MaterialStatePropertyAll(Color(_num == 90 ? 0xFF233067 : 0xFFFFFFFF))
                             ),
                             child: Padding(
                               padding: const EdgeInsets.only(top: 13, bottom: 13),
-                              child: Text('최근 3개월'),
+                              child: Text('최근 3개월', style: TextStyle(color: Color(_num == 90 ? 0xFFFFFFFF : 0xFF233067)),),
                             )
                         ),
                         Container(
@@ -224,18 +224,18 @@ class _PointHistoryState extends State<PointHistory> {
                           padding: EdgeInsets.only(left: 13),
                           margin: EdgeInsets.only(left: 5),
                           decoration: BoxDecoration(
-                              border: Border.all(width: 1, color: _num == 0 ? Colors.white : Colors.black),
-                              color: Color(0xFF634F52)
+                              border: Border.all(width: 1, color: _num == 0 ? Color(0xFF233067) : Colors.black),
+                              color: _num == 0 ? Color(0xFF233067) : Colors.white
                           ),
                           child: DropdownButton<String>(
-                            dropdownColor: Color(0xFF634F52),
+                            dropdownColor: Color(_num == 0 ? 0xFF233067 : 0xFFFFFFFF),
                             underline: Container(),
-                            icon: Icon(Icons.keyboard_arrow_down, color: Colors.white60,),
+                            icon: Icon(Icons.keyboard_arrow_down, color: Color(_num == 0 ? 0xFFFFFFFF : 0xFF233067),),
                             value: _selectedItem,
                             items: _items.map((item) {
                               return DropdownMenuItem<String>(
                                   value: item,
-                                  child: Text(item, style: TextStyle(color: Colors.white,),)
+                                  child: Text(item, style: TextStyle(color: Color(_num == 0 ? 0xFFFFFFFF : 0xFF233067)),)
                               );
                             }).toList(),
                             onChanged:(value) {

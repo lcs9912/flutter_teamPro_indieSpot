@@ -33,7 +33,7 @@ class _VideoListState extends State<VideoList> {
                 onPressed: () {
                   Scaffold.of(context).openDrawer();
                 },
-                icon: Icon(Icons.menu),
+                icon: Icon(Icons.menu, color: Colors.white,),
                 color: Colors.black54,
               );
             },
@@ -44,18 +44,18 @@ class _VideoListState extends State<VideoList> {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: Colors.black54,
+            color: Colors.white,
           ),
           onPressed: () {
             // 뒤로가기 버튼을 눌렀을 때 수행할 작업
             Navigator.of(context).pop();
           },
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFF233067),
         centerTitle: true,
         title: Text(
           '영상 목록',
-          style: TextStyle(color: Colors.black,),
+          style: TextStyle(color: Colors.white,),
         ),
       ),
       body: Column(
@@ -70,7 +70,7 @@ class _VideoListState extends State<VideoList> {
       ),
       bottomNavigationBar: MyBottomBar(),
       floatingActionButton: Provider.of<UserModel>(context, listen: false).isArtist ? FloatingActionButton(
-        backgroundColor: Color(0xFF392F31),
+        backgroundColor: Color(0xFF233067),
         onPressed: (){
           Navigator.of(context).push(MaterialPageRoute(builder: (context) => YoutubeAdd(),)).then((value) => setState(() {}));
         },
@@ -80,22 +80,20 @@ class _VideoListState extends State<VideoList> {
   }
 
   Padding _searchText() {
+
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: TextField(
+        cursorColor: Color(0xFF233067),
         decoration: InputDecoration(
           hintText: '검색',
-          border: OutlineInputBorder(),
-          prefixIcon: Icon(Icons.search),
-          suffixIcon: IconButton(
-            onPressed: () {
-              _searchControl.clear();
-              setState(() {});
-            },
-            icon: Icon(Icons.cancel_outlined),
-            highlightColor: Colors.transparent, // 클릭 시 하이라이트 효과를 제거
-            splashColor: Colors.transparent,
+          focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF233067))
           ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFF233067))
+          ),
+          prefixIcon: Icon(Icons.search, color: Color(0xFF233067),),
         ),
         controller: _searchControl,
         textInputAction: TextInputAction.go,

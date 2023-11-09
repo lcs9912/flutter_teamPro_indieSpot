@@ -56,7 +56,7 @@ void main() async {
           GetPage(name: '/', page: () => MyApp()),
           // 다른 경로와 페이지 설정
         ],
-        initialRoute: '/',
+        home: MyApp(),
       ),
     ),
   );

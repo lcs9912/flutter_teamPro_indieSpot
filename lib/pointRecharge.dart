@@ -65,7 +65,7 @@ class _PointRechargeState extends State<PointRecharge> {
                   Scaffold.of(context).openDrawer();
                 },
                 icon: Icon(Icons.menu),
-                color: Colors.black54,
+                color: Colors.white,
               );
             },
           ),
@@ -75,18 +75,18 @@ class _PointRechargeState extends State<PointRecharge> {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: Colors.black54,
+            color: Colors.white,
           ),
           onPressed: () {
             // 뒤로가기 버튼을 눌렀을 때 수행할 작업
             Navigator.of(context).pop();
           },
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFF233067),
         centerTitle: true,
         title: Text(
           '포인트 충전',
-          style: TextStyle(color: Colors.black),
+          style: TextStyle(color: Colors.white),
         ),
       ),
       body: Container(
@@ -116,7 +116,7 @@ class _PointRechargeState extends State<PointRecharge> {
             Expanded(child: ElevatedButton(
               style: ButtonStyle(
                   minimumSize: MaterialStatePropertyAll(Size(0, 58)),
-                  backgroundColor: MaterialStatePropertyAll(Color(0xFF392F31)),
+                  backgroundColor: MaterialStatePropertyAll(Color(0xFF233067)),
                   elevation: MaterialStatePropertyAll(0),
                   shape: MaterialStatePropertyAll(
                       RoundedRectangleBorder(
@@ -182,11 +182,11 @@ class _PointRechargeState extends State<PointRecharge> {
                       elevation: MaterialStatePropertyAll(0),
                       shape: MaterialStatePropertyAll(
                           RoundedRectangleBorder(
-                              side: BorderSide(width: 1, color: Color(0xFF392F31))
+                              side: BorderSide(width: 1, color: Color(0xFF233067))
                           )
                       )
                   ),
-                  child: Text("+${_numberFormat.format(price)}", style: TextStyle(color: Colors.black),)
+                  child: Text("+${_numberFormat.format(price)}", style: TextStyle(color: Color(0xFF233067)),)
               ),
             ),
             ElevatedButton(
@@ -201,11 +201,11 @@ class _PointRechargeState extends State<PointRecharge> {
                   elevation: MaterialStatePropertyAll(0),
                   shape: MaterialStatePropertyAll(
                       RoundedRectangleBorder(
-                          side: BorderSide(width: 1, color: Color(0xFF392F31))
+                          side: BorderSide(width: 1, color: Color(0xFF233067))
                       )
                   )
               ),
-              child: Text("+50,000", style: TextStyle(color: Colors.black),)
+              child: Text("+50,000", style: TextStyle(color: Color(0xFF233067)),)
             ),
         ],
       ),
@@ -220,15 +220,21 @@ class _PointRechargeState extends State<PointRecharge> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox(width: 130, child: Text('충전할 포인트', style: TextStyle(fontSize: 17, color: Colors.black54, fontWeight: FontWeight.bold))),
+          SizedBox(width: 130, child: Text('충전할 포인트', style: TextStyle(fontSize: 17, color: Colors.black54, fontWeight: FontWeight.w600))),
           Expanded(child: TextField(
             controller: _rechargeControl,
             textAlign: TextAlign.right,
             keyboardType: TextInputType.number,
             style: TextStyle(fontSize: 25),
+            cursorColor: Color(0xFF233067),
             decoration: InputDecoration(
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.zero
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF233067)),
+                borderRadius: BorderRadius.zero,
+              ),
+              enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.zero,
+                  borderSide: BorderSide(color: Color(0xFF233067))
               ),
               suffix: Text('P', style: TextStyle(fontSize: 20),),
             ),
@@ -252,7 +258,7 @@ class _PointRechargeState extends State<PointRecharge> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text('현재 잔액', style: TextStyle(fontSize: 17, color: Colors.black54, fontWeight: FontWeight.bold)),
+          Text('현재 잔액', style: TextStyle(fontSize: 17, color: Colors.black54, fontWeight: FontWeight.w600)),
           RichText(
             text: TextSpan(
               text: NumberFormat.decimalPattern().format(_pointBalance),

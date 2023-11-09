@@ -80,19 +80,19 @@ class _PaymentState extends State<Payment> {
                   Scaffold.of(context).openDrawer();
                 },
                 icon: Icon(Icons.menu),
-                color: Colors.black54,
+                color: Colors.white,
               );
             },
           ),
         ],
         elevation: 1,
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFF233067),
         centerTitle: true,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: Colors.black54,
+            color: Colors.white,
           ),
           onPressed: () {
             // 뒤로가기 버튼을 눌렀을 때 수행할 작업
@@ -101,7 +101,7 @@ class _PaymentState extends State<Payment> {
         ),
         title: Text(
           '결제',
-          style: TextStyle(color: Colors.black),
+          style: TextStyle(color: Colors.white),
         ),
       ),
         body: Container(
@@ -130,7 +130,7 @@ class _PaymentState extends State<Payment> {
             Expanded(child: ElevatedButton(
               style: ButtonStyle(
                   minimumSize: MaterialStatePropertyAll(Size(0, 58)),
-                  backgroundColor: MaterialStatePropertyAll(Color(0xFF392F31)),
+                  backgroundColor: MaterialStatePropertyAll(Color(0xFF233067)),
                   elevation: MaterialStatePropertyAll(0),
                   shape: MaterialStatePropertyAll(
                       RoundedRectangleBorder(
@@ -221,7 +221,7 @@ class _PaymentState extends State<Payment> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text('충전 후 잔액', style: TextStyle(fontSize: 17, color: Colors.black54, fontWeight: FontWeight.bold)),
+          Text('충전 후 잔액', style: TextStyle(fontSize: 17, color: Colors.black54, fontWeight: FontWeight.w600)),
           RichText(
             text: TextSpan(
               text: '+${widget.payment} ',
@@ -261,7 +261,7 @@ class _PaymentState extends State<Payment> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text('결제될 금액', style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.bold)),
+          Text('결제될 금액', style: TextStyle(fontSize: 17, color: Colors.black, fontWeight: FontWeight.w600)),
           RichText(
             text: TextSpan(
               text: NumberFormat.decimalPattern().format(_amountPayment),

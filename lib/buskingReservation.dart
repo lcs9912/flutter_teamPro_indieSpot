@@ -189,7 +189,7 @@ class _BuskingReservationState extends State<BuskingReservation> {
                     onPressed: (){
                       Scaffold.of(context).openDrawer();
                     },
-                    icon: Icon(Icons.menu),color: Colors.black54);
+                    icon: Icon(Icons.menu),color: Colors.white);
               }
             ),
           ],
@@ -198,18 +198,18 @@ class _BuskingReservationState extends State<BuskingReservation> {
           leading: IconButton(
             icon: Icon(
               Icons.arrow_back, // 뒤로가기 아이콘
-              color: Colors.black54, // 원하는 색상으로 변경
+              color: Colors.white, // 원하는 색상으로 변경
             ),
             onPressed: () {
               // 뒤로가기 버튼을 눌렀을 때 수행할 작업
               Navigator.of(context).pop(); // 이 코드는 화면을 닫는 예제입니다
             },
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: Color(0xFF233067),
           centerTitle: true,
           title: Text(
             '버스킹 일정 등록',
-            style: TextStyle(color: Colors.black),)
+            style: TextStyle(color: Colors.white),)
         ),
         body: ListView(
           children: [
@@ -276,31 +276,35 @@ class _BuskingReservationState extends State<BuskingReservation> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('아티스트', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+          Text('아티스트', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+          Text('$_artisName', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
           SizedBox(height: 20,),
-          Text('$_artisName', style: TextStyle(fontSize: 15)),
-          SizedBox(height: 20,),
-          Text('공연명', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-          SizedBox(height: 10,),
+          Text('공연명', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
           TextField(
             controller: _titleControl,
+            cursorColor: Color(0xFF233067),
             decoration: InputDecoration(
+              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF233067))),
+              border: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF233067))),
               hintText: '공연 제목을 입력해주세요',
             ),
           ),
           SizedBox(height: 20,),
-          Text('공연 소개', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+          Text('공연 소개', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
           SizedBox(height: 10,),
           TextField(
             controller: _descriptionControl,
+            cursorColor: Color(0xFF233067),
             decoration: InputDecoration(
+              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF233067))),
+              border: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF233067))),
               hintText: '공연 내용에 대한 간단한 소개를 입력해주세요',
             ),
           ),
           SizedBox(height: 20,),
-          Text('공연 시작 시간', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+          Text('공연 시작 시간', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
           _timeTile(),
-          Text('공연 장소', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+          Text('공연 장소', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
           ListTile(
             contentPadding: EdgeInsets.zero,
             onTap: () async{
@@ -331,7 +335,7 @@ class _BuskingReservationState extends State<BuskingReservation> {
                   },);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF392F31), // 392F31 색상
+                  backgroundColor: Color(0xFF233067),
                   minimumSize: Size(double.infinity, 48), // Set button width and height
                 ),
                 child: Text('등록하기', style: TextStyle(fontSize: 15),),
@@ -353,6 +357,23 @@ class _BuskingReservationState extends State<BuskingReservation> {
           initialDate: DateTime.now(),
           firstDate: DateTime.now(),
           lastDate: DateTime(DateTime.now().year, 12, 31),
+          builder: (context, child) {
+            return Theme(
+              data: Theme.of(context).copyWith(
+                colorScheme: ColorScheme.light(
+                  primary: Color(0xFF233067), // <-- SEE HERE
+                  onPrimary: Colors.white, // <-- SEE HERE
+                  onSurface: Colors.black, // <-- SEE HERE
+                ),
+                textButtonTheme: TextButtonThemeData(
+                  style: TextButton.styleFrom(
+                    foregroundColor: Color(0xFF233067), // button text color
+                  ),
+                ),
+              ),
+              child: child!,
+            );
+          },
         );
 
         if (!context.mounted) return;
@@ -362,6 +383,23 @@ class _BuskingReservationState extends State<BuskingReservation> {
             context: context,
             initialTime: TimeOfDay.now(),
             initialEntryMode: TimePickerEntryMode.input,
+            builder: (context, child) {
+              return Theme(
+                data: Theme.of(context).copyWith(
+                  colorScheme: ColorScheme.light(
+                    primary: Color(0xFF233067), // <-- SEE HERE
+                    onPrimary: Colors.white, // <-- SEE HERE
+                    onSurface: Colors.black, // <-- SEE HERE
+                  ),
+                  textButtonTheme: TextButtonThemeData(
+                    style: TextButton.styleFrom(
+                      foregroundColor: Color(0xFF233067), // button text color
+                    ),
+                  ),
+                ),
+                child: child!,
+              );
+            },
           );
 
           if (selectedTime != null) {
@@ -487,26 +525,26 @@ class _BuskingZoneListScreenState extends State<BuskingZoneListScreen> {
             leading: IconButton(
               icon: Icon(
                 Icons.arrow_back, // 뒤로가기 아이콘
-                color: Colors.black54, // 원하는 색상으로 변경
+                color: Colors.white, // 원하는 색상으로 변경
               ),
               onPressed: () {
                 // 뒤로가기 버튼을 눌렀을 때 수행할 작업
                 Navigator.of(context).pop(); // 이 코드는 화면을 닫는 예제입니다
               },
             ),
-            backgroundColor: Colors.white,
+            backgroundColor: Color(0xFF233067),
             centerTitle: true,
-            title: Text('버스킹존 목록', style: TextStyle(color: Colors.black),),
+            title: Text('버스킹존 목록', style: TextStyle(color: Colors.white),),
             bottom: TabBar(
                 isScrollable: true,
                 tabs: [
                   for(String region in _regions)
                     Tab(
-                      child: Text(region, style: TextStyle(color: Colors.black),),
+                      child: Text(region, style: TextStyle(color: Colors.white),),
                     )
                 ],
                 unselectedLabelColor: Colors.black, // 선택되지 않은 탭의 텍스트 색상
-                labelColor: Colors.blue,
+                labelColor: Colors.white,
                 labelStyle: TextStyle(
                   fontWeight: FontWeight.bold, // 선택된 탭의 텍스트 굵기 설정
                 ),

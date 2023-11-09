@@ -66,7 +66,7 @@ class _PointExchangeState extends State<PointExchange> {
                     Scaffold.of(context).openDrawer();
                   },
                   icon: Icon(Icons.menu),
-                  color: Colors.black54,
+                  color: Colors.white,
                 );
               },
             ),
@@ -76,18 +76,18 @@ class _PointExchangeState extends State<PointExchange> {
           leading: IconButton(
             icon: Icon(
               Icons.arrow_back,
-              color: Colors.black54,
+              color: Colors.white,
             ),
             onPressed: () {
               // 뒤로가기 버튼을 눌렀을 때 수행할 작업
               Navigator.of(context).pop();
             },
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: Color(0xFF233067),
           centerTitle: true,
           title: Text(
             '포인트 환전',
-            style: TextStyle(color: Colors.black),
+            style: TextStyle(color: Colors.white),
           ),
         ),
         body: Container(
@@ -117,7 +117,7 @@ class _PointExchangeState extends State<PointExchange> {
               Expanded(child: ElevatedButton(
                 style: ButtonStyle(
                     minimumSize: MaterialStatePropertyAll(Size(0, 58)),
-                    backgroundColor: MaterialStatePropertyAll(Color(0xFF392F31)),
+                    backgroundColor: MaterialStatePropertyAll(Color(0xFF233067)),
                     elevation: MaterialStatePropertyAll(0),
                     shape: MaterialStatePropertyAll(
                         RoundedRectangleBorder(
@@ -154,6 +154,7 @@ class _PointExchangeState extends State<PointExchange> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('인디 스팟 포인트 환전 안내', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),),
+          SizedBox(height: 5,),
           Text('·인디 스팟 포인트의 유효기간은 마지막 사용일로부터 5년 까지 입니다.'),
           Text('·인디 스팟 포인트 보유/구매/사용내역은 마이페이지에서 확인하실 수 있습니다.'),
           Text('·정당한 이유 없이 반복하여 환불을 신쳥할 경우 결제수단을 남용하는 경우에 해당하여 환불이 제한될 수 있습니다.'),
@@ -187,11 +188,11 @@ class _PointExchangeState extends State<PointExchange> {
                       elevation: MaterialStatePropertyAll(0),
                       shape: MaterialStatePropertyAll(
                           RoundedRectangleBorder(
-                              side: BorderSide(width: 1, color: Color(0xFF392F31))
+                              side: BorderSide(width: 1, color: Color(0xFF233067))
                           )
                       )
                   ),
-                  child: Text("+${_numberFormat.format(price)}", style: TextStyle(color: Colors.black),)
+                  child: Text("+${_numberFormat.format(price)}", style: TextStyle(color: Color(0xFF233067)),)
               ),
             ),
           ElevatedButton(
@@ -210,11 +211,11 @@ class _PointExchangeState extends State<PointExchange> {
                   elevation: MaterialStatePropertyAll(0),
                   shape: MaterialStatePropertyAll(
                       RoundedRectangleBorder(
-                          side: BorderSide(width: 1, color: Color(0xFF392F31))
+                          side: BorderSide(width: 1, color: Color(0xFF233067))
                       )
                   )
               ),
-              child: Text("+50,000", style: TextStyle(color: Colors.black),)
+              child: Text("+50,000", style: TextStyle(color: Color(0xFF233067)),)
           ),
         ],
       ),
@@ -229,15 +230,21 @@ class _PointExchangeState extends State<PointExchange> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(width: 130, child: Text('환전할 포인트', style: TextStyle(fontSize: 17, color: Colors.black54, fontWeight: FontWeight.bold))),
+            SizedBox(width: 130, child: Text('환전할 포인트', style: TextStyle(fontSize: 17, color: Colors.black54, fontWeight: FontWeight.w600))),
             Expanded(child: TextField(
               controller: _rechargeControl,
               textAlign: TextAlign.right,
               keyboardType: TextInputType.number,
               style: TextStyle(fontSize: 25),
+              cursorColor: Color(0xFF233067),
               decoration: InputDecoration(
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.zero
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF233067)),
+                  borderRadius: BorderRadius.zero,
+                ),
+                enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.zero,
+                    borderSide: BorderSide(color: Color(0xFF233067))
                 ),
                 suffix: Text('P', style: TextStyle(fontSize: 20),),
               ),
@@ -270,7 +277,7 @@ class _PointExchangeState extends State<PointExchange> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text('현재 잔액', style: TextStyle(fontSize: 17, color: Colors.black54, fontWeight: FontWeight.bold)),
+          Text('현재 잔액', style: TextStyle(fontSize: 17, color: Colors.black54, fontWeight: FontWeight.w600)),
           RichText(
             text: TextSpan(
               text: NumberFormat.decimalPattern().format(_pointBalance),

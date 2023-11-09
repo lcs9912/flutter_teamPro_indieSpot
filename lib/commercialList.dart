@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:indie_spot/baseBar.dart';
+import 'package:indie_spot/proprietorIdAdd.dart';
 import 'package:indie_spot/spaceInfo.dart';
 import 'package:indie_spot/spotDetailed.dart';
 import 'package:intl/intl.dart';
@@ -29,9 +30,9 @@ class _CommercialListState extends State<CommercialList> {
         body: _spotList(),
         bottomNavigationBar: MyBottomBar(),
         floatingActionButton: FloatingActionButton(
-          backgroundColor: Color(0xFF392F31),
+          backgroundColor: Color(0xFF233067),
           onPressed: (){
-            //Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddBuskingSpot(),)).then((value) => setState(() {}));
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProprietorAdd(),)).then((value) => setState(() {}));
           },
           child: Icon(Icons.edit),
         ),
@@ -58,16 +59,16 @@ class _CommercialListState extends State<CommercialList> {
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: TextField(
+            cursorColor: Color(0xFF233067),
             decoration: InputDecoration(
               hintText: '검색',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.search),
-              suffixIcon: IconButton(
-                onPressed: () {_searchControl.clear(); setState(() {});},
-                icon: Icon(Icons.cancel_outlined),
-                highlightColor: Colors.transparent, // 클릭 시 하이라이트 효과를 제거
-                splashColor: Colors.transparent,
+              focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF233067))
               ),
+              enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF233067))
+              ),
+              prefixIcon: Icon(Icons.search, color: Color(0xFF233067),),
             ),
             controller: _searchControl,
             textInputAction: TextInputAction.go,
@@ -165,7 +166,7 @@ class _CommercialListState extends State<CommercialList> {
                 Scaffold.of(context).openDrawer();
               },
               icon: Icon(Icons.menu),
-              color: Colors.black54,
+              color: Colors.white,
             );
           },
         ),
@@ -175,25 +176,26 @@ class _CommercialListState extends State<CommercialList> {
       leading: IconButton(
         icon: Icon(
           Icons.arrow_back,
-          color: Colors.black54,
+          color: Colors.white,
         ),
         onPressed: () {
           // 뒤로가기 버튼을 눌렀을 때 수행할 작업
           Navigator.of(context).pop();
         },
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xFF233067),
       centerTitle: true,
       bottom: TabBar(
         isScrollable: true,
+        indicatorColor: Colors.white,
         tabs: [
           for(String region in _regions)
             Tab(
-              child: Text(region, style: TextStyle(color: Colors.black),),
+              child: Text(region, style: TextStyle(color: Colors.white),),
             )
         ],
         unselectedLabelColor: Colors.black, // 선택되지 않은 탭의 텍스트 색상
-        labelColor: Colors.blue,
+        labelColor: Colors.white,
         labelStyle: TextStyle(
           fontWeight: FontWeight.bold, // 선택된 탭의 텍스트 굵기 설정
         ),
@@ -209,7 +211,7 @@ class _CommercialListState extends State<CommercialList> {
       title: Text(
         '상업공간',
         style: TextStyle(
-          color: Colors.black,
+          color: Colors.white,
         ),
       ),
     );
