@@ -35,36 +35,32 @@ class _ArtistInfoState extends State<ArtistInfo> {
   String? _userId;
 
   // 아티스트 정보
-  String artistName = "";
-  String artistInfo = "";
-  String genre = "";
-  String artistImg = "";
-
+  String? artistName;
+  String? artistImg;
+  DocumentSnapshot? documentSnapshotoc;
+  Map<String,dynamic>? infoMap;
   //////////////세션 확인//////////
   bool isDataLoaded = false; // 데이터 로드 완료 여부를 확인하는 변수
   @override
   void initState() {
     _followerCount();
-    artistLoad();
+    _infoTitle();
+    _followCheck();
+    artistCheck();
     final userModel = Provider.of<UserModel>(context, listen: false);
     if (!userModel.isLogin) {
     } else {
       _userId = userModel.userId;
-      _loadData().then((_) {
+
         // 데이터 로딩이 완료된 경우 artistCheck 함수 호출
-        _followCheck();
-        artistCheck();
+
         isDataLoaded = true; // 데이터 로드 완료 표시
         setState(() {}); // 상태 업데이트
-      });
+
     }
     super.initState();
   }
 
-  Future<void> _loadData() async {
-    LoadingScreen();
-
-  }
 
   // 아티스트 권한 확인
   // 아티스트 멤버 권한이 리더 인 userId 가 _userId 와 같을때
@@ -195,28 +191,30 @@ class _ArtistInfoState extends State<ArtistInfo> {
     }
   }
 
-  // 아티스트정보 불러오기
-  void artistLoad() async {
-    final artistDoc = await fs.collection('artist').doc(widget.docId).get();
-    if(artistDoc.exists){
-      setState(() async {
-        artistName = artistDoc['artistName'];
-        artistInfo = artistDoc['artistInfo'];
-        genre = artistDoc['genre'];
-        // 이미지 데이터 로드
-        final imageCollection = await fs.collection('artist').doc(widget.docId).collection('image').get();
-        if (imageCollection.docs.isNotEmpty) {
-          artistImg = imageCollection.docs.first['path'];
-        }
+  /////////////////상세 타이틀///////////////
+  // // 아티스트정보 불러오기
+  void _infoTitle() async {
+    DocumentSnapshot artistDoc = await fs.collection('artist').doc(widget.docId).get();
+
+    if (artistDoc.exists) {
+      setState(() {
+        infoMap = artistDoc.data() as Map<String, dynamic>;
+        documentSnapshotoc = artistDoc;
       });
 
-    } else {
-      LoadingScreen();
+      final imageCollection = await fs.collection('artist')
+          .doc(widget.docId)
+          .collection('image')
+          .get();
+
+      if (imageCollection.docs.isNotEmpty) {
+        setState(() {
+          artistImg = imageCollection.docs.isNotEmpty ? imageCollection.docs.first['path'] as String? : null;
+        });
+      }
     }
-
-
-
   }
+
 
   // 기본 엘럿 
   void inputDuplicateAlert(String content) {
@@ -290,11 +288,11 @@ class _ArtistInfoState extends State<ArtistInfo> {
                   if (Navigator.of(context).canPop()) {
                     Navigator.of(context).pop(); // 현재 페이지를 제거
                   }
-                  // Navigator.of(context).push(MaterialPageRoute(
-                  //   builder: (context) {
-                  //     return ArtistEdit(widget.doc, widget.artistImg); // 새 페이지로 이동
-                  //   },
-                  // ));
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) {
+                      return ArtistEdit(documentSnapshotoc!, artistImg!); // 새 페이지로 이동
+                    },
+                  ));
                 } else{
                   inputDuplicateAlert("리더만 수정이 가능합니다");
                 }
@@ -402,76 +400,8 @@ class _ArtistInfoState extends State<ArtistInfo> {
     }
   }
 
-  /////////////////상세 타이틀///////////////
-  Widget _infoTitle() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ClipOval(
-          child: Image.network(
-            artistImg,
-            width: 100, // 원 모양 이미지의 너비
-            height: 100, // 원 모양 이미지의 높이
-            fit: BoxFit.cover, // 이미지를 화면에 맞게 조절
-          ),
-        ),
-        Text(
-          artistName, // artistName
-          style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black),
-        ),
-        Text(
-          artistInfo, // artistName
-          style: TextStyle(
-              fontSize: 15,
-              color: Colors.black),
-        ),
-        Text(
-          genre,
-          style: TextStyle(fontSize: 14, color: Colors.black),
-        ),
-        Row(
-          children: [
-            Stack(
-              children: [
-                if (_followerFlg)
-                  IconButton(
-                      onPressed: () {
-                        _followDelete();
-                        setState(() {});
-                      },
-                      icon: Icon(Icons.person_add)),
-                if (!_followerFlg)
-                  IconButton(
-                      onPressed: () {
-                        _followAdd();
-                        setState(() {});
-                      },
-                      icon: Icon(Icons.person_add_alt)),
-                Positioned(
-                    right: 1, top: 1, child: Text(folCnt.toString())),
-              ],
-            ),
-            IconButton(
-              onPressed: () {
-                if (_userId != null) {
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) =>
-                        DonationPage(artistId: widget.docId),
-                  ));
-                } else {
-                  _alertDialogWidget();
-                }
-              },
-              icon: Icon(Icons.price_change),
-            )
-          ],
-        ),
-      ],
-    );
-  }
+
+
 
 ////////////////////////////////아이스트 소개/////////////////////////////////////////
   // 아티스트 소개 데이터호출 위젯
@@ -527,46 +457,6 @@ class _ArtistInfoState extends State<ArtistInfo> {
     }
   }
 
-  // 아티스트 소개 탭
-  Widget tab1() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(artistInfo), // artistInfo
-        ),
-        SizedBox(
-          height: 50,
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '기본공연비(공연시간 30분기준)',
-                style: TextStyle(fontSize: 15),
-              ),
-              Text(
-                //'${widget.doc['basicPrice']} 원', // baseicPrice
-                '원',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              )
-            ],
-          ),
-        ),
-        Divider(thickness: 1, height: 1, color: Colors.grey),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(
-            "멤버",
-            style: TextStyle(fontSize: 20),
-          ),
-        ),
-      ],
-    );
-  }
 
 //////////////////////////////아티스트 공연 일정//////////////////////////////////
 
@@ -799,7 +689,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
           ),
           title: Center(
             child: Text(
-              artistName,
+              infoMap?['artistName'] ?? "",
               style:
                   TextStyle(color: Color(0xFF233067), fontWeight: FontWeight.bold),
             ),
@@ -821,11 +711,64 @@ class _ArtistInfoState extends State<ArtistInfo> {
         drawer: MyDrawer(),
         body: Column(
           children: [
-            Container(
+            SizedBox(
               height: 250,
               child: Column(
                 children: [
-                  _infoTitle(),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipOval(
+                        child: artistImg != null ? Image.network(
+                          artistImg!,
+                          width: 100, // 원 모양 이미지의 너비
+                          height: 100, // 원 모양 이미지의 높이
+                          fit: BoxFit.cover, // 이미지를 화면에 맞게 조절
+                        ) : ClipOval(child: Container(width: 100,height: 100,color: Colors.grey,)),
+                      ),
+                      artistName != null ? Text(
+                        artistName!, // artistName
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black),
+                      ) : Text(""),
+                      infoMap?['artistInfo'] != null ?Text(
+                        infoMap?['artistInfo'], // artistName
+                        style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.black),
+                      ) : Text(""),
+                      infoMap?['genre'] != null ? Text(
+                        infoMap?['genre'],
+                        style: TextStyle(fontSize: 14, color: Colors.black),
+                      ) : Text(""),
+                      Row(
+                        children: [
+                          Stack(
+                            children: [
+                              if (_followerFlg)
+                                IconButton(
+                                    onPressed: () {
+                                      _followDelete();
+                                      setState(() {});
+                                    },
+                                    icon: Icon(Icons.person_add)),
+                              if (!_followerFlg)
+                                IconButton(
+                                    onPressed: () {
+                                      _followAdd();
+                                      setState(() {});
+                                    },
+                                    icon: Icon(Icons.person_add_alt)),
+                              Positioned(
+                                  right: 1, top: 1, child: Text(folCnt.toString())),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),

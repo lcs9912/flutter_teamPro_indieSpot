@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
-import 'package:indie_spot/artistList.dart';
-import 'package:indie_spot/lsjMain.dart';
-import 'donationList.dart';
-import 'firebase_options.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:provider/provider.dart';
-import 'package:indie_spot/userModel.dart';
+import 'package:indie_spot/loading.dart';
+import 'artistInfo.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'artistList.dart';
 import 'buskingReservation.dart';
+import 'package:image_cropper/image_cropper.dart';
+
 class ArtistEdit extends StatefulWidget {
   final DocumentSnapshot doc;
   final String artistImg;
@@ -57,7 +54,6 @@ class _ArtistEditState extends State<ArtistEdit> {
       setState(() {
         _genreCheck = widget.doc['detailedGenre'];
       });
-
     }
   }
 
@@ -82,13 +78,9 @@ class _ArtistEditState extends State<ArtistEdit> {
       });
     } else if (checkArtistName.docs.isNotEmpty &&
         _artistName.text != widget.doc.id) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('이미 사용 중인 활동명 입니다.')),
-      );
+      inputDuplicateAlert("이미 사용중인 활동명 입니다.");
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('사용 가능한 활동명 입니다.')),
-      );
+      inputDuplicateAlert("사용가능한 활동명 입니다.");
       setState(() {
         _isNameChecked = true; //
       });
@@ -100,10 +92,18 @@ class _ArtistEditState extends State<ArtistEdit> {
     final pickedImage = await picker.pickImage(source: ImageSource.gallery);
 
     if (pickedImage != null) {
-      setState(() {
-        _selectedImage = File(pickedImage.path);
-      });
+      final croppedImage = await ImageCropper().cropImage(
+        sourcePath: pickedImage.path,
+        aspectRatio: CropAspectRatio(ratioX: 1.5, ratioY: 1), // 원하는 가로세로 비율 설정
+      );
+
+      if (croppedImage != null) {
+        setState(() {
+          _selectedImage = File(croppedImage.path);
+        });
+      }
     }
+
   }
 
   void _change() {
@@ -131,9 +131,10 @@ class _ArtistEditState extends State<ArtistEdit> {
   }
 
   void _artistEdit() async {
+    final dialogContext = context; // 변수로 저장
     if (!_isNameChecked) {
       showDialog(
-        context: context,
+        context: dialogContext,
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text("중복 확인 필요"),
@@ -152,29 +153,12 @@ class _ArtistEditState extends State<ArtistEdit> {
       return;
     }
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return LoadingScreen();
-      },
-      barrierDismissible: false, // 사용자가 화면을 탭해서 닫는 것을 막습니다.
-    );
-
-
-
-    print(_genre);
-    print(_genreCheck);
-
-    print(_artistName.text);
-    print(_artistInfo.text);
-    print(_mainPlace.text);
-    print(_basicPrice.text);
     if (_artistName.text.isEmpty ||
         _artistInfo.text.isEmpty ||
         _mainPlace.text.isEmpty ||
         _genre == null ||
         _basicPrice.text.isEmpty) {
-      ScaffoldMessenger.of(context)
+      ScaffoldMessenger.of(dialogContext)
           .showSnackBar(SnackBar(content: Text("모든 정보를 입력해주세요.")));
       return;
     }
@@ -182,14 +166,17 @@ class _ArtistEditState extends State<ArtistEdit> {
         ? await _uploadImage(_selectedImage!)
         : widget.artistImg; // 이미지를 선택하지 않았을 때 widget.artistImg 사용
 
-    if(_genreCheck == null){
-      _genreCheck = "";
-    }
-
-
-
+    _genreCheck ??= "";
 
       try {
+        showDialog(
+          context: dialogContext,
+          builder: (BuildContext context) {
+            return LoadingWidget();
+          },
+          barrierDismissible: false, // 사용자가 화면을 탭해서 닫는 것을 막습니다.
+        );
+
         // URL에서 토큰을 추출
         final token = Uri.parse(widget.artistImg).queryParameters['token'];
 
@@ -239,9 +226,7 @@ class _ArtistEditState extends State<ArtistEdit> {
         });
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('수정되었습니다.')),
-      );
+
 
       setState(() {
         _artistName.clear();
@@ -249,15 +234,13 @@ class _ArtistEditState extends State<ArtistEdit> {
         _mainPlace.clear();
         _selectedImage = null;
       });
-
+      Navigator.pop(dialogContext);
       //등록 완료후 페이지 이동
       Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => ArtistList()));
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+          dialogContext, MaterialPageRoute(builder: (context) => ArtistInfo(widget.doc.id))
       );
-      print('Error: $e');
+    } catch (e) {
+      print('오류 발생: $e');
     }
   }
 
@@ -269,6 +252,26 @@ class _ArtistEditState extends State<ArtistEdit> {
       );
     }
     return null; // 이미지가 없을 경우// null을 반환
+  }
+
+  // 기본 엘럿
+  void inputDuplicateAlert(String content) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Text(content),
+          actions: <Widget>[
+            TextButton(
+              child: Text("확인"),
+              onPressed: () {
+                Navigator.of(context).pop(); // 알림 창 닫기
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   // 검색에 사용될 장르 라디오 버튼
