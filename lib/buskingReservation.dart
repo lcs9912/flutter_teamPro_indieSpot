@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:indie_spot/loading.dart';
 import 'package:indie_spot/main.dart';
 import 'package:indie_spot/userModel.dart';
 import 'dart:io';
@@ -12,6 +13,7 @@ import 'baseBar.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_cropper/image_cropper.dart';
+import 'package:get/get.dart';
 
 class BuskingReservation extends StatefulWidget {
   BuskingReservation();
@@ -99,7 +101,7 @@ class _BuskingReservationState extends State<BuskingReservation> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return LoadingScreen();
+        return LoadingWidget();
       },
       barrierDismissible: false, // 사용자가 화면을 탭해서 닫는 것을 막습니다.
     );
@@ -146,7 +148,10 @@ class _BuskingReservationState extends State<BuskingReservation> {
           });
       });
     if(!context.mounted) return;
-    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => MyApp(),));
+    Get.off(
+      MyApp(),
+      transition: Transition.noTransition //이동애니메이션off
+    );
   }
 
   Future<void> _artisNameSearch() async{

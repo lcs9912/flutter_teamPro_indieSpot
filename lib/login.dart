@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:indie_spot/loading.dart';
 import 'package:indie_spot/main.dart';
 import 'package:indie_spot/pwdEdit.dart';
 import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
+import 'package:get/get.dart';
 
 import 'join.dart';
 
@@ -108,11 +110,9 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   InkWell(
                     onTap: (){
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => PwdEdit()
-                          )
+                      Get.to(
+                        PwdEdit(),
+                        transition: Transition.noTransition
                       );
                     },
                     child: Text(
@@ -126,11 +126,9 @@ class _LoginPageState extends State<LoginPage> {
                   SizedBox(width: 150),
                   InkWell(
                     onTap: (){
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => Join()
-                          )
+                      Get.to(
+                        Join(),
+                        transition: Transition.noTransition
                       );
                     },
                     child: Text(
@@ -174,7 +172,7 @@ class _LoginPageState extends State<LoginPage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return LoadingScreen();
+        return LoadingWidget();
       },
       barrierDismissible: false, // 사용자가 화면을 탭해서 닫는 것을 막습니다.
     );
@@ -187,7 +185,7 @@ class _LoginPageState extends State<LoginPage> {
       var data = userDocs.docs.first.data();
       if(data['banYn'] == 'Y'){
         if(!context.mounted) return;
-        Navigator.of(context).pop();
+        Get.back();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -225,14 +223,14 @@ class _LoginPageState extends State<LoginPage> {
           print('일반');
         }
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => MyApp() ),
+        Get.off(
+          MyApp(),
+          transition: Transition.noTransition
         );
       }
     } else {
       if(!context.mounted) return;
-      Navigator.of(context).pop();
+      Get.back();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(

@@ -4,9 +4,9 @@ import 'package:indie_spot/baseBar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/loading.dart';
 import 'package:intl/intl.dart';
-
-
+import 'package:cached_network_image/cached_network_image.dart';
 import 'concertDetails.dart';
+
 class BuskingList extends StatefulWidget{
   const BuskingList({super.key});
 
@@ -27,111 +27,84 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
     // TODO: implement initState
     super.initState();
   }
-  Future<List> _buskingList2()async{
+  Future<List<Map<String, dynamic>>> _fetchBuskingData(QuerySnapshot snapshot) async {
+    List<Map<String, dynamic>> buskingData = [];
+    List<Future> futures = [];
+
+    for (var element in snapshot.docs) {
+      futures.add(_processElement(element, buskingData));
+    }
+
+    await Future.wait(futures);
+
+    return buskingData;
+  }
+
+  Future<void> _processElement(QueryDocumentSnapshot element, List<Map<String, dynamic>> buskingData) async {
+    String spotId = element.get('spotId');
+    String artistId = element.get('artistId');
+
+    QuerySnapshot artistSnap;
+    QuerySnapshot spotSnap;
+
+    if (selectGenre == "") {
+      artistSnap = await fs.collection("artist").where(FieldPath.documentId, isEqualTo: artistId).get();
+    } else {
+      artistSnap = await fs.collection("artist")
+          .where(FieldPath.documentId, isEqualTo: artistId)
+          .where("genre", isEqualTo: selectGenre)
+          .get();
+    }
+
+    if (artistSnap.docs.isNotEmpty) {
+      if (artistSnap.docs.first.get("artistName").contains(_search.text)) {
+        if (selectRegions == "") {
+          spotSnap = await fs.collection('busking_spot')
+              .where(FieldPath.documentId, isEqualTo: spotId)
+              .get();
+        } else {
+          spotSnap = await fs.collection('busking_spot')
+              .where(FieldPath.documentId, isEqualTo: spotId)
+              .where("regions", isEqualTo: selectRegions)
+              .get();
+        }
+        if (spotSnap.docs.isNotEmpty) {
+          QuerySnapshot imgSnap = await fs.collection("busking").doc(element.id).collection("image").get();
+          Map<String, dynamic> data = element.data() as Map<String, dynamic>;
+          Timestamp timeStamp = data['buskingStart'];
+          DateTime date = timeStamp.toDate();
+          String formattedDate = DateFormat('yyyy-MM-dd HH:mm').format(date);
+          data["path"] = imgSnap.docs.first.get("path");
+          data["buskingStart"] = formattedDate;
+          data["startTime"] = date;
+          data["spotName"] = spotSnap.docs.first.get("spotName");
+          data["doc"] = element;
+          buskingData.add(data);
+        }
+      }
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> _buskingList2() async {
     busKingList.clear();
     DateTime now = DateTime.now();
     DateTime today = DateTime(now.year, now.month, now.day);
-    List<Map<String,dynamic>> buskingData =[];
+
     QuerySnapshot buskingSnap = await fs.collection("busking")
         .where('buskingStart', isGreaterThan: Timestamp.fromDate(today))
         .orderBy("buskingStart")
         .get();
-    if(buskingSnap.docs.isNotEmpty) {
-      for (var element in buskingSnap.docs) {
-        String spotId = element.get('spotId');
-        String artistId = element.get('artistId');
-        QuerySnapshot artistSnap;
-        QuerySnapshot spotSnap;
-        if (selectGenre == "") {
-          artistSnap = await fs.collection("artist")
-              .where(FieldPath.documentId, isEqualTo: artistId).get();
-        } else {
-          artistSnap = await fs.collection("artist")
-              .where(FieldPath.documentId, isEqualTo: artistId)
-              .where("genre", isEqualTo: selectGenre)
-              .get();
-        }
-        if (artistSnap.docs.isNotEmpty) {
-          if (artistSnap.docs.first.get("artistName").contains(_search.text)) {
-            if (selectRegions == "") {
-              spotSnap = await fs.collection('busking_spot')
-                  .where(FieldPath.documentId, isEqualTo: spotId)
-                  .get();
-            } else {
-              spotSnap = await fs.collection('busking_spot')
-                  .where(FieldPath.documentId, isEqualTo: spotId)
-                  .where("regions", isEqualTo: selectRegions)
-                  .get();
-            }
-            if (spotSnap.docs.isNotEmpty) {
-              QuerySnapshot imgSnap = await fs.collection("busking").doc(
-                  element.id).collection("image").get();
-              Map<String, dynamic> data = element.data() as Map<String,
-                  dynamic>;
-              Timestamp timeStamp = data['buskingStart'];
-              DateTime date = timeStamp.toDate();
-              String formattedDate = DateFormat('yyyy-MM-dd HH:mm').format(
-                  date);
-              data["path"] = imgSnap.docs.first.get("path");
-              data["buskingStart"] = formattedDate;
-              data["startTime"] = date;
-              data["spotName"] = spotSnap.docs.first.get("spotName");
-              data["doc"] = element;
-              buskingData.add(data);
-            }
-          }
-        }
-      }
-    }
+
+    List<Map<String, dynamic>> buskingData = await _fetchBuskingData(buskingSnap);
+
     QuerySnapshot pastBuskingSnap = await fs.collection("busking")
         .where('buskingStart', isLessThan: Timestamp.fromDate(today))
         .orderBy("buskingStart")
         .get();
-    if(pastBuskingSnap.docs.isNotEmpty){
-      for (var element in pastBuskingSnap.docs) {
-        String spotId = element.get('spotId');
-        String artistId = element.get('artistId');
-        QuerySnapshot artistSnap;
-        QuerySnapshot spotSnap;
-        if (selectGenre == "") {
-          artistSnap= await fs.collection("artist")
-              .where(FieldPath.documentId, isEqualTo: artistId).get();
-        } else {
-          artistSnap = await fs.collection("artist")
-              .where(FieldPath.documentId, isEqualTo: artistId)
-              .where("genre", isEqualTo: selectGenre)
-              .get();
-        }
-        if(artistSnap.docs.isNotEmpty){
-          if(artistSnap.docs.first.get("artistName").contains(_search.text)){
-            if(selectRegions == ""){
-              spotSnap = await fs.collection('busking_spot')
-                  .where(FieldPath.documentId, isEqualTo: spotId)
-                  .get();
-            }else{
-              spotSnap = await fs.collection('busking_spot')
-                  .where(FieldPath.documentId, isEqualTo: spotId)
-                  .where("regions", isEqualTo: selectRegions)
-                  .get();
-            }
-            if(spotSnap.docs.isNotEmpty){
-              QuerySnapshot imgSnap = await fs.collection("busking").doc(element.id).collection("image").get();
-              Map<String,dynamic> data = element.data() as Map<String,dynamic>;
-              Timestamp timeStamp = data['buskingStart'];
-              DateTime date = timeStamp.toDate();
-              String formattedDate = DateFormat('yyyy-MM-dd HH:mm').format(date);
-              data["path"] = imgSnap.docs.first.get("path");
-              data["buskingStart"] = formattedDate;
-              data["startTime"] = date;
-              data["spotName"] = spotSnap.docs.first.get("spotName");
-              data["doc"] = element;
-              buskingData.add(data);
-            }
-          }
-        }
-      }
-    }
-      return buskingData;
+
+    List<Map<String, dynamic>> pastBuskingData = await _fetchBuskingData(pastBuskingSnap);
+
+    return [...buskingData, ...pastBuskingData];
   }
   Widget _buskingList() {
     return FutureBuilder(
@@ -158,12 +131,22 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
                     ),
                     leading:DateTime.now().isBefore(snapshot.data?[index]["startTime"]) ? Container(
                         width: 100,
-                        child: Image.network("${snapshot.data?[index]['path']}",fit: BoxFit.fill,)
+                        child: CachedNetworkImage(
+                          imageUrl: snapshot.data?[index]['path'], // 이미지 URL
+                          fit: BoxFit.fill,
+                          placeholder: (context, url) => Center(child: CircularProgressIndicator()), // 이미지 로딩 중에 표시될 위젯
+                          errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
+                        ),
                     ):Stack(
                       children: [
                         Container(
                             width: 100,
-                            child: Image.network("${snapshot.data?[index]['path']}",fit: BoxFit.fill,)
+                            child: CachedNetworkImage(
+                              imageUrl: snapshot.data?[index]['path'], // 이미지 URL
+                              fit: BoxFit.fill,
+                              placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
+                              errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
+                            ),
                         ),
                         Container(
                           width: 100,

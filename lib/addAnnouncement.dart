@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:indie_spot/baseBar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
+import 'package:get/get.dart';
+import 'package:indie_spot/loading.dart';
 
 class AddAnnouncement extends StatefulWidget {
   const AddAnnouncement({super.key});
@@ -17,6 +18,15 @@ class _AddAnnouncementState extends State<AddAnnouncement> {
   FirebaseFirestore fs = FirebaseFirestore.instance;
 
   Future<void> _addAnnouncement() async{
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return LoadingWidget();
+      },
+      barrierDismissible: false, // 사용자가 화면을 탭해서 닫는 것을 막습니다.
+    );
+
     var postsSnapshot =  await fs.collection('posts').limit(1).get();
 
     if(postsSnapshot.docs.isNotEmpty) {
@@ -32,7 +42,8 @@ class _AddAnnouncementState extends State<AddAnnouncement> {
     }
 
     if(!context.mounted) return;
-    Navigator.of(context).pop();
+    Get.back();
+    Get.back();
   }
 
   @override
@@ -49,7 +60,7 @@ class _AddAnnouncementState extends State<AddAnnouncement> {
                   Scaffold.of(context).openDrawer();
                 },
                 icon: Icon(Icons.menu),
-                color: Colors.black54,
+                color: Colors.white,
               );
             },
           ),
@@ -59,19 +70,19 @@ class _AddAnnouncementState extends State<AddAnnouncement> {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: Colors.black54,
+            color: Colors.white,
           ),
           onPressed: () {
             // 뒤로가기 버튼을 눌렀을 때 수행할 작업
             Navigator.of(context).pop();
           },
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFF233067),
         centerTitle: true,
         title: Text(
           '공지사항 등록',
           style: TextStyle(
-            color: Colors.black,
+            color: Colors.white,
           ),
         ),
       ),
@@ -90,7 +101,7 @@ class _AddAnnouncementState extends State<AddAnnouncement> {
             Expanded(child: ElevatedButton(
               style: ButtonStyle(
                   minimumSize: MaterialStatePropertyAll(Size(0, 48)),
-                  backgroundColor: MaterialStatePropertyAll(Color(0xFF392F31)),
+                  backgroundColor: MaterialStatePropertyAll(Color(0xFF233067) ),
                   elevation: MaterialStatePropertyAll(0),
                   shape: MaterialStatePropertyAll(
                       RoundedRectangleBorder(
@@ -107,7 +118,7 @@ class _AddAnnouncementState extends State<AddAnnouncement> {
                       TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('취소')),
                       TextButton(onPressed: (){
                         _addAnnouncement();
-                        Navigator.of(context).pop();
+                        Get.back();
                       }, child: Text('등록')),
                     ],
                   );

@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-
+import 'package:get/get.dart';
 
 class VideoList extends StatefulWidget {
   const VideoList({super.key});
@@ -48,7 +48,7 @@ class _VideoListState extends State<VideoList> {
           ),
           onPressed: () {
             // 뒤로가기 버튼을 눌렀을 때 수행할 작업
-            Navigator.of(context).pop();
+            Get.back();
           },
         ),
         backgroundColor: Color(0xFF233067),
@@ -72,7 +72,10 @@ class _VideoListState extends State<VideoList> {
       floatingActionButton: Provider.of<UserModel>(context, listen: false).isArtist ? FloatingActionButton(
         backgroundColor: Color(0xFF233067),
         onPressed: (){
-          Navigator.of(context).push(MaterialPageRoute(builder: (context) => YoutubeAdd(),)).then((value) => setState(() {}));
+          Get.to(
+            YoutubeAdd(),
+            transition: Transition.noTransition
+          )!.then((value) => setState(() {}));
         },
         child: Icon(Icons.edit),
       ) : Container(),
@@ -146,8 +149,10 @@ class _VideoListState extends State<VideoList> {
     }
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => VideoDetailed(videoDetailData, id ,artistName!),)).then((value) => setState(() {}));
+        Get.to(
+          VideoDetailed(videoDetailData, id ,artistName!),
+          transition: Transition.noTransition
+        )!.then((value) => setState(() {}));
       },
       child: Container(
         height: 370,

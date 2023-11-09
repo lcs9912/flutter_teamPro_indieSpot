@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:get/get.dart';
 
 class VideoDetailed extends StatefulWidget {
   final Map<String, dynamic> videoDetailData;
@@ -138,7 +139,7 @@ class _VideoDetailedState extends State<VideoDetailed> {
           ),
           onPressed: () {
             // 뒤로가기 버튼을 눌렀을 때 수행할 작업
-            Navigator.of(context).pop();
+            Get.back();
           },
         ),
         backgroundColor: Color(0xFF233067),
@@ -202,7 +203,10 @@ class _VideoDetailedState extends State<VideoDetailed> {
                     ),
                     TextButton(
                       onPressed: (){
-                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => ArtistInfo(widget.artistName?.id as String),));
+                        Get.to(
+                          ArtistInfo(widget.artistName?.id as String),
+                          transition: Transition.noTransition
+                        );
                       },
                       style: ButtonStyle(
                         padding: MaterialStatePropertyAll(EdgeInsets.zero), // 패딩 없음
@@ -350,7 +354,7 @@ class _VideoDetailedState extends State<VideoDetailed> {
                                         padding: EdgeInsets.only(left: 10),
                                         child: TextButton(
                                           onPressed: (){
-                                            Navigator.of(context).pop();
+                                            Get.back();
                                             _editComment(pointDetailDocument.id, vedioDocRef, comment);
                                           },
                                           style: ButtonStyle(
