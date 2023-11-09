@@ -132,8 +132,6 @@ class _ProfileState extends State<Profile> {
           var introduction = snapshot.data()!['introduction'];
           var followingCnt = snapshot.data()!['followingCnt'];
           var followerCnt = snapshot.data()!['followerCnt'];
-
-          print(_path);
           setState(() {
             _path = image.docs.first.data()['PATH'];
             _nickFromFirestore = nick;
@@ -141,7 +139,6 @@ class _ProfileState extends State<Profile> {
             _followingCntFromFirestore = followingCnt.toString();
             _followerCntFromFirestore = followerCnt.toString();
           });
-
         }
       }
     } catch (e) {
@@ -400,9 +397,18 @@ class _ProfileState extends State<Profile> {
               children: [
                 CircleAvatar(
                   radius: 40,
-                   backgroundImage:imageProvider, // 프로필 이미지
-                  child: Image.network(_path!),
+                  backgroundColor: Colors.transparent, // 배경색을 투명하게 설정
+                  backgroundImage: imageProvider, // 프로필 이미지
+                  child: _path != null
+                      ? ClipOval(
+                    child: Image.network(
+                      _path!,
+                      fit: BoxFit.cover, // 이미지를 둥글게 자르기
+                    ),
+                  )
+                      : null,
                 ),
+
                 GestureDetector(
                   onTap: () {
                     Navigator.of(context, rootNavigator: true).push(
