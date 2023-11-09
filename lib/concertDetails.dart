@@ -648,7 +648,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
 
                     Container(
                       color: Colors.grey[200],
-                      height: 410,
+                      height: 610,
                       width: 400,
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
@@ -670,7 +670,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                   borderRadius: BorderRadius.circular(8.0), // 네모 모양을 위한 BorderRadius 설정
                                   child: Image.network(
                                     _path ?? '',
-                                    height: 150,
+                                    height: 380,
                                     width: 310,
                                     fit: BoxFit.cover,
                                   ),
