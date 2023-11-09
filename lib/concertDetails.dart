@@ -281,7 +281,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
     }
   }
   //----------------------------------------------------두번째 탭 영역--------------------------------------------------------------------
- // 필요한 경우 초기값 설정
+  // 필요한 경우 초기값 설정
 
   void onRatingChanged(double newRating) {
     setState(() {
@@ -477,7 +477,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
           .doc(buskingData?['artistId'])
           .get();
 
-       artistId = buskingData?['artistId'];
+      artistId = buskingData?['artistId'];
       if (artistDoc.exists) {
         artistData = artistDoc; // 데이터를 artistData에 할당합니다.
         print(artistDoc.data());
@@ -627,7 +627,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                       color: Color(0xFF3E2007),
                       padding: EdgeInsets.all(8.0), // 내부 여백 설정
                       child: Text(
-                        ' ${buskingData?['description']}',
+                        ' ${buskingData?['title']}',
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color: Colors.white),
                       ),
                     ),
@@ -648,7 +648,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
 
                     Container(
                       color: Colors.grey[200],
-                      height: 210,
+                      height: 410,
                       width: 400,
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
@@ -660,13 +660,21 @@ class _ConcertDetailsState extends State<ConcertDetails> {
 
 
 
-                              ),
+                            ),
 
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8.0), // 네모 모양을 위한 BorderRadius 설정
+                                  child: Image.network(
+                                    _path ?? '',
+                                    height: 150,
+                                    width: 310,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
                                 Text(
                                   '이름: ${artistData2?['artistName']}',
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -679,28 +687,25 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                 ),
                                 SizedBox(height: 20),
                                 Text(
-                                  '장소: ${widget.spotName}', // widget을 사용하여 spotName에 접근합니다.
+                                  '장소:               ${widget.spotName}', // widget을 사용하여 spotName에 접근합니다.
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
                                 SizedBox(height: 20),
                                 Text(
-                                  '버스킹시간: ${DateFormat('yyyy-MM-dd').format(buskingData?['buskingStart'].toDate())}',
+                                  '버스킹시간:    ${DateFormat('yyyy-MM-dd').format(buskingData?['buskingStart'].toDate())}',
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
                                 Text(
-                                  '장르: ${artistData2?['genre']}',
+                                  '장르:                ${artistData2?['genre']}',
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                ),
+                                Text(
+                                  '소개 :               ${buskingData?['description']}',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color: Colors.black),
                                 ),
                               ],
                             ),
-                             ClipRRect(
-                              borderRadius: BorderRadius.circular(8.0), // 네모 모양을 위한 BorderRadius 설정
-                              child: Image.network(
-                                _path ?? '',
-                                height: 160,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
+
                           ],
 
                         ),
