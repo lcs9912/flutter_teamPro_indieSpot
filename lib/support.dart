@@ -6,7 +6,7 @@ import 'userModel.dart';
 import 'contactUs.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-
+import 'package:get/get.dart';
 class Support extends StatefulWidget {
   List<Map<String, dynamic>> inquiries = [];
   List<bool> isExpandedList = List.generate(11, (index) => false);
@@ -68,324 +68,408 @@ class _SupportState extends State<Support> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.white, // 앱바 배경색
-          title: Text(
-            '고객센터',
-            style: TextStyle(
-              color: Colors.black, // 앱바 글자색
-            ),
-          ),
-          iconTheme: IconThemeData(color: Colors.black),
-          bottom: TabBar(
-            labelColor: Colors.black,
-            unselectedLabelColor: Colors.black,
-            onTap: (index) {
-              if (index == 1 && (_userId == null || _userId.isEmpty)) {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text('로그인 후 이용 가능합니다'),
-                      actions: <Widget>[
-                        TextButton(
-                          child: Text('확인'),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                );
-
-                // 로그인하지 않은 상태에서는 탭으로 이동하지 않도록 return 처리
-                return;
-              }
-            },
-            tabs: [
-              Tab(text: 'FAQ',),
-              Tab(text: '문의하기'),
-            ],
-          ),
-
-        ),
-        body: TabBarView(
-            children: [
-        SingleChildScrollView(
-        child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: List.generate(questions.length, (index) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                GestureDetector(
-                  onTap: () => toggleAdditionalText(index),
-                  child: Text(
-                    questions[index],
-                    style: TextStyle(
-                      fontSize: 17,
-                    ),
-                  ),
+        length: 2,
+        child: Scaffold(
+            appBar: AppBar(
+              backgroundColor: Colors.white, // 앱바 배경색
+              title: Text(
+                '고객센터',
+                style: TextStyle(
+                  color: Colors.black, // 앱바 글자색
                 ),
-                SizedBox(height: 10),
-                if (showAdditionalText[index])
-                  Container(
-                    color: Colors.grey[200],
-                    padding: EdgeInsets.all(8),
-                    child: Text(
-                      answers[index],
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
-                Divider( // 이 부분이 추가된 부분입니다.
-                  color: Colors.grey[300], // 회색 줄의 색상을 지정합니다.
-                  thickness: 1, // 회색 줄의 두께를 조절합니다.
-                ),
-              ],
-            );
-          }),
-        ),
-      ),
-    ),
-
-    Scaffold(
-    body: SingleChildScrollView(
-
-    child: Stack(
-    children: [
-      Positioned(
-        top: MediaQuery.of(context).size.height / 20 - 20, // 수직 중앙에 위치
-        left: MediaQuery.of(context).size.width / 3 - 0, // 수평 중앙에 위치
-        child: Text(
-          '나의 문의 내역', // 여기에 표시할 텍스트
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 20, // 텍스트 크기
-          ),
-        ),
-      ),
-
-      Center(
-    child: Padding(
-      padding: const EdgeInsets.all(50),
-      child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-      SizedBox(width: 20), // 간격 조절
-      FutureBuilder<List<Map<String, dynamic>>>(
-      future: getInquiries(),
-      builder: (BuildContext context, AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-      return CircularProgressIndicator();
-      } else if (snapshot.hasError) {
-      return Text('Error: ${snapshot.error}');
-      } else {
-        List<Map<String, dynamic>> inquiries = snapshot.data ?? [];
-        print('Inquiries: $inquiries');
-        return Column(
-          children: inquiries
-              .asMap()
-              .entries
-              .map((entry) {
-            int index = entry.key;
-            Map<String, dynamic> inquiry = entry.value;
-            String category = inquiry['category'].toString();
-            String content = inquiry['content'].toString();
-            bool isExpanded = widget.isExpandedList[index];
-
-            return GestureDetector(
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    Map<String, dynamic> inquiry = inquiries[index];
-                    String category = inquiry['category'].toString();
-                    String content = inquiry['content'].toString();
-
-                    return AlertDialog(
-                      contentPadding: EdgeInsets.all(16), // 패딩을 조절합니다.
-                      title: Text('카테고리: $category'),
-                      content: Container(
-                          width: 300,
-                          height: 300, // 원하는 너비로 설정합니다.
-                          child: FutureBuilder<String>(
-
-                            future: getNickFromUserList(_userId),
-                            builder: (BuildContext context,
-                                AsyncSnapshot<String> snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return CircularProgressIndicator();
-                              } else if (snapshot.hasError) {
-                                return Text('Error: ${snapshot.error}');
-                              } else {
-                                String nick = snapshot.data ?? "";
-                                return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      margin: EdgeInsets.only(bottom: 8),
-                                      width: 280,
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey[200],
-                                        // 배경색 설정
-                                        border: Border.all(color: Colors.grey),
-                                        // 테두리 추가
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      padding: EdgeInsets.all(8),
-                                      child: Text(
-                                        '작성자: $nick',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    Container(
-                                      width: 280,
-                                      height: 200,
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey[200],
-                                        // 배경색 설정
-                                        border: Border.all(color: Colors.grey),
-                                        // 테두리 추가
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      padding: EdgeInsets.all(8),
-                                      child: Text(
-                                        '문의내용: $content',
-                                        style: TextStyle(
-                                          fontStyle: FontStyle.italic,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              }
-                            },
-                          )
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: Text('Close'),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-
-              child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-
-                  children: [
-                    SizedBox(height: 16), // 간격 조절
-                    Container(
-                      width: 300,
-                      height: 120,
-                      margin: EdgeInsets.only(bottom: 8),
-                      padding: EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('카테고리: $category',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                          SizedBox(height: 8),
-                          FutureBuilder<String>(
-                            future: getNickFromUserList(_userId),
-                            builder: (BuildContext context, AsyncSnapshot<
-                                String> snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return CircularProgressIndicator();
-                              } else if (snapshot.hasError) {
-                                return Text('Error: ${snapshot.error}');
-                              } else {
-                                String nick = snapshot.data ?? "";
-                                return Text('작성자: $nick');
-                              }
-                            },
-                          ),
-                          SizedBox(height: 8),
-                          (reply == null)
-                              ? Row(
-                            children: [
-                              Icon(Icons.access_time, color: Colors.orange),
-                              // 답변 대기 아이콘
-                              SizedBox(width: 4),
-                              Text(
-                                  '답변대기', style: TextStyle(color: Colors.orange)),
-                            ],
-                          )
-                              : (isExpanded
-                              ? Expanded(
-                            child: Text(
-                              'Content: $content',
-                              softWrap: true,
-                              overflow: TextOverflow.fade,
-                            ),
-                          )
-                              : Container()),
-                        ],
-                      ),
-                    ),
-                  ]
               ),
-            );
-          }).toList(),
-        );
-      }
-      },
-      ),
-      ],
-      ),
-    ),
-    ),
-    ]
-    ),
-    ),
-    floatingActionButton: Positioned(
-    right: 20,
-    bottom: 20,
-    child: GestureDetector(
-    onTap: () {
-    Navigator.of(context).push(MaterialPageRoute(
-    builder: (context) => ContactUs(),
-    ));
-    },
-    child: Container(
-    width: 50,
-    height: 50,
-    decoration: BoxDecoration(
-    shape: BoxShape.circle,
-    color: Colors.blue,
-    ),
-    child: Center(
-    child: Icon(
-    Icons.edit,
-    color: Colors.white,
-    ),
-    ),
-    ),
-    ),
-    ),
-    )
-    ],
-    )
-    )
+              iconTheme: IconThemeData(color: Colors.black),
+              bottom: TabBar(
+                labelColor: Colors.black,
+                unselectedLabelColor: Colors.black,
+                onTap: (index) {
+                  if (index == 1 && (_userId == null || _userId.isEmpty)) {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text('로그인 후 이용 가능합니다'),
+                          actions: <Widget>[
+                            TextButton(
+                              child: Text('확인'),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+
+                    // 로그인하지 않은 상태에서는 탭으로 이동하지 않도록 return 처리
+                    return;
+                  }
+                },
+                tabs: [
+                  Tab(text: 'FAQ',),
+                  Tab(text: '문의하기'),
+                ],
+              ),
+
+            ),
+            body: TabBarView(
+              children: [
+                SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: List.generate(questions.length, (index) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            GestureDetector(
+                              onTap: () => toggleAdditionalText(index),
+                              child: Text(
+                                questions[index],
+                                style: TextStyle(
+                                  fontSize: 17,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            if (showAdditionalText[index])
+                              Container(
+                                color: Colors.grey[200],
+                                padding: EdgeInsets.all(8),
+                                child: Text(
+                                  answers[index],
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                              ),
+                            Divider( // 이 부분이 추가된 부분입니다.
+                              color: Colors.grey[300], // 회색 줄의 색상을 지정합니다.
+                              thickness: 1, // 회색 줄의 두께를 조절합니다.
+                            ),
+                          ],
+                        );
+                      }),
+                    ),
+                  ),
+                ),
+
+                Scaffold(
+                  body: SingleChildScrollView(
+
+                    child: Stack(
+                        children: [
+                          Positioned(
+                            top: MediaQuery
+                                .of(context)
+                                .size
+                                .height / 20 - 20, // 수직 중앙에 위치
+                            left: MediaQuery
+                                .of(context)
+                                .size
+                                .width / 3 - 0, // 수평 중앙에 위치
+                            child: Text(
+                              '나의 문의 내역', // 여기에 표시할 텍스트
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20, // 텍스트 크기
+                              ),
+                            ),
+                          ),
+
+                          Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(50),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(width: 20), // 간격 조절
+                                  FutureBuilder<List<Map<String, dynamic>>>(
+                                    future: getInquiries(),
+                                    builder: (BuildContext context,
+                                        AsyncSnapshot<List<
+                                            Map<String, dynamic>>> snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return CircularProgressIndicator();
+                                      } else if (snapshot.hasError) {
+                                        return Text('Error: ${snapshot.error}');
+                                      } else {
+                                        List<Map<String,
+                                            dynamic>> inquiries = snapshot
+                                            .data ?? [];
+                                        print('Inquiries: $inquiries');
+                                        return Column(
+                                          children: inquiries
+                                              .asMap()
+                                              .entries
+                                              .map((entry) {
+                                            int index = entry.key;
+                                            Map<String, dynamic> inquiry = entry
+                                                .value;
+                                            String category = inquiry['category']
+                                                .toString();
+                                            String content = inquiry['content']
+                                                .toString();
+                                            bool isExpanded = widget
+                                                .isExpandedList[index];
+
+                                            return GestureDetector(
+                                              onTap: () {
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (
+                                                      BuildContext context) {
+                                                    Map<String,
+                                                        dynamic> inquiry = inquiries[index];
+                                                    String category = inquiry['category']
+                                                        .toString();
+                                                    String content = inquiry['content']
+                                                        .toString();
+
+                                                    return AlertDialog(
+                                                      contentPadding: EdgeInsets
+                                                          .all(16),
+                                                      // 패딩을 조절합니다.
+                                                      title: Text(
+                                                          '카테고리: $category'),
+                                                      content: Container(
+                                                          width: 300,
+                                                          height: 300,
+                                                          // 원하는 너비로 설정합니다.
+                                                          child: FutureBuilder<
+                                                              String>(
+
+                                                            future: getNickFromUserList(
+                                                                _userId),
+                                                            builder: (
+                                                                BuildContext context,
+                                                                AsyncSnapshot<
+                                                                    String> snapshot) {
+                                                              if (snapshot
+                                                                  .connectionState ==
+                                                                  ConnectionState
+                                                                      .waiting) {
+                                                                return CircularProgressIndicator();
+                                                              } else
+                                                              if (snapshot
+                                                                  .hasError) {
+                                                                return Text(
+                                                                    'Error: ${snapshot
+                                                                        .error}');
+                                                              } else {
+                                                                String nick = snapshot
+                                                                    .data ?? "";
+                                                                return Column(
+                                                                  crossAxisAlignment: CrossAxisAlignment
+                                                                      .start,
+                                                                  children: [
+                                                                    Container(
+                                                                      margin: EdgeInsets
+                                                                          .only(
+                                                                          bottom: 8),
+                                                                      width: 280,
+                                                                      decoration: BoxDecoration(
+                                                                        color: Colors
+                                                                            .grey[200],
+                                                                        // 배경색 설정
+                                                                        border: Border
+                                                                            .all(
+                                                                            color: Colors
+                                                                                .grey),
+                                                                        // 테두리 추가
+                                                                        borderRadius: BorderRadius
+                                                                            .circular(
+                                                                            8),
+                                                                      ),
+                                                                      padding: EdgeInsets
+                                                                          .all(
+                                                                          8),
+                                                                      child: Text(
+                                                                        '작성자: $nick',
+                                                                        style: TextStyle(
+                                                                          fontWeight: FontWeight
+                                                                              .bold,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                    Container(
+                                                                      width: 280,
+                                                                      height: 200,
+                                                                      decoration: BoxDecoration(
+                                                                        color: Colors
+                                                                            .grey[200],
+                                                                        // 배경색 설정
+                                                                        border: Border
+                                                                            .all(
+                                                                            color: Colors
+                                                                                .grey),
+                                                                        // 테두리 추가
+                                                                        borderRadius: BorderRadius
+                                                                            .circular(
+                                                                            8),
+                                                                      ),
+                                                                      padding: EdgeInsets
+                                                                          .all(
+                                                                          8),
+                                                                      child: Text(
+                                                                        '문의내용: $content',
+                                                                        style: TextStyle(
+                                                                          fontStyle: FontStyle
+                                                                              .italic,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                );
+                                                              }
+                                                            },
+                                                          )
+                                                      ),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () {
+                                                            Navigator.of(
+                                                                context).pop();
+                                                          },
+                                                          child: Text('Close'),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
+                                                );
+                                              },
+
+                                              child: Column(
+                                                  mainAxisAlignment: MainAxisAlignment
+                                                      .center,
+
+                                                  children: [
+                                                    SizedBox(height: 16),
+                                                    // 간격 조절
+                                                    Container(
+                                                      width: 300,
+                                                      height: 120,
+                                                      margin: EdgeInsets.only(
+                                                          bottom: 8),
+                                                      padding: EdgeInsets.all(
+                                                          8),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.grey[200],
+                                                        border: Border.all(
+                                                            color: Colors.grey),
+                                                        borderRadius: BorderRadius
+                                                            .circular(8),
+                                                      ),
+                                                      child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment
+                                                            .start,
+                                                        children: [
+                                                          Text(
+                                                              '카테고리: $category',
+                                                              style: TextStyle(
+                                                                  fontWeight: FontWeight
+                                                                      .bold)),
+                                                          SizedBox(height: 8),
+                                                          FutureBuilder<String>(
+                                                            future: getNickFromUserList(
+                                                                _userId),
+                                                            builder: (
+                                                                BuildContext context,
+                                                                AsyncSnapshot<
+                                                                    String> snapshot) {
+                                                              if (snapshot
+                                                                  .connectionState ==
+                                                                  ConnectionState
+                                                                      .waiting) {
+                                                                return CircularProgressIndicator();
+                                                              } else
+                                                              if (snapshot
+                                                                  .hasError) {
+                                                                return Text(
+                                                                    'Error: ${snapshot
+                                                                        .error}');
+                                                              } else {
+                                                                String nick = snapshot
+                                                                    .data ?? "";
+                                                                return Text(
+                                                                    '작성자: $nick');
+                                                              }
+                                                            },
+                                                          ),
+                                                          SizedBox(height: 8),
+                                                          (reply == null)
+                                                              ? Row(
+                                                            children: [
+                                                              Icon(Icons
+                                                                  .access_time,
+                                                                  color: Colors
+                                                                      .orange),
+                                                              // 답변 대기 아이콘
+                                                              SizedBox(
+                                                                  width: 4),
+                                                              Text(
+                                                                  '답변대기',
+                                                                  style: TextStyle(
+                                                                      color: Colors
+                                                                          .orange)),
+                                                            ],
+                                                          )
+                                                              : (isExpanded
+                                                              ? Expanded(
+                                                            child: Text(
+                                                              'Content: $content',
+                                                              softWrap: true,
+                                                              overflow: TextOverflow
+                                                                  .fade,
+                                                            ),
+                                                          )
+                                                              : Container()),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ]
+                                              ),
+                                            );
+                                          }).toList(),
+                                        );
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ]
+                    ),
+                  ),
+                  floatingActionButton: Positioned(
+                    right: 20,
+                    bottom: 20,
+                    child: GestureDetector(
+                      onTap: () {
+                        Get.to(ContactUs());
+                      },
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.blue,
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.edit,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  ),
+                )
+              ],
+            )
+        )
     );
   }
 
