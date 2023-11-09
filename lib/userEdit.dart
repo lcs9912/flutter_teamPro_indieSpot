@@ -226,6 +226,20 @@ class _UserEditState extends State<UserEdit> {
       // 사용자 정보를 업데이트합니다.
       await documentReference.update({'profileImage': imageUrl});
 
+      // 'image' 서브컬렉션에 대한 참조 가져오기
+      CollectionReference imageCollection = documentReference.collection('image');
+
+      // 'image' 서브컬렉션에서 문서를 가져옵니다. 이 문서는 하나뿐일 것이라고 가정합니다.
+      QuerySnapshot<Object?> imageSnapshot =
+      await imageCollection.get();
+
+      if (imageSnapshot.docs.isNotEmpty) {
+        String imageDocumentId = imageSnapshot.docs[0].id;
+
+        // 'image' 서브컬렉션의 문서를 업데이트합니다.
+        await imageCollection.doc(imageDocumentId).update({'path': imageUrl});
+      }
+
       // 업데이트가 성공하면 사용자에게 알림을 띄워줍니다.
       showDialog(
         context: context,
@@ -248,6 +262,7 @@ class _UserEditState extends State<UserEdit> {
       print('프로필 이미지 변경 중 오류 발생: $e');
     }
   }
+
 
   // Widget _buildSelectedImage() {
   //   if (_selectedImage != null) {

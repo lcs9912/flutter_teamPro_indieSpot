@@ -24,7 +24,8 @@ class Profile extends StatefulWidget {
 List<Map<String, dynamic>> _postsData = [];
 List<QueryDocumentSnapshot<Map<String, dynamic>>>? userImages;
 class _ProfileState extends State<Profile> {
-
+  Map<String,dynamic>? userData;
+  Map<String,dynamic>? imgData;
   List<String> imagePaths = []; // Define the list of image paths
   String? _nickFromFirestore; // Firestore에서 가져온 'nick' 값을 저장할 변수
   String? _introductionFromFirestore;
@@ -34,8 +35,8 @@ class _ProfileState extends State<Profile> {
   String? _followingCount;
   String? _followingCnt;
   String? _path;
-
-
+  FirebaseFirestore fs = FirebaseFirestore.instance;
+  ImageProvider<Object>? imageProvider;
 
   @override
   void initState() {
@@ -126,11 +127,15 @@ class _ProfileState extends State<Profile> {
             .get();
 
         if (snapshot.exists) {
+          var image = await snapshot.reference.collection('image').get();
           var nick = snapshot.data()!['nick'];
           var introduction = snapshot.data()!['introduction'];
           var followingCnt = snapshot.data()!['followingCnt'];
           var followerCnt = snapshot.data()!['followerCnt'];
+
+          print(_path);
           setState(() {
+            _path = image.docs.first.data()['PATH'];
             _nickFromFirestore = nick;
             _introductionFromFirestore = introduction;
             _followingCntFromFirestore = followingCnt.toString();
@@ -324,42 +329,51 @@ class _ProfileState extends State<Profile> {
   }
   List<Widget> getUserImageWidgets() {
     List<Widget> imageWidgets = [];
-    if (userImages != null) { // artistImages가 null인지 확인합니다.
-      for (var index = 0; index < userImages!.length; index++) {
-        var imagePath = userImages![index]['path'];
-
+    if (_path != null) { // artistImages가 null인지 확인합니다.
         // 이미지 URL이 유효한지 확인
-        if (Uri.parse(imagePath).isAbsolute) {
-          // 유효한 URL일 경우 Image.network 사용
-          imageWidgets.add(
-            Image.network(
-              imagePath,
-              height: 130,
-              width: double.infinity,
-              fit: BoxFit.cover,
+      if (Uri.parse(_path!).isAbsolute) {
+        // 유효한 URL일 경우 Image.network 사용
+        imageWidgets.add(
+          Image.network(
+            _path!,
+            height: 130,
+            width: double.infinity,
+            fit: BoxFit.cover,
 
-            ),
-          );
-          print(userImages![index]['path']);
-        } else {
-          // 잘못된 URL이면 에러 핸들링 또는 대체 이미지를 사용할 수 있습니다.
-          imageWidgets.add(
-            Placeholder(
-              fallbackHeight: 130,
-              fallbackWidth: double.infinity,
-            ),
-          );
-          print(userImages![index]['path']);
-        }
+          ),
+        );
+        print(_path);
+      } else {
+        // 잘못된 URL이면 에러 핸들링 또는 대체 이미지를 사용할 수 있습니다.
+        imageWidgets.add(
+          Placeholder(
+            fallbackHeight: 130,
+            fallbackWidth: double.infinity,
+          ),
+        );
       }
     }
 
     return imageWidgets;
   }
-
+  void userInfo() async{
+    DocumentSnapshot user = await fs.collection("userList").doc(widget.userId).get();
+    if(user.exists){
+      setState(() {
+        userData = user.data() as Map<String,dynamic>;
+      });
+      QuerySnapshot userImg = await fs.collection("userList").doc(widget.userId).collection("image").get();
+      if(userImg.docs.isNotEmpty){
+        setState(() {
+          imgData = userImg.docs.first.data() as Map<String,dynamic>;
+          imageProvider = NetworkImage(imgData?['PATH']);
+        });
+      }else{imageProvider = NetworkImage(imgData?['PATH']);}
+    }
+  }
   @override
   Widget build(BuildContext context) {
-
+    print('asdas$imgData');
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white, // AppBar 배경색을 흰색으로 설정
@@ -377,7 +391,7 @@ class _ProfileState extends State<Profile> {
           },
         ),
       ),
-        body: SingleChildScrollView(
+      body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -385,11 +399,9 @@ class _ProfileState extends State<Profile> {
             Row(
               children: [
                 CircleAvatar(
-                  radius: 50,
-                  backgroundImage: imagePaths.isNotEmpty
-                      ? AssetImage(
-                      imagePaths[0]) // Assuming you want to use the first image from the list
-                      : AssetImage('assets/기본.jpg'),
+                  radius: 40,
+                   backgroundImage:imageProvider, // 프로필 이미지
+                  child: Image.network(_path!),
                 ),
                 GestureDetector(
                   onTap: () {
