@@ -15,15 +15,123 @@ class BuskingList extends StatefulWidget{
 
 class _BuskingListState extends State<BuskingList> with SingleTickerProviderStateMixin{
   final TextEditingController _search = TextEditingController();
+  final FirebaseFirestore fs = FirebaseFirestore.instance;
   FocusNode _focusNode = FocusNode();
   late TextField sharedTextField;
   String selectRegions = "";
   String selectGenre = "";
-
-
+  List<Map<String,dynamic>> busKingList = [];
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _buskingList2();
+  }
+  Future<void> _buskingList2()async{
+    DateTime now = DateTime.now();
+    DateTime today = DateTime(now.year, now.month, now.day);
+    List<Map<String,dynamic>> buskingData =[];
+    QuerySnapshot buskingSnap = await fs.collection("busking")
+        .where('buskingStart', isGreaterThan: Timestamp.fromDate(today))
+        .orderBy("buskingStart")
+        .get();
+    if(buskingSnap.docs.isNotEmpty){
+      for (var element in buskingSnap.docs) {
+        String spotId = element.get('spotId');
+        String artistId = element.get('artistId');
+        QuerySnapshot artistSnap;
+        QuerySnapshot spotSnap;
+        if (selectGenre == "") {
+          artistSnap= await fs.collection("artist")
+              .where(FieldPath.documentId, isEqualTo: artistId).get();
+        } else {
+          artistSnap = await fs.collection("artist")
+              .where(FieldPath.documentId, isEqualTo: artistId)
+              .where("genre", isEqualTo: selectGenre)
+              .get();
+        }
+        if(artistSnap.docs.isNotEmpty){
+          if(artistSnap.docs.first.get("artistName").contains(_search.text)){
+            if(selectGenre == ""){
+              spotSnap = await fs.collection('busking_spot')
+                  .where(FieldPath.documentId, isEqualTo: spotId)
+                  .get();
+            }else{
+              spotSnap = await fs.collection('busking_spot')
+                  .where(FieldPath.documentId, isEqualTo: spotId)
+                  .where("regions", isEqualTo: selectRegions)
+                  .get();
+            }
+            if(spotSnap.docs.isNotEmpty){
+              QuerySnapshot imgSnap = await fs.collection("busking").doc(element.id).collection("image").get();
+              Map<String,dynamic> data = element.data() as Map<String,dynamic>;
+              Timestamp timeStamp = data['buskingStart'];
+              DateTime date = timeStamp.toDate();
+              String formattedDate = DateFormat('yyyy-MM-dd HH:mm').format(date);
+              data["path"] = imgSnap.docs.first.get("path");
+              data["buskingStart"] = formattedDate;
+              data["spotName"] = spotSnap.docs.first.get("spotName");
+              buskingData.add(data);
+            }
+          }
+        }
+      }
+    }
+    QuerySnapshot pastBuskingSnap = await fs.collection("busking")
+        .where('buskingStart', isLessThan: Timestamp.fromDate(today))
+        .orderBy("buskingStart")
+        .get();
+    if(pastBuskingSnap.docs.isNotEmpty){
+      for (var element in pastBuskingSnap.docs) {
+        String spotId = element.get('spotId');
+        String artistId = element.get('artistId');
+        QuerySnapshot artistSnap;
+        QuerySnapshot spotSnap;
+        if (selectGenre == "") {
+          artistSnap= await fs.collection("artist")
+              .where(FieldPath.documentId, isEqualTo: artistId).get();
+        } else {
+          artistSnap = await fs.collection("artist")
+              .where(FieldPath.documentId, isEqualTo: artistId)
+              .where("genre", isEqualTo: selectGenre)
+              .get();
+        }
+        if(artistSnap.docs.isNotEmpty){
+          if(artistSnap.docs.first.get("artistName").contains(_search.text)){
+            if(selectGenre == ""){
+              spotSnap = await fs.collection('busking_spot')
+                  .where(FieldPath.documentId, isEqualTo: spotId)
+                  .get();
+            }else{
+              spotSnap = await fs.collection('busking_spot')
+                  .where(FieldPath.documentId, isEqualTo: spotId)
+                  .where("regions", isEqualTo: selectRegions)
+                  .get();
+            }
+            if(spotSnap.docs.isNotEmpty){
+              QuerySnapshot imgSnap = await fs.collection("busking").doc(element.id).collection("image").get();
+              Map<String,dynamic> data = element.data() as Map<String,dynamic>;
+              Timestamp timeStamp = data['buskingStart'];
+              DateTime date = timeStamp.toDate();
+              String formattedDate = DateFormat('yyyy-MM-dd HH:mm').format(date);
+              data["path"] = imgSnap.docs.first.get("path");
+              data["buskingStart"] = formattedDate;
+              data["spotName"] = spotSnap.docs.first.get("spotName");
+              buskingData.add(data);
+            }
+          }
+        }
+      }
+    }
+    setState(() {
+      busKingList = buskingData;
+    });
+  }
   Widget _buskingList() {
+    DateTime now = DateTime.now();
+    DateTime today = DateTime(now.year, now.month, now.day);
     return StreamBuilder(
-      stream: FirebaseFirestore.instance.collection("busking").orderBy("buskingStart").snapshots(),
+      stream: FirebaseFirestore.instance.collection("busking").where('buskingStart', isGreaterThan: Timestamp.fromDate(today)).orderBy("buskingStart").snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
         if (!snap.hasData) {
           return Container();
@@ -117,7 +225,7 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
                                   DateTime date = timeStamp.toDate();
                                   String formattedDate = DateFormat('yyyy-MM-dd HH:mm').format(date);
                                   return Padding(
-                                    padding: const EdgeInsets.all(10.0),
+                                    padding: const EdgeInsets.all(0),
                                     child: ListTile(
                                       title: Text('${data['title']}  '),
                                       subtitle: Column(
@@ -128,7 +236,10 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
                                         ],
                                       ),
                                       /*leading: Image.asset('assets/기본.jpg'),*/
-                                      leading:DateTime.now().isBefore(date) ? Stack(
+                                      leading:DateTime.now().isBefore(date) ? Container(
+                                        width: 100,
+                                          child: Image.network(firstImage['path'],fit: BoxFit.fill,)
+                                      ):Stack(
                                         children: [
                                           Container(
                                               width: 100,
@@ -136,13 +247,14 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
                                           ),
                                           Container(
                                             width: 100,
-                                            color: Color.fromRGBO(0, 0, 0, 0.3),
-                                          )
+                                            height: 60,
+                                            color: Color.fromRGBO(0, 0, 0, 0.5),
+                                            child: Center(child: Text("종료",style: TextStyle(
+                                                color: Colors.white,fontSize: 15,fontWeight: FontWeight.bold),)
+                                            ),
+                                          ),
                                         ],
-                                      ) :Container(
-                                        width: 100,
-                                          child: Image.network(firstImage['path'],fit: BoxFit.fill,)
-                                      ),
+                                      ) ,
                                       onTap: () {
                                         Navigator.push(context,
                                             MaterialPageRoute(
@@ -180,10 +292,173 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
       },
     );
   }
+  Widget _lessThenbuskingList() {
+    DateTime now = DateTime.now();
+    DateTime today = DateTime(now.year, now.month, now.day);
+    return StreamBuilder(
+      stream: FirebaseFirestore.instance.collection("busking").where('buskingStart', isLessThan: Timestamp.fromDate(today)).orderBy("buskingStart").snapshots(),
+      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
+        if (!snap.hasData) {
+          return Container();
+        }
+        return Expanded(
+          child: ListView.builder(
+            itemCount: snap.data!.docs.length,
+            itemBuilder: (context, index) {
+              DocumentSnapshot doc = snap.data!.docs[index];
+              Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+              String spotId = data['spotId'];
+              String artistId = data['artistId'];
 
+              Future<QuerySnapshot> getGenreData() async {
+                if (selectGenre == "") {
+                  return FirebaseFirestore.instance.collection("artist")
+                      .where(FieldPath.documentId, isEqualTo: artistId).get();
+                } else {
+                  return FirebaseFirestore.instance.collection("artist")
+                      .where(FieldPath.documentId, isEqualTo: artistId)
+                      .where("genre", isEqualTo: selectGenre)
+                      .get();
+                }
+              }
+
+              return FutureBuilder(
+                future: getGenreData(),
+                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> artistSnapshot) {
+                  if (!artistSnapshot.hasData) {
+                    return Container();
+                  }
+                  if(artistSnapshot.connectionState == ConnectionState.waiting){
+                    return Container();
+                  }
+                  if(artistSnapshot.hasError){
+                    return ListTile(
+                      title: Text('Error'),
+                      subtitle: Text('Error'),
+                    );
+                  }
+                  if(artistSnapshot.hasData && artistSnapshot.data!.docs.isNotEmpty) {
+                    QueryDocumentSnapshot artistDoc = artistSnapshot.data!.docs.first;
+                    Map<String, dynamic> artistData = artistDoc.data() as Map<String,dynamic>;
+                    if(artistData['artistName'].contains(_search.text)){
+
+                      Future<QuerySnapshot> getArtistData() async {
+                        if (selectRegions == "") {
+                          return FirebaseFirestore.instance.collection('busking_spot')
+                              .where(FieldPath.documentId, isEqualTo: spotId)
+                              .get();
+                        } else {
+                          return FirebaseFirestore.instance.collection('busking_spot')
+                              .where(FieldPath.documentId, isEqualTo: spotId)
+                              .where("regions", isEqualTo: selectRegions)
+                              .get();
+                        }
+                      }
+                      return FutureBuilder(
+                        future: getArtistData(),
+                        builder: (BuildContext context,
+                            AsyncSnapshot<QuerySnapshot> spotSnapshot) {
+                          if (spotSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return Container(color:Colors.white,);
+                          }
+                          if (spotSnapshot.hasError) {
+                            return ListTile(
+                              title: Text('Error'),
+                              subtitle: Text('Error'),
+                            );
+                          }
+                          if (spotSnapshot.hasData&& spotSnapshot.data!.docs.isNotEmpty) {
+                            QueryDocumentSnapshot spotDocument = spotSnapshot.data!.docs.first;
+                            Map<String, dynamic> spotData = spotDocument.data() as Map<String, dynamic>;
+
+                            return FutureBuilder(
+                              future: FirebaseFirestore.instance.collection('busking').doc(doc.id).collection('image').get(),
+                              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> imageSnapshot) {
+                                if (imageSnapshot.connectionState == ConnectionState.waiting) {
+                                  return Container();
+                                }
+                                if (imageSnapshot.hasError) {
+                                  return ListTile(
+                                    title: Text('Error'),
+                                    subtitle: Text('Error'),
+                                  );
+                                }
+                                if (imageSnapshot.hasData) {
+                                  var firstImage = imageSnapshot.data!.docs.first ;
+                                  Timestamp timeStamp = data['buskingStart'];
+                                  DateTime date = timeStamp.toDate();
+                                  String formattedDate = DateFormat('yyyy-MM-dd HH:mm').format(date);
+                                  return Padding(
+                                    padding: const EdgeInsets.all(0),
+                                    child: ListTile(
+                                      title: Text('${data['title']}  '),
+                                      subtitle: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text('일시 : $formattedDate'),
+                                          Text('장소: ${spotData['spotName']}')
+                                        ],
+                                      ),
+                                      /*leading: Image.asset('assets/기본.jpg'),*/
+                                      leading:DateTime.now().isBefore(date) ? Container(
+                                          width: 100,
+                                          child: Image.network(firstImage['path'],fit: BoxFit.fill,)
+                                      ):Stack(
+                                        children: [
+                                          Container(
+                                              width: 100,
+                                              child: Image.network(firstImage['path'],fit: BoxFit.fill,)
+                                          ),
+                                          Container(
+                                            width: 100,
+                                            height: 60,
+                                            color: Color.fromRGBO(0, 0, 0, 0.5),
+                                            child: Center(child: Text("종료",style: TextStyle(
+                                                color: Colors.white,fontSize: 15,fontWeight: FontWeight.bold),)
+                                            ),
+                                          ),
+                                        ],
+                                      ) ,
+                                      onTap: () {
+                                        Navigator.push(context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>ConcertDetails(document: doc, spotName : spotData['spotName']),));
+                                      },
+                                    ),
+                                  );
+                                } else {
+                                  return ListTile(
+                                    title: Text('${data['artistId']}'),
+                                    subtitle: Column(
+                                      children: [
+                                        Text(artistData['artistName']),
+                                        Text('일시 : ${data['buskingStart']}'),
+                                        Text('장소: ${spotData['spotName']}')
+                                      ],
+                                    ),
+                                  );
+                                }
+                              },
+                            );
+                          } else {
+                            return Container();
+                          }
+                        },
+                      );
+                    }
+                  }
+                  return Container();
+                },
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
 
   final List<String> _regions = ['서울', '부산', '인천', '강원', '경기', '경남', '경북', '광주', '대구', '대전', '울산', '전남', '전북', '제주', '충남', '충북'];
-
   Widget regiosWidget(){
     return Column(
         children: [
@@ -211,7 +486,8 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
             ),
           ),
           sharedTextField,
-          _buskingList()
+          _buskingList(),
+          _lessThenbuskingList()
         ]
     );
   }
@@ -248,13 +524,15 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
             ),
           ),
           sharedTextField,
-          _buskingList()
+          _buskingList(),
+          _lessThenbuskingList()
         ]
     );
   }
-
   @override
   Widget build(BuildContext context) {
+    print(busKingList.length);
+    print(busKingList);
     sharedTextField = TextField(
       controller: _search,
       focusNode: _focusNode,
@@ -367,7 +645,8 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
                   padding: const EdgeInsets.all(8.0),
                   child: sharedTextField,
                 ),
-                _buskingList()
+                _buskingList(),
+                _lessThenbuskingList()
               ],
             ),
             regiosWidget(),
