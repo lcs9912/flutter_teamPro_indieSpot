@@ -5,6 +5,7 @@ import 'package:indie_spot/artistInfo.dart';
 import 'baseBar.dart';
 import 'userModel.dart';
 import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 
 class RadioItem {
   final String label;
@@ -160,7 +161,7 @@ class _ArtistListState extends State<ArtistList> {
                                       } else if (snapshot.hasError) {
                                         return Text('Error: ${snapshot.error}');
                                       } else {
-                                        return snapshot.data;
+                                        return snapshot.data ?? Container();
                                       }
                                     },
                                   ),
@@ -172,14 +173,11 @@ class _ArtistListState extends State<ArtistList> {
                           isThreeLine: true,
                           trailing: Icon(Icons.chevron_right),
                           onTap: () {
-                            print('아티스트 아이디${doc.id}');
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    ArtistInfo(doc.id),
-                              ),
-                            );
+                            Get.to(
+                                ArtistInfo(doc.id), //이동하려는 페이지
+                                preventDuplicates: true, //중복 페이지 이동 방지
+                                transition: Transition.noTransition //이동애니메이션off
+                            )?.then((value) => setState(() {}));
                           },
                         );
                       } else {
