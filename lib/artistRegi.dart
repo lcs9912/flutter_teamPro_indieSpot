@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:indie_spot/baseBar.dart';
 import 'package:indie_spot/lsjMain.dart';
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -250,7 +251,7 @@ class _ArtistRegiState extends State<ArtistRegi> {
           style: ButtonStyle(
             backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
               if (_genre == '음악') {
-                return Color(0xFF392F31); // 선택된 경우의 색상
+                return Color(0xFF233067); // 선택된 경우의 색상
               }
               return Colors.white; // 선택되지 않은 경우의 색상
             }),
@@ -273,7 +274,7 @@ class _ArtistRegiState extends State<ArtistRegi> {
           style: ButtonStyle(
             backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
               if (_genre == '댄스') {
-                return Color(0xFF392F31);
+                return Color(0xFF233067);
               }
               return Colors.white;
             }),
@@ -296,7 +297,7 @@ class _ArtistRegiState extends State<ArtistRegi> {
           style: ButtonStyle(
             backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
               if (_genre == '퍼포먼스') {
-                return Color(0xFF392F31);
+                return Color(0xFF233067);
               }
               return Colors.white;
             }),
@@ -320,7 +321,7 @@ class _ArtistRegiState extends State<ArtistRegi> {
             backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
               if (_genre == '마술') {
                 selfCon = false;
-                return Color(0xFF392F31);
+                return Color(0xFF233067);
               }
               return Colors.white;
             }),
@@ -402,16 +403,41 @@ class _ArtistRegiState extends State<ArtistRegi> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          leading: Builder(
+            builder: (context) {
+              return IconButton(
+                color: Colors.white,
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                icon: Icon(Icons.arrow_back),
+              );
+            },
+          ),
+          backgroundColor: Color(0xFF233067),
           title: Text(
             '아티스트 등록',
             style: TextStyle(
-              color: Colors.black,
+              color: Colors.white,
               fontSize: 20,
             ),
           ),
-          iconTheme: IconThemeData(color: Colors.black),
+          iconTheme: IconThemeData(color: Colors.white),
+          actions: [
+            Builder(
+              builder: (context) {
+                return IconButton(
+                  color: Colors.white,
+                  onPressed: () {
+                    Scaffold.of(context).openDrawer();
+                  },
+                  icon: Icon(Icons.menu),
+                );
+              },
+            )
+          ],
         ),
+        drawer: MyDrawer(),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
         child : Column(
@@ -439,7 +465,7 @@ class _ArtistRegiState extends State<ArtistRegi> {
                 SizedBox(width: 10),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
+                    backgroundColor: Color(0xFF233067),
                   ),
                   onPressed: _pickImage,
                   child: Text('이미지 선택'),
@@ -478,7 +504,7 @@ class _ArtistRegiState extends State<ArtistRegi> {
                 else if(!_isNameChecked)
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black
+                    backgroundColor: Color(0xFF233067),
                   ),
                     onPressed: _checkArtistName,
                     child: Text(
@@ -568,7 +594,7 @@ class _ArtistRegiState extends State<ArtistRegi> {
                 child: ElevatedButton(
                   onPressed: _register,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF392F31), // 392F31 색상
+                    backgroundColor: Color(0xFF233067), // 392F31 색상
                     minimumSize: Size(double.infinity, 48), // Set button width and height
                   ),
                   child: Text(

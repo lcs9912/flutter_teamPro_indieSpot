@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:indie_spot/baseBar.dart';
 import 'package:indie_spot/login.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
@@ -21,63 +22,91 @@ class _PwdEditState extends State<PwdEdit> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        leading: Builder(
+          builder: (context) {
+            return IconButton(
+              color: Colors.white,
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              icon: Icon(Icons.arrow_back),
+            );
+          },
+        ),
+        backgroundColor: Color(0xFF233067),
         title: Text(
             "비밀번호 변경",
-          style: TextStyle(color: Colors.black),
+          style: TextStyle(color: Colors.white),
         ),
-        iconTheme: IconThemeData(color: Colors.black),
+        iconTheme: IconThemeData(color: Colors.white),
         elevation: 1,
+        actions: [
+          Builder(
+            builder: (context) {
+              return IconButton(
+                color: Colors.white,
+                onPressed: () {
+                  Scaffold.of(context).openDrawer();
+                },
+                icon: Icon(Icons.menu),
+              );
+            },
+          )
+        ],
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 60),
-          child: Column(
-            children: [
-              Text(
-                "설정한 이메일/전화번호로 찾기",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.left,
-              ),
-              SizedBox(height: 30),
-              Container(
-                child: TextField(
-                  controller: _email,
-                  decoration: InputDecoration(labelText: '이메일'),
+      drawer: MyDrawer(),
+      body: SingleChildScrollView(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 60),
+            child: Column(
+              children: [
+                Text(
+                  "설정한 이메일/전화번호로 찾기",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  textAlign: TextAlign.left,
                 ),
-                width: 300,
-              ),
-              SizedBox(height: 20),
-              Container(
-                child: TextField(
-                  controller: _phone,
-                  decoration: InputDecoration(labelText: '전화번호'),
+                SizedBox(height: 30),
+                Container(
+                  child: TextField(
+                    controller: _email,
+                    decoration: InputDecoration(labelText: '이메일'),
+                  ),
+                  width: 300,
                 ),
-                width: 300,
-              ),
-              SizedBox(height: 50),
-              ElevatedButton(
-                  onPressed: _pwdEdit,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromRGBO(240, 240, 240, 1),
-                    side: BorderSide(color: Color.fromRGBO(240, 240, 240, 1)),
-                    padding: EdgeInsets.symmetric(horizontal: 90, vertical: 18),
-                    elevation: 0
+                SizedBox(height: 20),
+                Container(
+                  child: TextField(
+                    controller: _phone,
+                    decoration: InputDecoration(labelText: '전화번호'),
                   ),
-                  child: Text(
-                      "비밀번호 변경",
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 4
-                    )
-                  ),
-              )
-            ],
-          ),
-        )
+                  width: 300,
+                ),
+                SizedBox(height: 50),
+                ElevatedButton(
+                    onPressed: _pwdEdit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF233067),
+                      side: BorderSide(color: Color.fromRGBO(240, 240, 240, 1)),
+                      padding: EdgeInsets.symmetric(horizontal: 90, vertical: 18),
+                      elevation: 0
+                    ),
+                    child: Text(
+                        "비밀번호 변경",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 4
+                      )
+                    ),
+                )
+              ],
+            ),
+          )
+        ),
       ),
+      bottomNavigationBar: MyBottomBar(),
     );
   }
 

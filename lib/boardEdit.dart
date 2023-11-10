@@ -121,12 +121,18 @@ class _BoardEditState extends State<BoardEdit> {
 
       //서브콜렉션 이미지 수정
       if (imageUrl != null) {
-        await boardRef.collection('image').doc().update(
-            {
-              'DELETE_YN': 'N',
-              'PATH': imageUrl,
-            }
-        );
+        QuerySnapshot imageDocsSnapshot = await boardRef.collection('image').get();
+
+        if (imageDocsSnapshot.docs.isNotEmpty) {
+          String firstImageDocId = imageDocsSnapshot.docs.first.id;
+
+          await boardRef.collection('image').doc(firstImageDocId).update(
+              {
+                'DELETE_YN': 'N',
+                'PATH': imageUrl,
+              }
+          );
+        }
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
