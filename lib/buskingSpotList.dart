@@ -4,7 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:indie_spot/addBuskingSpot.dart';
 import 'package:indie_spot/baseBar.dart';
 import 'package:indie_spot/spotDetailed.dart';
-
+import 'package:get/get.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class BuskingZoneList extends StatefulWidget {
   @override
@@ -103,7 +104,12 @@ class _BuskingZoneListState extends State<BuskingZoneList> {
                                     leading: Container(
                                       height: double.infinity,
                                       width: 100,
-                                      child: Image.network(images[0].data()['path'], fit: BoxFit.cover,),
+                                      child: CachedNetworkImage(
+                                        imageUrl: images[0].data()['path'], // 이미지 URL
+                                        fit: BoxFit.cover,
+                                        placeholder: (context, url) => Center(child: CircularProgressIndicator()), // 이미지 로딩 중에 표시될 위젯
+                                        errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
+                                      ),
                                     ),
                                     trailing: Icon(Icons.chevron_right),
                                     onTap: () {
@@ -190,7 +196,10 @@ class _BuskingZoneListState extends State<BuskingZoneList> {
           floatingActionButton: FloatingActionButton(
             backgroundColor: Color(0xFF233067),
             onPressed: (){
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddBuskingSpot(),)).then((value) => setState(() {}));
+              Get.to(
+                AddBuskingSpot(),
+                transition: Transition.noTransition
+              )!.then((value) => setState(() {}));
             },
             child: Icon(Icons.edit),
           ),

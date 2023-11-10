@@ -200,6 +200,7 @@ class _LoginPageState extends State<LoginPage> {
         } else {
           final userId = userDocs.docs[0].id;
           String? artistId;
+          String? status;
           CollectionReference artistCollectionRef = _fs.collection('artist');
 
           QuerySnapshot artistDocs = await artistCollectionRef.get();
@@ -222,6 +223,7 @@ class _LoginPageState extends State<LoginPage> {
 
             if (teamMembersSnapshots.any((snapshot) => snapshot.docs.isNotEmpty)) {
               artistId = artistDoc.id;
+              status = (artistDoc.data() as Map<String, dynamic>)['status'] as String? ?? 'N';
               break; // 찾았으면 반복문 종료
             }
           }
@@ -230,7 +232,7 @@ class _LoginPageState extends State<LoginPage> {
             if (artistId != null) {
               // 아티스트 로그인
               Provider.of<UserModel>(context, listen: false)
-                  .loginArtist(userId, artistId);
+                  .loginArtist(userId, artistId, status!);
               print('아티스트');
             } else {
               // 일반 사용자 로그인
