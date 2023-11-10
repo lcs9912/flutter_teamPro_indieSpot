@@ -348,6 +348,7 @@ class _ArtistListState extends State<ArtistList> {
             ),
           ],
         ),
+        bottomNavigationBar: MyBottomBar(),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/baseBar.dart';
 import 'package:indie_spot/lsjMain.dart';
+import 'artistInfo.dart';
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
@@ -213,7 +214,7 @@ class _ArtistRegiState extends State<ArtistRegi> {
       //등록 완료후 페이지 이동
       Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => MainPage())
+          MaterialPageRoute(builder: (context) => ArtistInfo(artistID))
       );
 
 

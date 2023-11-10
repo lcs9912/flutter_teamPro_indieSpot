@@ -26,9 +26,6 @@ import 'lcsTest.dart';
 import 'dart:async';
 import 'package:get/get.dart';
 
-TextEditingController _nicknameController = TextEditingController();
-TextEditingController _introductionController = TextEditingController();
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -70,7 +67,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String? _userId; // 유저 세션
-
+  String? _artistId;
+  String? _leader;
   FirebaseFirestore fs = FirebaseFirestore.instance;
 
   bool loginFlg = false;
@@ -83,15 +81,23 @@ class _MyAppState extends State<MyApp> {
     // TODO: implement initState
     super.initState();
     final userModel = Provider.of<UserModel>(context, listen: false);
-    if (!userModel.isLogin) {
-
-    } else {
+    if (userModel.isLogin) {
       _userId = userModel.userId;
+      print('일반유저 => $_userId');
+    }
+    if (userModel.isArtist) {
+      _artistId = userModel.artistId;
+      print('아티스트유저 => $_artistId');
+    }
+    if (userModel.isLeader) {
+      _leader = userModel.artistId;
+      print('리더유저 => $_leader');
     }
   }
 
 
-  
+
+
   Widget _iconAni() {
     return Padding(
       padding: const EdgeInsets.all(15.0),
@@ -119,23 +125,31 @@ class _MyAppState extends State<MyApp> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Column(
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        if(_userId != null){
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => ArtistRegi()),
-                          );
-                        } else {
-                          _alertDialogWidget();
-                        }
-                      },
-                      icon: Icon(Icons.person),
-                    ),
-                    Text("아티스트"),
-                  ],
+                Container(
+                  padding: const EdgeInsets.only(top: 8.0, bottom: 8,left: 5,right: 5),
+                  decoration: BoxDecoration(
+                    border: Border.all(width: 1,color: Colors.black),
+                    borderRadius: BorderRadius.circular(16.0),
+                    color: Color(0xFFffffff), // 배경 색상
+                  ),
+                  child: Column(
+                    children: [
+                      InkWell(
+                        onTap: (){
+                          if(_userId != null){
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => ArtistRegi()),
+                            );
+                          } else {
+                            _alertDialogWidget();
+                          }
+                        },
+                        child: Image.asset('assets/artistRegi.png',width: 40,height: 40,),
+                      ),
+                      Text("아티스트등록",style: TextStyle(fontSize: 12),),
+                    ],
+                  ),
                 ),
                 Column(
                   children: [
@@ -278,7 +292,7 @@ class _MyAppState extends State<MyApp> {
                         },
                         icon: Icon(Icons.arrow_drop_down)
                     ),
-                    Text("여기다"),
+                    Text("커뮤니티"),
                   ],
                 ),
                 Column(
@@ -292,61 +306,21 @@ class _MyAppState extends State<MyApp> {
                         },
                         icon: Icon(Icons.smart_display)
                     ),
-                    Text("애니메이션"),
-                  ],
-                ),
-                Column(
-                  children: [
-                    IconButton(
-                        onPressed: (){},
-                        icon: Icon(Icons.swap_vert)
-                    ),
-                    Text("효과"),
-                  ],
-                ),
-                Column(
-                  children: [
-                    IconButton(
-                        onPressed: (){},
-                        icon: Icon(Icons.dangerous)
-                    ),
-                    Text("줘야하는데.."),
-                  ],
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Column(
-                  children: [
-                    IconButton(
-                        onPressed: (){},
-                        icon: Icon(Icons.question_mark)
-                    ),
-                    Text("어케"),
+                    Text("영상목록"),
                   ],
                 ),
                 Column(
                   children: [
                     IconButton(
                         onPressed: (){
-                          Navigator.of(context).push(
-                              MaterialPageRoute(builder: (context) => LcsTest())
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => BuskingReservation()) // 상세페이지로 넘어갈것
                           );
                         },
-                        icon: Icon(Icons.send)
+                        icon: Icon(Icons.swap_vert)
                     ),
-                    Text("주는지"),
-                  ],
-                ),
-                Column(
-                  children: [
-                    IconButton(
-                        onPressed: (){},
-                        icon: Icon(Icons.psychology_alt)
-                    ),
-                    Text("모르겠다"),
+                    Text("공연등록"),
                   ],
                 ),
                 Column(
@@ -355,9 +329,9 @@ class _MyAppState extends State<MyApp> {
                         onPressed: (){
                           Navigator.of(context).push(MaterialPageRoute(builder: (context) => PointDetailed(),));
                         },
-                        icon: Icon(Icons.air)
+                        icon: Icon(Icons.dangerous)
                     ),
-                    Text("에혀.."),
+                    Text("보유 포인트"),
                   ],
                 ),
               ],
@@ -398,6 +372,53 @@ class _MyAppState extends State<MyApp> {
         });
   }
 
+
+  //best artist
+  Future<List<Widget>> _bestArtist() async {
+    List<Future<Widget>> artistWidgetsFutures = [];
+    QuerySnapshot artistSnapshot = await fs.collection('artist').orderBy('followerCnt', descending: true).limit(10).get();
+
+    artistWidgetsFutures = artistSnapshot.docs.map((doc) async {
+      String artistName = doc['artistName'];
+      QuerySnapshot imageSnapshot = await doc.reference.collection('image').get();
+
+      List<String> artistImages = imageSnapshot.docs.map((imgDoc) => imgDoc['path'] as String).toList();
+
+      return _bestArtistWidget(artistName, artistImages);
+    }).toList();
+
+    return Future.wait(artistWidgetsFutures);
+  }
+
+  Future<Widget> _bestArtistWidget(String artistName, List<String> artistImages) async {
+    // 원하는 내용으로 Widget을 생성
+    return Container(
+      margin: EdgeInsets.only(right: 15),
+      child: GestureDetector(
+        onTap: () {
+          // 특정 동작 수행
+        },
+        child: Column(
+          children: [
+            ClipOval(
+              child: artistImages.isNotEmpty
+                  ? Image.network(
+                artistImages[0],
+                width: 130,
+                height: 130,
+                fit: BoxFit.cover,
+              ) : ClipOval(child: Container(width: 100, height: 100, color: Colors.grey),),
+            ),
+            SizedBox(height: 10,),
+            Text(artistName),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+
   // 버스킹일정 버스킹 일정
   Future<List<Widget>> _busKinList() async {
 
@@ -408,7 +429,7 @@ class _MyAppState extends State<MyApp> {
         .where('buskingStart', isGreaterThan: Timestamp.fromDate(selectedDay))
         .get();
     // Firestore 쿼리를 생성하여 "busking" 컬렉션에서 현재 날짜를 지난 문서를 삭제합니다.
-    DateTime threeMonthsAgo = selectedDay.subtract(Duration(days: 3 * 30));
+    DateTime threeMonthsAgo = selectedDay1.subtract(Duration(days: 3 * 30));
     fs.collection('busking').where('buskingStart', isLessThan: Timestamp.fromDate(threeMonthsAgo)).get().then((querySnapshot) {
       querySnapshot.docs.forEach((doc) async {
         // "image" 서브컬렉션 삭제
@@ -502,77 +523,47 @@ class _MyAppState extends State<MyApp> {
           );
         },
         child: Container(
+          width: 200,
           margin: EdgeInsets.only(right: 30),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16.0),
             color: Color(0xFFffffff), // 배경 색상
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.5),
-                spreadRadius: 3,
-                blurRadius: 7,
-                offset: Offset(0, 3), // 그림자 효과
-              ),
-            ],
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(16.0),
-                  bottomLeft: Radius.circular(16.0),
-                ),
+                borderRadius: BorderRadius.all(Radius.circular(10)),
                 child: CachedNetworkImage(
                   imageUrl: busImg, // 이미지 URL
                   width: 200,
                   height: 200,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.fill,
                   placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
                   errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
                 ),
               ),
-              SizedBox(width: 20),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  SizedBox(height: 10,),
                   Text(
                     buskingDoc['title'],
                     style: TextStyle(
-                      fontSize: 18, // 제목 폰트 크기
+                      fontSize: 15, // 제목 폰트 크기
                       fontWeight: FontWeight.bold, // 볼드체
                     ),
+                    overflow: TextOverflow.ellipsis, // 텍스트가 너무 길 경우 줄임표(...)로 표시
                   ),
                   Text(
                     buskingDoc['description'],
                     style: TextStyle(
                       fontSize: 14, // 설명 폰트 크기
                     ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.favorite, size: 15),
-                          Text(
-                            busLikeCnt.toString(),
-                            style: TextStyle(
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Text(
-                        '$reviewCnt 리뷰',
-                        style: TextStyle(
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
+                    overflow: TextOverflow.ellipsis, // 텍스트가 너무 길 경우 줄임표(...)로 표시
                   ),
                 ],
               ),
-              SizedBox(width: 20),
             ],
           ),
         ),
@@ -627,138 +618,35 @@ class _MyAppState extends State<MyApp> {
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Container(
-                          margin: EdgeInsets.all(20),
+                          margin: EdgeInsets.only(left: 20,right: 20,bottom: 20),
                           child: Row(
                             children: snapshot.data ?? [Container()],
                           ),
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(15.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Stack(
-                              children: [
-                                ElevatedButton(
-                                    onPressed: (){
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (_) => BuskingReservation()) // 상세페이지로 넘어갈것
-                                      );
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.transparent, // 배경색을 투명으로 설정
-                                      padding: EdgeInsets.zero,  // 이거 쓰면 ElevatedButton 의 파란색 배경 사라짐
-                                    ),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(10),
-                                      child: Image.asset(
-                                        'busking/bus_sample6.jpg',
-                                        fit: BoxFit.cover,
-                                        width: screenWidth * 0.45,
-                                        height: 90,
-                                      ),
-                                    )
-                                ),
-                                Positioned(
-                                  left: 5,
-                                  bottom: 5,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      TextButton(
-                                        child: Text(
-                                          "공연등록", style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white
-                                        ),
-                                       ),
-                                        onPressed: (){
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute(builder: (_) => BuskingReservation()) // 상세페이지로 넘어갈것
-                                          );
-                                        },
-                                      ),
-                                      Text(
-                                        "나의 재능을 홍보해보세요",
-                                        style: TextStyle(color: Colors.white),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Stack(
-                              children: [
-                                ElevatedButton(
-                                    onPressed: (){},
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.transparent, // 배경색을 투명으로 설정
-                                      padding: EdgeInsets.zero,  // 이거 쓰면 ElevatedButton 의 파란색 배경 사라짐
-                                    ),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(10), // 모서리 둥글게
-                                      child: Image.asset(
-                                        'busking/bus_sample3.jpg',
-                                        fit: BoxFit.cover,
-                                        width: screenWidth * 0.45,
-                                        height: 90,
-                                      ),
-                                    )
-                                ),
-                                Positioned(
-                                  left: 5,
-                                  bottom: 5,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      TextButton(
-                                        onPressed: () {  },
-                                        child: Text(
-                                          "후원하기", style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white
-                                        ), ),
-                                      ),
-                                      Text(
-                                        "아티스트 응원하기",
-                                        style: TextStyle(color: Colors.white),
-                                      )
-                                    ],
-                                  ),
-                                )
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      Text("best artist"), // 인기많은 아티스트
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          children: [
-                            Column(
-                              children: [
-                                ClipOval(
-                                  child: Image.asset(
-                                    'assets/기본.jpg',
-                                    width: 100, // 원 모양 이미지의 너비
-                                    height: 100, // 원 모양 이미지의 높이
-                                    fit: BoxFit.cover, // 이미지를 화면에 맞게 조절
-                                  ),
-                                ),
-                                Text("루시")
-                              ],
-                            ),
-                            
-                          ],
-                        ),
-                      ),
                       _iconAni(),
+                      Text("best artist",style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),), // 인기많은 아티스트
+
+                      Container(
+                        margin: EdgeInsets.all(10),
+                        child: FutureBuilder(
+                          future: _bestArtist(),
+                          builder : (BuildContext context, AsyncSnapshot<dynamic> bestArtistsnapshot) {
+                            if(bestArtistsnapshot.connectionState == ConnectionState.waiting){
+                              return Container();
+                            } else if (bestArtistsnapshot.hasError) {
+                              return Text('Error: ${bestArtistsnapshot.error}');
+                            } else {
+                              return SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: bestArtistsnapshot.data ?? [Container()],
+                                ),
+                              );
+                            }
+                          }
+                        ),
+                      ),
                       Container(
                         child: FutureBuilder(
                           future: _commercialListWidget(),
@@ -780,10 +668,11 @@ class _MyAppState extends State<MyApp> {
                                         Text("상업공간 일정",style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
                                         TextButton(
                                             onPressed: (){
-                                              Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(builder: (_) => CommercialList()) // 상세페이지로 넘어갈것
-                                              );
+                                              _bestArtist();
+                                              // Navigator.push(
+                                              //     context,
+                                              //     MaterialPageRoute(builder: (_) => CommercialList()) // 상세페이지로 넘어갈것
+                                              // );
                                             },
                                             child: Text("더보기",style: TextStyle(color: Colors.black),)
                                         )
@@ -844,7 +733,7 @@ class _MyAppState extends State<MyApp> {
 
       await Future.forEach(commerRentalQuerySnapshot.docs, (rentalDoc) async {
         final endTime = rentalDoc['endTime'].toDate();
-        DateTime threeMonthsAgo = selectedDay.subtract(const Duration(days: 3 * 30));
+        DateTime threeMonthsAgo = selectedDay1.subtract(const Duration(days: 3 * 30));
 
         if (endTime.isBefore(threeMonthsAgo)) {
           print('시간이 지나 삭제됨 => ${rentalDoc.id}');
