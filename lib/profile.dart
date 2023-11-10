@@ -375,15 +375,15 @@ class _ProfileState extends State<Profile> {
     print('asdas$imgData');
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white, // AppBar 배경색을 흰색으로 설정
+        backgroundColor: Color(0xFF233067), // AppBar 배경색을 흰색으로 설정
         title: Text(
           '프로필',
-          style: TextStyle(color: Colors.black), // 텍스트 색을 검은색으로 설정
+          style: TextStyle(color: Colors.white), // 텍스트 색을 검은색으로 설정
         ),
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: Colors.black, // 뒤로가기 아이콘 색을 검은색으로 설정
+            color: Colors.white, // 뒤로가기 아이콘 색을 검은색으로 설정
           ),
           onPressed: () {
             Navigator.pop(context); // 뒤로가기 기능 추가

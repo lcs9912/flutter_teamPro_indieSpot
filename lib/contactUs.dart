@@ -36,7 +36,7 @@ class _ContactUsState extends State<ContactUs> {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: Colors.black, // 뒤로가기 아이콘의 색상을 검정색으로 지정합니다.
+            color: Colors.white, // 뒤로가기 아이콘의 색상을 검정색으로 지정합니다.
           ),
           onPressed: () {
             Navigator.pop(context);
@@ -45,10 +45,10 @@ class _ContactUsState extends State<ContactUs> {
         title: Text(
           '문의하기',
           style: TextStyle(
-            color: Colors.black, // 텍스트 색상을 검정색으로 지정합니다.
+            color: Colors.white, // 텍스트 색상을 검정색으로 지정합니다.
           ),
         ),
-        backgroundColor: Colors.white, // 배경색을 흰색으로 지정합니다.
+        backgroundColor: Color(0xFF233067), // 배경색을 흰색으로 지정합니다.
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
