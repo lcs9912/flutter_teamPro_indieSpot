@@ -12,6 +12,12 @@ class BoardList extends StatefulWidget {
   @override
   State<BoardList> createState() => _BoardListState();
 }
+class RadioItem {
+  final String label;
+  bool isSelected;
+
+  RadioItem({required this.label, this.isSelected = false});
+}
 
 class _BoardListState extends State<BoardList> with SingleTickerProviderStateMixin{
   FirebaseFirestore fs = FirebaseFirestore.instance;
@@ -20,6 +26,13 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
   List<String> userId = [];
   late TextEditingController _searchController;
   bool _isSearch = false;
+  List<RadioItem> radioItems =[
+    RadioItem(label : "최신순", isSelected: true),
+    RadioItem(label : "조회순"),
+  ];
+
+  String? selectedRadio = "최신순";
+  dynamic _stream;
 
   @override
   void initState() {
@@ -82,13 +95,22 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
   }
 
   Widget _listboard() {
-
-    return StreamBuilder(
-      stream: fs.collection("posts")
+    if(selectedRadio == "최신순"){
+      _stream = fs.collection("posts")
           .doc("3QjunO69Eb2OroMNJKWU")
           .collection(subcollection)
           .orderBy("createDate", descending: true)
-          .snapshots(),
+          .snapshots();
+    }else if(selectedRadio == "조회순"){
+      _stream = fs.collection("posts")
+          .doc("3QjunO69Eb2OroMNJKWU")
+          .collection(subcollection)
+          .orderBy("cnt", descending: true)
+          .snapshots();
+    }
+
+    return StreamBuilder(
+      stream: _stream,
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
         if (snap.connectionState == ConnectionState.waiting || snap.hasError) {
           // 로딩 중이면 여기서 CircularProgressIndicator를 반환
@@ -311,24 +333,48 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
 
     return Scaffold(
       appBar: AppBar(
+        leading: Builder(
+          builder: (context) {
+            return IconButton(
+              color: Colors.white,
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              icon: Icon(Icons.arrow_back),
+            );
+          },
+        ),
         title: Text(
             "게시판",
           style: TextStyle(
-            color: Colors.black,
+            color: Color(0xFFFFFFFF),
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFF233067),
         elevation: 1.5,
-        iconTheme: IconThemeData(color: Colors.black),
+        iconTheme: IconThemeData(color: Colors.white),
         actions: [
           IconButton(
             icon: Icon(Icons.search),
             onPressed: (){
               _toggleSearch();
             },
+              color: Colors.white
+          ),
+          Builder(
+            builder: (context) {
+              return IconButton(
+                color: Colors.white,
+                onPressed: () {
+                  Scaffold.of(context).openDrawer();
+                },
+                icon: Icon(Icons.menu),
+              );
+            },
           )
         ],
       ),
+      drawer: MyDrawer(),
       body: Column(
           children: [
             TabBar(
@@ -340,6 +386,12 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
               ],
               labelColor: Colors.black,
               indicatorColor: Colors.black,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: radioItems
+                  .map((item) => customRadio(item.label, item.isSelected))
+                  .toList(),
             ),
             SizedBox(height: 2),
             _buildSearchBar(),
@@ -367,7 +419,7 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
               );
             }
           },
-          backgroundColor: Colors.black54,
+          backgroundColor: Color(0xFF233067),
           child: Text(
             '글쓰기',
             style: TextStyle(
@@ -454,6 +506,30 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
           ],
         );
       },
+    );
+  }
+
+  Widget customRadio(String label, bool isSelected) {
+    return OutlinedButton(
+      onPressed: () {
+        setState(() {
+          for (var item in radioItems) {
+            item.isSelected = item.label == label;
+          }
+          selectedRadio = label; // 정렬에 사용할 라디오버튼 선택값
+        });
+      },
+      style: ButtonStyle(
+        backgroundColor: MaterialStateProperty.all(
+            isSelected ? Color(0xFF233067) : Colors.white),
+        fixedSize: MaterialStateProperty.all(Size(100, 20)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: isSelected ? Colors.white : Colors.black,
+        ),
+      ),
     );
   }
 }

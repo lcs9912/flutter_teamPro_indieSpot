@@ -67,15 +67,26 @@ class _BoardViewState extends State<BoardView> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
+        leading: Builder(
+          builder: (context) {
+            return IconButton(
+              color: Colors.white,
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              icon: Icon(Icons.arrow_back),
+            );
+          },
+        ),
         title: Text('내용보기',
           style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Colors.black
+              color: Colors.white
           ),
         ),
-        backgroundColor: Colors.white,
-        iconTheme: IconThemeData(color: Colors.black),
+        backgroundColor: Color(0xFF233067),
+        iconTheme: IconThemeData(color: Colors.white),
         actions: [
           if (Provider.of<UserModel>(context, listen: false).userId == data['userId'])
             IconButton(
@@ -94,8 +105,20 @@ class _BoardViewState extends State<BoardView> {
                 onPressed: () => _showDeletePage(widget.document),
                 icon: Icon(Icons.delete)
             ),
+          Builder(
+            builder: (context) {
+              return IconButton(
+                color: Colors.white,
+                onPressed: () {
+                  Scaffold.of(context).openDrawer();
+                },
+                icon: Icon(Icons.menu),
+              );
+            },
+          )
         ],
       ),
+      drawer: MyDrawer(),
       body: ListView(
         shrinkWrap: true,
         children: [
@@ -294,7 +317,7 @@ class _BoardViewState extends State<BoardView> {
                 createdDate = createdDateTimestamp.toDate();
               }
               String formatDate = createdDate != null
-                  ? DateFormat('yyyy/MM/dd HH:mm').format(createdDate!)
+                  ? DateFormat('yyyy/MM/dd HH:mm').format(createdDate)
                   : 'Unknown Date';
 
               return Column(
@@ -369,33 +392,6 @@ class _BoardViewState extends State<BoardView> {
       ),
     );
   }
-
-
-
-  Widget _commentAdd(){
-    return  Container(
-      width: 380,
-      height: 50,
-      child: FloatingActionButton(
-        onPressed:  _addComment,
-        backgroundColor: Colors.black54,
-        child: Text(
-          "댓글 등록",
-          style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold
-          ),
-        ),
-        elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-    );
-  }
-
-
-
 
   Future<void> _showDeleteDialog(DocumentSnapshot doc) async {
     return showDialog<void>(
