@@ -816,7 +816,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  primary: Color(0xFF392F31), // 배경색을 392F31로 설정
+                                  primary: Color(0xFF233067), // 배경색을 392F31로 설정
                                 ),
                                 child: Text('댓글작성'),
                               ),

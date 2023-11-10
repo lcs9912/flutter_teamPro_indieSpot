@@ -478,7 +478,7 @@ class _ProfileState extends State<Profile> {
                         style: TextStyle(color: Colors.white),
                       ),
                       style: ElevatedButton.styleFrom(
-                        primary: Color(0xFF392F31),
+                        primary: Color(0xFF233067),
                       ),
                     ),
                   ),
@@ -496,7 +496,7 @@ class _ProfileState extends State<Profile> {
                 style: TextStyle(color: Colors.white),
               ),
               style: ElevatedButton.styleFrom(
-                primary: Color(0xFF392F31), // 버튼 배경색
+                primary: Color(0xFF233067), // 버튼 배경색
                 fixedSize: Size.fromWidth(500), // 가로로 꽉 차도록 설정
               ),
             ),

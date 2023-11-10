@@ -377,7 +377,7 @@ class _UserEditState extends State<UserEdit> {
                   onPressed: _changeProfileImage,
                   child: Text('프로필 이미지 변경'),
                   style: ElevatedButton.styleFrom(
-                    primary: Color(0xFF392F31),
+                    primary: Color(0xFF233067),
                   ),
                 ),
               ],
@@ -453,7 +453,7 @@ class _UserEditState extends State<UserEdit> {
               },
               child: Text('프로필 페이지로 이동'),
               style: ElevatedButton.styleFrom(
-                primary: Color(0xFF392F31),
+                primary: Color(0xFF233067),
               ),
             ),
 
@@ -485,7 +485,7 @@ class _UserEditState extends State<UserEdit> {
                   ),
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.symmetric(vertical: 16), // Adjust the vertical padding
-                    primary: Color(0xFF392F31), // Set the button color here
+                    primary: Color(0xFF233067), // Set the button color here
                   ),
                 ),
 
