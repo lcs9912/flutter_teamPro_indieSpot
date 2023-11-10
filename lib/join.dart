@@ -171,6 +171,28 @@ class _JoinState extends State<Join> {
       );
     }
   }
+  void _checkEmail() async {
+    // 닉네임이 비어있는지 확인
+    if (_email.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('이메일을 입력해주세요.')),
+      );
+      return;
+    }
+
+    // Firestore에서 중복 닉네임 체크
+    final checkNickname = await _fs.collection('userList')
+        .where('email', isEqualTo: _email.text).get();
+    if (checkNickname.docs.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('이미 사용 중인 이메일 입니다.')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('사용 가능한 닉네임입니다.')),
+      );
+    }
+  }
 
   void _showTermsAndConditionsDialog(BuildContext context) {
     showDialog(
@@ -339,9 +361,21 @@ class _JoinState extends State<Join> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "이메일",
-                style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold),
+              Row(
+                children: [
+                  Text(
+                    "이메일  ",
+                    style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold),
+                  ),
+                  ElevatedButton(
+                    onPressed: _checkEmail,
+
+                    style: ElevatedButton.styleFrom(
+                      primary: Color(0xFF392F31), // 색상 변경
+                    ),
+                    child: Text('중복 확인'),
+                  ),
+                ],
               ),
               SizedBox(height: 10),
               TextField(
