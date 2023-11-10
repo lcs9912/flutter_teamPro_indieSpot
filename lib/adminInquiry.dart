@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:indie_spot/baseBar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:get/get.dart';
 
 
 class AdminInquiry extends StatefulWidget {
@@ -27,7 +28,7 @@ class _AdminInquiryState extends State<AdminInquiry> {
                   Scaffold.of(context).openDrawer();
                 },
                 icon: Icon(Icons.menu),
-                color: Colors.black54,
+                color: Colors.white,
               );
             },
           ),
@@ -37,19 +38,19 @@ class _AdminInquiryState extends State<AdminInquiry> {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: Colors.black54,
+            color: Colors.white,
           ),
           onPressed: () {
             // 뒤로가기 버튼을 눌렀을 때 수행할 작업
-            Navigator.of(context).pop();
+            Get.back();
           },
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFF233067),
         centerTitle: true,
         title: Text(
           '문의 관리',
           style: TextStyle(
-            color: Colors.black,
+            color: Colors.white,
           ),
         ),
       ),
@@ -126,13 +127,13 @@ class _AdminInquiryState extends State<AdminInquiry> {
   Future<List<Widget>?> _adminInquiryDetails() async {
     var userListQuerySnapshot = await fs.collection('userList').get();
 
-    // Create a list to store the results of each user's inquiries
     List<Widget> inquiryItems = [];
 
-    for (var userDetailDocument in userListQuerySnapshot.docs) {
+    await Future.wait(userListQuerySnapshot.docs.map((userDetailDocument) async {
       var inquiryQuerySnapshot = await userDetailDocument.reference.collection('inquiry').orderBy('cDateTime', descending: true).get();
+
       if (inquiryQuerySnapshot.docs.isNotEmpty) {
-        inquiryItems.addAll(inquiryQuerySnapshot.docs.map((inquiryDocument) {
+        inquiryItems.addAll(await Future.wait(inquiryQuerySnapshot.docs.map((inquiryDocument) async {
           var inquiryData = inquiryDocument.data();
           if (_selectedValue == '전체' ||
               (_selectedValue == '미답변' && inquiryData['reply'] == null) ||
@@ -143,7 +144,10 @@ class _AdminInquiryState extends State<AdminInquiry> {
               ),
               padding: EdgeInsets.all(10),
               child: ListTile(
-                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => InquiryReply(inquiryDocument),)).then((value) => setState((){})),
+                onTap: () => Get.to(
+                  InquiryReply(inquiryDocument),
+                  transition: Transition.noTransition
+                )!.then((value) => setState((){})),
                 leading: SizedBox(
                   width: 30,
                   child: Text(inquiryData['category']),
@@ -160,30 +164,29 @@ class _AdminInquiryState extends State<AdminInquiry> {
                   width: 70,
                   height: 30,
                   decoration: BoxDecoration(
-                    border: Border.all(width: 1, color: Colors.lightBlue),
+                    border: Border.all(width: 1, color: Color(0xFF233067)),
                     // /borderRadius: BorderRadius.all(Radius.circular(10)),
-                    color: inquiryData['reply'] != null ? Colors.white : Colors.lightBlue,
+                    color: inquiryData['reply'] != null ? Colors.white : Color(0xFF233067),
                   ),
                   alignment: Alignment.center,
                   child: Text(
                     inquiryData['reply'] != null ? '답변완료' : '미답변',
                     style: TextStyle(
-                      color: inquiryData['reply'] != null ? Colors.black : Colors.white,
+                      color: inquiryData['reply'] != null ? Color(0xFF233067) : Colors.white,
                     ),
                   ),
                 ),
               ),
             );
           }
-          return SizedBox.shrink(); // 선택된 값과 일치하지 않는 경우 아무것도 표시하지 않음
-        }));
+          return SizedBox.shrink();
+        })));
       }
-    }
+    }));
 
     if (inquiryItems.isEmpty) {
-      return null; // or an empty list: return [];
+      return null;
     }
-
     return inquiryItems;
   }
 }
@@ -216,13 +219,6 @@ class _InquiryReplyState extends State<InquiryReply> {
       drawer: MyDrawer(),
       appBar: AppBar(
         actions: [
-          IconButton(
-            onPressed: () {
-              // 아이콘 클릭 시 수행할 작업 추가
-            },
-            icon: Icon(Icons.person),
-            color: Colors.black54,
-          ),
           Builder(
             builder: (context) {
               return IconButton(
@@ -230,7 +226,7 @@ class _InquiryReplyState extends State<InquiryReply> {
                   Scaffold.of(context).openDrawer();
                 },
                 icon: Icon(Icons.menu),
-                color: Colors.black54,
+                color: Colors.white,
               );
             },
           ),
@@ -240,19 +236,19 @@ class _InquiryReplyState extends State<InquiryReply> {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: Colors.black54,
+            color: Colors.white,
           ),
           onPressed: () {
             // 뒤로가기 버튼을 눌렀을 때 수행할 작업
-            Navigator.of(context).pop();
+            Get.back();
           },
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFF233067),
         centerTitle: true,
         title: Text(
           '문의 상세',
           style: TextStyle(
-            color: Colors.black,
+            color: Colors.white,
           ),
         ),
       ),
@@ -317,6 +313,9 @@ class _InquiryReplyState extends State<InquiryReply> {
             ),
             ElevatedButton(
               onPressed: () => _addReply(),
+              style: ButtonStyle(
+                backgroundColor: MaterialStatePropertyAll(Color(0xFF233067))
+              ),
               child: Text(data['reply'] != null ? '답변 수정' : '답변 등록')
             )
           ],

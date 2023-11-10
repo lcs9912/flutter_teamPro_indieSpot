@@ -14,6 +14,7 @@ import 'donationPage.dart';
 import 'userModel.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:get/get.dart';
 
 class ArtistInfo extends StatefulWidget {
   final String docId;
@@ -26,7 +27,8 @@ class ArtistInfo extends StatefulWidget {
 
 class _ArtistInfoState extends State<ArtistInfo> {
   FirebaseFirestore fs = FirebaseFirestore.instance;
-
+  bool isImagePressed =false;
+  int? isImagePressedIndex;
   bool _followerFlg = false; // 팔로우 했는지!
   bool scheduleFlg = true;
   int? folCnt; // 팔로워
@@ -274,7 +276,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
         children: [
           SpeedDialChild(
               child: const Icon(Icons.settings_sharp, color: Colors.white),
-              label: "수정",
+              label: "정보 수정",
               labelStyle: const TextStyle(
                   fontWeight: FontWeight.w500,
                   color: Colors.white,
@@ -896,6 +898,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
                       stream: fs
                           .collection('video')
                           .where('artistId', isEqualTo: widget.docId)
+                          .where('deleteYn', isEqualTo: 'N')
                           .orderBy('cnt', descending: true)
                           .snapshots(),
                       builder: (context, AsyncSnapshot<QuerySnapshot> videoSnap) {
@@ -915,19 +918,135 @@ class _ArtistInfoState extends State<ArtistInfo> {
                               String url = data['url'];
                               return GestureDetector(
                                   onTap: () {
-                                    Navigator.of(context)
-                                        .push(MaterialPageRoute(
-                                            builder: (context) => VideoDetailed(
-                                                data,
-                                                doc.id,
-                                                doc as DocumentSnapshot<
-                                                    Map<String, dynamic>>?)))
-                                        .then((value) => setState(() {}));
+                                    Get.to(
+                                        VideoDetailed(
+                                            data,
+                                            doc.id,
+                                            documentSnapshotoc as DocumentSnapshot<Map<String, dynamic>>?
+                                        ),
+                                      transition: Transition.noTransition
+                                    )!.then((value) => setState(() {}));
                                   },
-                                  child: Image.network(
-                                    'https://img.youtube.com/vi/$url/0.jpg',
-                                    fit: BoxFit.cover,
-                                  ));
+                                  onLongPress: (){
+                                    if(_artistId != null || _artistId2 != null) {
+                                      setState(() {
+                                        isImagePressed = !isImagePressed;
+                                        isImagePressedIndex = index;
+                                      });
+                                      showModalBottomSheet(
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.vertical(
+                                                top: Radius.circular(27)
+                                            )
+                                        ),
+                                        context: context,
+                                        builder: (context) {
+                                          return Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Center(
+                                                child: Container(
+                                                  margin: EdgeInsets.only(top: 10, bottom: 20),
+                                                  width: 50,
+                                                  decoration: BoxDecoration(
+                                                    border: Border.all(width: 2, color: Colors.black54),
+                                                    borderRadius: BorderRadius.circular(15),
+                                                  ),
+                                                ),
+                                              ),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.start,
+                                                children: [
+                                                  Expanded(
+                                                      child: Padding(
+                                                        padding: EdgeInsets.only(left: 10),
+                                                        child: TextButton(
+                                                            onPressed: (){
+                                                              Get.back();
+                                                             // _editComment(pointDetailDocument.id, vedioDocRef, comment);
+                                                            },
+                                                            style: ButtonStyle(
+                                                                alignment: Alignment.centerLeft
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                Padding(
+                                                                  padding: const EdgeInsets.only(right: 15),
+                                                                  child: Icon(Icons.edit, color: Color(0xFF634F52),),
+                                                                ),
+                                                                Text('수정', style: TextStyle(color: Color(0xFF634F52)),)
+                                                              ],
+                                                            )
+                                                        ),
+                                                      )
+                                                  )
+                                                ],
+                                              ),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.start,
+                                                children: [
+                                                  Expanded(
+                                                      child: Padding(
+                                                        padding: EdgeInsets.only(left: 10),
+                                                        child: TextButton(
+                                                            onPressed: ()=> showDialog(context: context, builder: (context) {
+                                                              return AlertDialog(
+                                                                title: Text('영사 삭제'),
+                                                                content: Text('영상을 완전히 삭제할까요?'),
+                                                                actions: [
+                                                                  TextButton(onPressed: ()=> Navigator.of(context).pop(), child: Text('취소')),
+                                                                  TextButton(onPressed: (){
+                                                                    _deleteVideo(doc.id);
+                                                                    Navigator.of(context).pop();
+                                                                    setState(() {
+                                                                    });
+                                                                  }, child: Text('삭제')),
+                                                                ],
+                                                              );
+                                                            },).then((value) => Navigator.of(context).pop()),
+                                                            style: ButtonStyle(
+                                                                alignment: Alignment.centerLeft
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                Padding(
+                                                                  padding: const EdgeInsets.only(right: 15),
+                                                                  child: Icon(Icons.delete, color: Color(0xFF634F52),),
+                                                                ),
+                                                                Text('삭제', style: TextStyle(color: Color(0xFF634F52)),)
+                                                              ],
+                                                            )
+                                                        ),
+                                                      )
+                                                  )
+                                                ],
+                                              )
+                                            ],
+                                          );
+                                        },
+                                      ).then((value) => setState(() {
+                                        isImagePressed = !isImagePressed;
+                                        isImagePressedIndex = null;
+                                      }));
+                                    }
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: (isImagePressed && isImagePressedIndex == index) ? Colors.white : null,
+                                      border: (isImagePressed && isImagePressedIndex == index)
+                                          ? Border.all(color: Colors.white, width: 10.0)
+                                          : null,
+                                      boxShadow: (isImagePressed && isImagePressedIndex == index)
+                                          ? [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 5.0)]
+                                          : null,
+                                    ),
+                                    child: Image.network(
+                                      'https://img.youtube.com/vi/$url/0.jpg',
+                                      fit: BoxFit.cover,
+                                    ),
+                                  )
+                              );
                             });
                       }),
                 ],
@@ -938,5 +1057,11 @@ class _ArtistInfoState extends State<ArtistInfo> {
         floatingActionButton: floatingButtons(),
       ),
     );
+  }
+
+  Future<void> _deleteVideo(String id) async{
+    await fs.collection('video').doc(id).update({
+      'deleteYn' : 'Y'
+    });
   }
 }

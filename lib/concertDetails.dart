@@ -401,6 +401,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
     if (!_isReviewEmpty) {
       await addReview(buskingID, _review.text, userRating);
       _review.clear();
+      rating = 0.0;
     }
   }
 
@@ -577,54 +578,63 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                           ),
                         ),
 
-                        Stack(
-                          children: [
-                            Positioned(
-                              top: 135, // 위치 조절
-                              left: 280, // 위치 조절
-                              child: Image.asset(
-                                'assets/nheart.png', // 추가할 이미지의 경로
-                                height: 70, // 높이 조절
-                                width: 70, // 너비 조절
-                              ),
-                            ),
-                            Positioned(
-                              right: 1,
-                              top: 1,
-                              child: Text(folCnt != null ? folCnt.toString() : ''), // 데이터가 null이 아닌 경우에만 출력
-                            ),
-                            if (_followerFlg)
-                              IconButton(
-                                onPressed: () {
-                                  _followDelete();
-                                  setState(() {});
-                                },
-                                icon: Icon(Icons.person_add),
-                              ),
-                            if (!_followerFlg)
-                              IconButton(
-                                onPressed: () {
-                                  _followAdd();
-                                  setState(() {});
-                                },
-                                icon: Icon(Icons.person_add_alt),
-                              ),
-                          ],
-                        )
+
 
                       ],
                     ),
+
+
+
+
                     SizedBox(height: 30), // 간격 추가
                     Container(
                       width: 600,
-                      height: 40,
+                      height: 55,
                       color: Color(0xFF3E2007),
-                      padding: EdgeInsets.all(8.0), // 내부 여백 설정
-                      child: Text(
-                        ' ${buskingData?['title']}',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color: Colors.white),
+                      padding: EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          Text(
+                            ' ${buskingData?['title']}',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                          SizedBox(width: 230),
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                if (_followerFlg) {
+                                  _followDelete();
+                                  _followerFlg = false;
+                                } else {
+                                  _followAdd();
+                                  _followerFlg = true;
+                                }
+                              });
+                            },
+                            style: TextButton.styleFrom(
+                              primary: Colors.white, // 텍스트 버튼의 텍스트 색상 변경
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18.0),
+                              ),
+                            ),
+                            child: Text(
+                              _followerFlg ? '팔로잉' : '팔로우',
+                              style: TextStyle(
+                                fontSize: 16, // 텍스트 버튼의 텍스트 크기 변경
+                                fontWeight: FontWeight.bold, // 텍스트 버튼의 텍스트 굵기 변경
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                    Container(
+                      height: 1.0,
+                      width: 320,
+                      color: Colors.black.withOpacity(0.1),
+                    ),
+
+
 
 
 
@@ -676,7 +686,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                 SizedBox(height: 30),
                                 Container(
                                   height: 1.0,
-                                  width: 200,
+                                  width: 320,
                                   color: Colors.black.withOpacity(0.1),
                                 ),
                                 SizedBox(height: 20),
@@ -755,7 +765,6 @@ class _ConcertDetailsState extends State<ConcertDetails> {
 
 
                     Container(
-                      height: 1050,
                       width: 350,
                       child: Column(
                         children: [
@@ -783,7 +792,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                               Spacer(),
 
                               ElevatedButton(
-                                onPressed: () {
+                                onPressed: () async {
                                   if (_nick == null) {
                                     showDialog(
                                       context: context,
@@ -803,7 +812,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                     );
                                   } else {
                                     double userRating = rating;
-                                    submitReview(widget.document.id, userRating);
+                                    await submitReview(widget.document.id, userRating).then((value) => loadBuskingReview());
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
@@ -811,6 +820,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                 ),
                                 child: Text('댓글작성'),
                               ),
+
 
                               SizedBox(height: 20,),
                             ],
@@ -898,72 +908,73 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                         children: [
                                           TextButton(
                                             onPressed: () {
-                                              showDialog(
-                                                context: context,
-                                                builder: (BuildContext context) {
-                                                  TextEditingController textEditingController = TextEditingController(text: currentContent);
-                                                  return AlertDialog(
-                                                    title: Text('댓글 수정'),
-                                                    content: TextField(
-                                                      controller: textEditingController, // 컨트롤러 추가
-                                                      onChanged: (value) {
-                                                        // 사용자가 입력한 내용을 업데이트
-                                                        setState(() {
-                                                          updatedComment = value;
-                                                        });
-                                                      },
-                                                    ),
-                                                    actions: [
-                                                      TextButton(
-                                                        onPressed: () async {
-                                                          // 수정 내용을 저장하는 로직 추가
-                                                          if (updatedComment.isNotEmpty) {
-                                                            try {
-                                                              await FirebaseFirestore.instance
-                                                                  .collection('busking')
-                                                                  .doc(widget.document.id)
-                                                                  .collection('review')
-                                                                  .doc(document.reference.id)
-                                                                  .update({'content': updatedComment});
-                                                              Navigator.pop(context);
-                                                            } catch (e) {
-                                                              print('Error updating review content: $e');
-                                                              // 에러 핸들링을 원하는 대로 추가하세요.
-                                                            }
-                                                          }
+                                              if (document['nick'] == _nick) {
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (BuildContext context) {
+                                                    TextEditingController textEditingController = TextEditingController(text: currentContent);
+                                                    return AlertDialog(
+                                                      title: Text('댓글 수정'),
+                                                      content: TextField(
+                                                        controller: textEditingController,
+                                                        onChanged: (value) {
+                                                          setState(() {
+                                                            updatedComment = value;
+                                                          });
                                                         },
-                                                        child: Text(
-                                                          '저장',
-                                                          style: TextStyle(color: Colors.black), // 버튼 텍스트 색상을 회색으로 설정
-                                                        ),
-                                                        style: TextButton.styleFrom(
-                                                          backgroundColor: Colors.grey, // 버튼 배경색을 회색으로 설정
-                                                        ),
                                                       ),
-                                                    ],
-                                                  );
-                                                },
-                                              );
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () async {
+                                                            if (updatedComment.isNotEmpty) {
+                                                              try {
+                                                                await FirebaseFirestore.instance
+                                                                    .collection('busking')
+                                                                    .doc(widget.document.id)
+                                                                    .collection('review')
+                                                                    .doc(document.reference.id)
+                                                                    .update({'content': updatedComment});
+                                                                Navigator.pop(context);
+                                                              } catch (e) {
+                                                                print('Error updating review content: $e');
+                                                              }
+                                                            }
+                                                          },
+                                                          child: Text(
+                                                            '저장',
+                                                            style: TextStyle(color: Colors.black),
+                                                          ),
+                                                          style: TextButton.styleFrom(
+                                                            backgroundColor: Colors.grey,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
+                                                );
+                                              }
                                             },
                                             child: SizedBox(
-                                              width: double.infinity, // 화면 전체의 너비를 차지하도록 설정
+                                              width: double.infinity,
                                               child: Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween, // 텍스트와 간격 사이에 공간을 만듭니다.
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                 children: [
                                                   Text(
                                                     "${document['nick']}",
-                                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color: Colors.black), // Adjust font size and weight
+                                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
                                                   ),
                                                   SizedBox(width: 8.0),
-                                                  Text(
-                                                    '수정하기',
-                                                    style: TextStyle(color: Colors.black),
-                                                  ),
-                                                  // 오른쪽 간격 조절
+                                                  if (document['nick'] == _nick)
+                                                    Text(
+                                                      '수정하기',
+                                                      style: TextStyle(color: Colors.black),
+                                                    ),
                                                 ],
                                               ),
                                             ),
                                           ),
+
+
 
 
 
