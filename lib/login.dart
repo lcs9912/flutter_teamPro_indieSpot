@@ -239,18 +239,15 @@ class _LoginPageState extends State<LoginPage> {
             List<Future<QuerySnapshot>> teamMembersQueries = [];
 
             // userId를 사용하여 특정 문서 내에서 검색
-            teamMembersQueries.add(teamMembersRef
+            final teamMemberSnapshot = await teamMembersRef
                 .where('userId', isEqualTo: userId)
-                .get());
+                .get(); // Using get here to fetch the document
 
-            // 병렬 처리를 위해 Future.wait 사용
-            List<QuerySnapshot> teamMembersSnapshots =
-            await Future.wait(teamMembersQueries);
-
-            if (teamMembersSnapshots.any((snapshot) => snapshot.docs.isNotEmpty)) {
+            if (teamMemberSnapshot.docs.isNotEmpty) {
               artistId = artistDoc.id;
-              status = (artistDoc.data() as Map<String, dynamic>)['status'] as String? ?? 'N';
-              break; // 찾았으면 반복문 종료
+              status = teamMemberSnapshot.docs.first.get('status');
+              print(status);
+              break;
             }
           }
 
