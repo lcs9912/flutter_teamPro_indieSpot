@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:indie_spot/baseBar.dart';
 import 'package:indie_spot/loading.dart';
 import 'package:indie_spot/main.dart';
 import 'package:indie_spot/pwdEdit.dart';
@@ -50,15 +51,40 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        leading: Builder(
+          builder: (context) {
+            return IconButton(
+              color: Colors.white,
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              icon: Icon(Icons.arrow_back),
+            );
+          },
+        ),
+        backgroundColor: Color(0xFF233067),
         elevation: 1,
         title: Text(
             '로그인',
-          style: TextStyle(color: Colors.black),
+          style: TextStyle(color: Colors.white),
           textAlign: TextAlign.center,
         ),
-        iconTheme: IconThemeData(color: Colors.black),
+        iconTheme: IconThemeData(color: Colors.white),
+        actions: [
+          Builder(
+            builder: (context) {
+              return IconButton(
+                color: Colors.white,
+                onPressed: () {
+                  Scaffold.of(context).openDrawer();
+                },
+                icon: Icon(Icons.menu),
+              );
+            },
+          )
+        ],
       ),
+      drawer: MyDrawer(),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 30),
@@ -90,7 +116,7 @@ class _LoginPageState extends State<LoginPage> {
               ElevatedButton(
                 onPressed: _login,
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromRGBO(240, 240, 240, 1),
+                    backgroundColor: Color(0xFF233067),
                   side: BorderSide(color: Color.fromRGBO(240, 240, 240, 1)),
                   padding: EdgeInsets.symmetric(horizontal: 90, vertical: 18),
                   elevation: 0.2
@@ -98,7 +124,7 @@ class _LoginPageState extends State<LoginPage> {
                 child: Text(
                     '회원 로그인',
                     style: TextStyle(
-                      color: Colors.black,
+                      color: Colors.white,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 4

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:indie_spot/baseBar.dart';
 import 'package:indie_spot/boardList.dart';
 import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
@@ -222,16 +223,41 @@ class _BoardAddState extends State<BoardAdd> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: Builder(
+          builder: (context) {
+            return IconButton(
+              color: Colors.white,
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              icon: Icon(Icons.arrow_back),
+            );
+          },
+        ),
         title: Text(
           "게시물 쓰기",
           style: TextStyle(
-            color: Colors.black
+            color: Color(0xFFFFFFFF),
           ),
         ),
-        iconTheme: IconThemeData(color: Colors.black),
-        backgroundColor: Colors.white,
+        iconTheme: IconThemeData(color: Colors.white),
+        backgroundColor: Color(0xFF233067),
         elevation: 1.5,
+        actions: [
+          Builder(
+            builder: (context) {
+              return IconButton(
+                color: Colors.white,
+                onPressed: () {
+                  Scaffold.of(context).openDrawer();
+                },
+                icon: Icon(Icons.menu),
+              );
+            },
+          )
+        ],
       ),
+      drawer: MyDrawer(),
       body: Padding(
         padding: EdgeInsets.all(20.0),
         child: SingleChildScrollView(
@@ -288,7 +314,7 @@ class _BoardAddState extends State<BoardAdd> {
                   SizedBox(width: 10),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
+                      backgroundColor: Color(0xFF233067),
                     ),
                     onPressed: _pickImage,
                     child: Text('이미지 선택'),
@@ -354,7 +380,7 @@ class _BoardAddState extends State<BoardAdd> {
                 ),
                 style: ElevatedButton.styleFrom(
                   fixedSize: Size(380, 50),
-                  backgroundColor: Colors.grey[600]
+                  backgroundColor: Color(0xFF233067),
                 ),
               ),
               SizedBox(height: 20),
