@@ -340,11 +340,11 @@ class _JoinState extends State<Join> {
         padding: EdgeInsets.symmetric(vertical: 30.0),
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.white, // AppBar 배경색을 흰색으로 설정
+          backgroundColor:  Color(0xFF233067), // AppBar 배경색을 흰색으로 설정
           leading: IconButton(
             icon: Icon(
               Icons.arrow_back,
-              color: Colors.black, // 뒤로가기 아이콘 색을 검은색으로 설정
+              color: Colors.white, // 뒤로가기 아이콘 색을 검은색으로 설정
             ),
             onPressed: () {
               Navigator.pop(context); // 뒤로가기 기능 추가
@@ -352,7 +352,7 @@ class _JoinState extends State<Join> {
           ),
           title: Text(
             '회원가입',
-            style: TextStyle(color: Colors.black), // 텍스트 색을 검은색으로 설정
+            style: TextStyle(color: Colors.white), // 텍스트 색을 검은색으로 설정
           ),
         ),
         body: SingleChildScrollView(
@@ -371,7 +371,7 @@ class _JoinState extends State<Join> {
                     onPressed: _checkEmail,
 
                     style: ElevatedButton.styleFrom(
-                      primary: Color(0xFF392F31), // 색상 변경
+                      primary:  Color(0xFF233067), // 색상 변경
                     ),
                     child: Text('중복 확인'),
                   ),
@@ -474,7 +474,7 @@ class _JoinState extends State<Join> {
                     onPressed: _checkNickname,
 
                     style: ElevatedButton.styleFrom(
-                      primary: Color(0xFF392F31), // 색상 변경
+                      primary:  Color(0xFF233067), // 색상 변경
                     ),
                     child: Text('중복 확인'),
                   ),
@@ -604,7 +604,7 @@ class _JoinState extends State<Join> {
                   child: ElevatedButton(
                     onPressed: _register,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF392F31), // 392F31 색상
+                      backgroundColor:  Color(0xFF233067), // 392F31 색상
                       minimumSize: Size(double.infinity, 48), // Set button width and height
                     ),
                     child: Text(
