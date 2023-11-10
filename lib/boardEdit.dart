@@ -1,7 +1,12 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/baseBar.dart';
 import 'package:indie_spot/boardList.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:path/path.dart' as path;
+import 'package:indie_spot/userModel.dart';
 import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
 
@@ -14,6 +19,7 @@ class BoardEdit extends StatefulWidget {
 }
 
 class _BoardEditState extends State<BoardEdit> {
+  File? _selectedImage;
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
   final TextEditingController _title = TextEditingController();
   final TextEditingController _content = TextEditingController();
@@ -26,7 +32,36 @@ class _BoardEditState extends State<BoardEdit> {
     _content.text = widget.document['content'];
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedImage = await picker.pickImage(source: ImageSource.gallery);
+
+    if(pickedImage != null){
+      setState(() {
+        _selectedImage = File(pickedImage.path);
+      });
+    }
+  }
+
+  Future<String> _uploadImage(File imageFile) async {
+    try {
+      String fileName = path.basename(imageFile.path);
+      Reference firebaseStorageRef = FirebaseStorage.instance.ref().child('image/$fileName');
+
+      UploadTask uploadTask = firebaseStorageRef.putFile(imageFile);
+      TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
+
+      String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      print('Error uploading image: $e');
+      return '';
+    }
+  }
+
+
   void _editBoard() async {
+    String? _userId = Provider.of<UserModel>(context, listen: false).userId;
 
     if (_title.text.length > 20) {
       showDialog(
@@ -70,6 +105,8 @@ class _BoardEditState extends State<BoardEdit> {
       return;
     }
 
+    final imageUrl = _selectedImage != null ? await _uploadImage(_selectedImage!) : null;
+
     try {
       QuerySnapshot firstDocumentSnapshot = await _fs.collection('posts').limit(1).get();
       String firstDocumentId = firstDocumentSnapshot.docs.isNotEmpty ? firstDocumentSnapshot.docs.first.id : '3QjunO69Eb2OroMNJKWU';
@@ -82,6 +119,16 @@ class _BoardEditState extends State<BoardEdit> {
         },
       );
 
+      //서브콜렉션 이미지 수정
+      if (imageUrl != null) {
+        await boardRef.collection('image').doc().update(
+            {
+              'DELETE_YN': 'N',
+              'PATH': imageUrl,
+            }
+        );
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("수정되었습니다")),
       );
@@ -91,11 +138,45 @@ class _BoardEditState extends State<BoardEdit> {
           MaterialPageRoute(builder: (context) => BoardList()
           )
       );
+
     }catch (e){
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
     }
+  }
+
+  Widget? _buildSelectedImage(){
+    if (_selectedImage != null) {
+      return Row(
+        children: [
+          Image.file(
+            _selectedImage!,
+            height: 150,
+          ),
+          SizedBox(width: 10),
+          OutlinedButton(
+            onPressed: () {
+              setState(() {
+                _selectedImage = null;
+              });
+            },
+            style: OutlinedButton.styleFrom(
+                fixedSize: Size(100, 30),
+                backgroundColor: Colors.grey[700]
+            ),
+            child: Text(
+              '선택 취소',
+              style: TextStyle(
+                  color: Colors.white
+              ),
+
+            ), // X 아이콘
+          ),
+        ],
+      );
+    }
+    return null;
   }
 
   @override
@@ -152,6 +233,28 @@ class _BoardEditState extends State<BoardEdit> {
                 ),
               ),
               SizedBox(height: 20),
+              Row(
+                children: [
+                  Text(
+                    '이미지 바꾸기',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                    ),
+                    onPressed: _pickImage,
+                    child: Text('이미지 선택'),
+                  ),
+                ],
+              ),
+              SizedBox(height: 10),
+              _buildSelectedImage() ?? Container(),
+              SizedBox(height: 16),
               Text(
                 '제목',
                 style: TextStyle(
