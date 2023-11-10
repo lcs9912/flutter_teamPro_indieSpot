@@ -401,6 +401,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
     if (!_isReviewEmpty) {
       await addReview(buskingID, _review.text, userRating);
       _review.clear();
+      rating = 0.0;
     }
   }
 
@@ -803,13 +804,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                     );
                                   } else {
                                     double userRating = rating;
-                                    await submitReview(widget.document.id, userRating);
-
-                                    // 리뷰가 제출된 후에 화면을 다시 그립니다.
-                                    setState(() {
-                                      // 여기에 화면을 다시 그리는 코드를 추가하세요.
-                                      // 예를 들어, 필요한 상태 변수들을 업데이트할 수 있습니다.
-                                    });
+                                    await submitReview(widget.document.id, userRating).then((value) => loadBuskingReview());
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(

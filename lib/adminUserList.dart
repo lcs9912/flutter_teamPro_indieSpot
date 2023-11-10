@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/adminUserInfo.dart';
 import 'package:indie_spot/baseBar.dart';
+import 'package:get/get.dart';
 
 class AdminUserList extends StatefulWidget {
   const AdminUserList({super.key});
@@ -27,7 +28,7 @@ class _AdminUserListState extends State<AdminUserList> {
                   Scaffold.of(context).openDrawer();
                 },
                 icon: Icon(Icons.menu),
-                color: Colors.black54,
+                color: Colors.white,
               );
             },
           ),
@@ -37,19 +38,19 @@ class _AdminUserListState extends State<AdminUserList> {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: Colors.black54,
+            color: Colors.white,
           ),
           onPressed: () {
             // 뒤로가기 버튼을 눌렀을 때 수행할 작업
-            Navigator.of(context).pop();
+            Get.back();
           },
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFF233067),
         centerTitle: true,
         title: Text(
           '계정 관리',
           style: TextStyle(
-            color: Colors.black,
+            color: Colors.white,
           ),
         ),
       ),
@@ -61,14 +62,19 @@ class _AdminUserListState extends State<AdminUserList> {
               controller: _search,
               decoration: InputDecoration(
                 hintText: '아이디 & 닉네임 검색',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.search),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF233067))
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF233067))
+                ),
+                prefixIcon: Icon(Icons.search, color: Color(0xFF233067),),
                 suffixIcon: IconButton(
                   onPressed: () {
                     _search.clear();
                     setState(() {});
                   },
-                  icon: Icon(Icons.cancel_outlined),
+                  icon: Icon(Icons.cancel_outlined, color: Color(0xFF233067),),
                   highlightColor: Colors.transparent, // 클릭 시 하이라이트 효과를 제거
                   splashColor: Colors.transparent,
                 ),
@@ -142,7 +148,10 @@ class _AdminUserListState extends State<AdminUserList> {
           border: Border.all(width: 1, color: Colors.black12)
       ),
       child: ListTile(
-        onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => AdminUserInfo(id),)),
+        onTap: () => Get.to(
+          AdminUserInfo(id),
+          transition: Transition.noTransition
+        ),
         title: Text(data['nick']),
         subtitle: Text(data['email']),
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/baseBar.dart';
+import 'package:indie_spot/loading.dart';
 import 'package:indie_spot/videoAdd.dart';
 import 'package:indie_spot/videoDetailed.dart';
 import 'package:intl/intl.dart';
@@ -124,7 +125,6 @@ class _VideoListState extends State<VideoList> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(''),
                         ],
                       )
                     ],
@@ -232,7 +232,8 @@ class _VideoListState extends State<VideoList> {
       }
       return list;
     } else {
-      var list = <Widget>[];
+      var list = <Widget>[
+      ];
       return list;
     }
   }

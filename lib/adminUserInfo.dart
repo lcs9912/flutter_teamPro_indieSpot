@@ -6,6 +6,7 @@ import 'package:indie_spot/baseBar.dart';
 import 'package:indie_spot/boardView.dart';
 import 'package:indie_spot/spaceInfo.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:get/get.dart';
 
 class AdminUserInfo extends StatefulWidget {
   final String id;
@@ -47,7 +48,7 @@ class _AdminUserInfoState extends State<AdminUserInfo> {
                   Scaffold.of(context).openDrawer();
                 },
                 icon: Icon(Icons.menu),
-                color: Colors.black54,
+                color: Colors.white,
               );
             },
           ),
@@ -57,21 +58,21 @@ class _AdminUserInfoState extends State<AdminUserInfo> {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: Colors.black54,
+            color: Colors.white,
           ),
           onPressed: () {
             // 뒤로가기 버튼을 눌렀을 때 수행할 작업
-            Navigator.of(context).pop();
+            Get.back();
           },
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFF233067),
         centerTitle: true,
-        // title: Text(
-        //   '',
-        //   style: TextStyle(
-        //     color: Colors.black,
-        //   ),
-        // ),
+        title: Text(
+          '회원정보',
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
       ),
       body: DefaultTabController(
         length: 2,
@@ -415,10 +416,11 @@ class _AdminUserInfoState extends State<AdminUserInfo> {
                   ],
                 ),
               ),
-              TabBar(tabs: [
-                Tab(child: Text('게시판', style: TextStyle(color: Colors.black),)),
-                Tab(child: Text('상업공간', style: TextStyle(color: Colors.black),)),
-              ], onTap: (value) => setState(() {
+              TabBar(
+                tabs: [
+                  Tab(child: Text('게시판', style: TextStyle(color: Colors.black),)),
+                  Tab(child: Text('상업공간', style: TextStyle(color: Colors.black),)),
+                ], onTap: (value) => setState(() {
                 _currentTabIndex = value;
               }),),
               if (_currentTabIndex == 0)
@@ -474,7 +476,10 @@ class _AdminUserInfoState extends State<AdminUserInfo> {
         mainAxisSize: MainAxisSize.min,
         children: [
           TextButton(onPressed: (){
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) => SpaceInfo(id),));
+            Get.to(
+              SpaceInfo(id),
+              transition: Transition.noTransition
+            );
           }, child: Text('상세보기')),
           TextButton(onPressed: () async{
             showDialog(context: context, builder: (context) => AlertDialog(
@@ -535,7 +540,10 @@ class _AdminUserInfoState extends State<AdminUserInfo> {
         mainAxisSize: MainAxisSize.min,
         children: [
           TextButton(onPressed: (){
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) => BoardView(document: document),));
+            Get.to(
+              BoardView(document: document),
+              transition: Transition.noTransition
+            );
           }, child: Text('상세보기')),
           TextButton(onPressed: () async{
             showDialog(context: context, builder: (context) => AlertDialog(
