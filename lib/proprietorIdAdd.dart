@@ -61,6 +61,7 @@ class _ProprietorAddState extends State<ProprietorAdd> {
   String startTimeMinute = '00'; // 영업시작 분
   String endTimeHour = '00'; // 영업 종료 시작
   String endTimeMinute = '00'; // 영업 종료 분
+  bool proprietorNumYn= false; // 로딩 상태 변수
   List<String> hourItem = [
     '00', '01', '02', '03', '04',
     '05', '06', '07', '08', '09',
@@ -134,6 +135,9 @@ class _ProprietorAddState extends State<ProprietorAdd> {
 // 쿼리 실행 버튼 클릭 이벤트 핸들러
   void handleQueryButtonClicked() {
     allnNullCheck();
+    if(!proprietorNumYn){
+      return showDuplicateAlert("중복확인", "사업자 번호 중복체크 하시오.");
+    }
 
     setState(() {
       isProcessing = true; // 로딩 상태 활성화
@@ -144,7 +148,6 @@ class _ProprietorAddState extends State<ProprietorAdd> {
 
   // 사업자 입력 쿼리문
   void addGenresToFirestore() async {
-
 
     if(allYn){
       final collectionReference = fs.collection('userList').doc(_userId).collection('proprietor');
@@ -157,45 +160,50 @@ class _ProprietorAddState extends State<ProprietorAdd> {
       );
       final imageUrl = await _uploadImage(_selectedImage!);
 
-
       String inputProprietorNum = _proprietorNum.text; // 사업자 번호 입력
       String formattedProprietorNum = ''; // 사업자 번호 가공
       formattedProprietorNum = '${inputProprietorNum.substring(0, 3)}-${inputProprietorNum.substring(3, 5)}-${inputProprietorNum.substring(5)}';
-      // 중복 체크를 위한 쿼리
-      final querySnapshot = await collectionReference.where('proprietorNum', isEqualTo: formattedProprietorNum).get();
-      if (querySnapshot.docs.isEmpty) {
-        // 중복되지 않을 때만 데이터를 추가
-        collectionReference.add({
-          "businessImage": imageUrl,
-          "representativeName": _representativeName.text,
-          "proprietorNum": formattedProprietorNum,
-          "termsYn" : termsYn
-        }).then((value) => commerAdd());
-      } else {
-        showDuplicateAlert("중복안내", "이미등록된 사업자 번호입니다.");
-      }
-    } else {
+      collectionReference.add({
+        "businessImage": imageUrl,
+        "representativeName": _representativeName.text,
+        "proprietorNum": formattedProprietorNum,
+        "termsYn" : termsYn
+      }).then((value) => commerAdd());
 
     }
 
   }
 
   // 사업자 번호 중복 체크
-  // void propritorNumCheck() async {
-  //   final collectionReference = fs.collection('userList').doc(_userId).collection('proprietor');
-  //   final querySnapshot = await collectionReference.where('proprietorNum', isEqualTo: formattedProprietorNum).get();
-  //   if (querySnapshot.docs.isEmpty) {
-  //     // 중복되지 않을 때만 데이터를 추가
-  //     collectionReference.add({
-  //       "businessImage": imageUrl,
-  //       "representativeName": _representativeName.text,
-  //       "proprietorNum": formattedProprietorNum,
-  //       "termsYn" : termsYn
-  //     }).then((value) => commerAdd());
-  //   } else {
-  //     showDuplicateAlert("중복안내", "이미등록된 사업자 번호입니다.");
-  //   }
-  // }
+  void propritorNumCheck() async {
+    if(proprietorNumYn){
+      return inputDuplicateAlert('중복체크를 완료 하셨습니다.');
+    }
+
+    if(_proprietorNum.text.isEmpty){
+      return inputDuplicateAlert('사업자 번호를 입력하시오');
+    }
+    
+    String inputProprietorNum = _proprietorNum.text; // 사업자 번호 입력
+    String formattedProprietorNum = ''; // 사업자 번호 가공
+    formattedProprietorNum = '${inputProprietorNum.substring(0, 3)}-${inputProprietorNum.substring(3, 5)}-${inputProprietorNum.substring(5)}';
+    print('가공한 사업자 번호$formattedProprietorNum');
+    final collectionReference = fs.collection('userList').doc(_userId).collection('proprietor');
+    final querySnapshot = await collectionReference.where('proprietorNum', isEqualTo: formattedProprietorNum).get();
+    if (querySnapshot.docs.isEmpty) {
+      showDuplicateAlert("확인 완료", "신규 사업자 번호입니다.");
+      setState(() {
+        proprietorNumYn = true;
+      });
+
+    } else {
+      showDuplicateAlert("중복안내", "이미등록된 사업자 번호입니다.");
+      setState(() {
+        proprietorNumYn = false;
+      });
+
+    }
+  }
 
   // 사업자 번호 중복체크
   void showDuplicateAlert(String title, String content) {
@@ -218,7 +226,11 @@ class _ProprietorAddState extends State<ProprietorAdd> {
     );
   }
 
-
+  void _change(){
+    setState(() {
+      proprietorNumYn = false;
+    });
+  }
 
   // 비어있으면 뜨는 엘럿
   void inputDuplicateAlert(String content) {
@@ -238,8 +250,6 @@ class _ProprietorAddState extends State<ProprietorAdd> {
         );
       },
     );
-
-
   }
 
   // 상업공간 입력 쿼리문
@@ -306,9 +316,13 @@ class _ProprietorAddState extends State<ProprietorAdd> {
           )
       );
       Navigator.of(context).pop();
-      Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => SpaceInfo(commerId!), // HomeScreen은 대상 화면의 위젯입니다.
-      ));
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (BuildContext context) => SpaceInfo(commerId!)),
+      );
+      // Navigator.of(context).push(MaterialPageRoute(
+      //   builder: (context) => SpaceInfo(commerId!), // HomeScreen은 대상 화면의 위젯입니다.
+      // ));
 
     }catch (e){
       print('에러에러에러$e');
@@ -373,16 +387,19 @@ class _ProprietorAddState extends State<ProprietorAdd> {
   // 이미지 리스트
   Future<void> _prickImageList() async {
     final picker = ImagePicker();
-    final pickedImage = await picker.pickImage(source: ImageSource.gallery);
+    final pickedImages = await picker.pickMultiImage();
 
-    if (pickedImage != null) {
-      if (_commerImageList.length < 5) {
-        setState(() {
-          _commerImageList.add(File(pickedImage.path));
-        });
-      } else {
-        showDuplicateAlert("멈춰!", "공간이미지는 5장을 초과할 수 없습니다.");
-        print("이미지는 최대 5개까지만 선택할 수 있습니다.");
+    if (pickedImages != null && pickedImages.isNotEmpty) {
+      for (var pickedImage in pickedImages) {
+        if (_commerImageList.length < 5) {
+          setState(() {
+            _commerImageList.add(File(pickedImage.path));
+          });
+        } else {
+          showDuplicateAlert("멈춰!", "공간 이미지는 5장을 초과할 수 없습니다.");
+          print("이미지는 최대 5개까지만 선택할 수 있습니다.");
+          break;  // 이미지 개수가 5개 이상이면 더 이상 추가하지 않도록 종료
+        }
       }
     }
   }
@@ -704,22 +721,22 @@ class _ProprietorAddState extends State<ProprietorAdd> {
     double screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFFFFB41D),
+        backgroundColor: Color(0xFF233067),
         title: Center(
           child: Text(
             '상업공간 등록',
             style: TextStyle(
-              color: Colors.black,
+              color: Colors.white,
               fontSize: 20,
             ),
           ),
         ),
-        iconTheme: IconThemeData(color: Colors.black),
+        iconTheme: IconThemeData(color: Colors.white),
         actions: [
           Builder(
             builder: (context) {
               return IconButton(
-                color: Color(0xFF56555B),
+                color: Colors.white,
                 onPressed: () {
                   Scaffold.of(context).openDrawer();
                 },
@@ -788,7 +805,56 @@ class _ProprietorAddState extends State<ProprietorAdd> {
                 SizedBox(height: 30,),
                 _TextField('상호명', '상호명을 입력해주세요.',  _proprietorName),
                 _TextField('대표자명', '대표자명 입력', _representativeName),
-                _TextField('사업자 번호', '사업자 번호 입력(-제외)',  _proprietorNum),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start, // 수직 가운데 정렬 설정
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("사업자 번호"),
+                        if(!proprietorNumYn)
+                        ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFF233067)
+                            ),
+                            onPressed: (){
+                              propritorNumCheck();
+                            },
+                            child: Text("중복확인")
+                        )
+                        else if(proprietorNumYn)
+                          ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: Color(0xFF233067)
+                              ),
+                              onPressed: (){
+                                _change();
+                              },
+                              child: Text("수정")
+                          ),
+
+                      ],
+                    ),
+                    SizedBox(height: 10),
+                    SizedBox(
+                      height: 35,
+                      child: TextField(
+                        enabled: !proprietorNumYn,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500
+                        ),
+                        controller: _proprietorNum,
+                        decoration: InputDecoration(
+                          contentPadding: EdgeInsets.only(left: 10),
+                          hintText: '사업자 번호 입력(-제외)',
+                          hintStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                  ],
+                ),
                 SizedBox(height: 30,),
                 Text("상업공간 소개",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
                 SizedBox(height: 30,),
@@ -997,7 +1063,7 @@ class _ProprietorAddState extends State<ProprietorAdd> {
         child: ElevatedButton(
           onPressed: handleQueryButtonClicked, // 버튼 클릭 처리
           style: ElevatedButton.styleFrom(
-            backgroundColor: termsYn != null ? Color(0xFF392F31) : Colors.grey, // 버튼의 배경색
+            backgroundColor: termsYn != null ? Color(0xFF233067) : Colors.grey, // 버튼의 배경색
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(20.0),  // 좌측 상단 모서리만 둥글게
