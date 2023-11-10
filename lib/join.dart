@@ -171,6 +171,28 @@ class _JoinState extends State<Join> {
       );
     }
   }
+  void _checkEmail() async {
+    // 닉네임이 비어있는지 확인
+    if (_email.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('이메일을 입력해주세요.')),
+      );
+      return;
+    }
+
+    // Firestore에서 중복 닉네임 체크
+    final checkNickname = await _fs.collection('userList')
+        .where('email', isEqualTo: _email.text).get();
+    if (checkNickname.docs.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('이미 사용 중인 이메일 입니다.')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('사용 가능한 닉네임입니다.')),
+      );
+    }
+  }
 
   void _showTermsAndConditionsDialog(BuildContext context) {
     showDialog(
@@ -318,11 +340,11 @@ class _JoinState extends State<Join> {
         padding: EdgeInsets.symmetric(vertical: 30.0),
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.white, // AppBar 배경색을 흰색으로 설정
+          backgroundColor:  Color(0xFF233067), // AppBar 배경색을 흰색으로 설정
           leading: IconButton(
             icon: Icon(
               Icons.arrow_back,
-              color: Colors.black, // 뒤로가기 아이콘 색을 검은색으로 설정
+              color: Colors.white, // 뒤로가기 아이콘 색을 검은색으로 설정
             ),
             onPressed: () {
               Navigator.pop(context); // 뒤로가기 기능 추가
@@ -330,7 +352,7 @@ class _JoinState extends State<Join> {
           ),
           title: Text(
             '회원가입',
-            style: TextStyle(color: Colors.black), // 텍스트 색을 검은색으로 설정
+            style: TextStyle(color: Colors.white), // 텍스트 색을 검은색으로 설정
           ),
         ),
         body: SingleChildScrollView(
@@ -339,9 +361,21 @@ class _JoinState extends State<Join> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "이메일",
-                style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold),
+              Row(
+                children: [
+                  Text(
+                    "이메일  ",
+                    style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold),
+                  ),
+                  ElevatedButton(
+                    onPressed: _checkEmail,
+
+                    style: ElevatedButton.styleFrom(
+                      primary:  Color(0xFF233067), // 색상 변경
+                    ),
+                    child: Text('중복 확인'),
+                  ),
+                ],
               ),
               SizedBox(height: 10),
               TextField(
@@ -440,7 +474,7 @@ class _JoinState extends State<Join> {
                     onPressed: _checkNickname,
 
                     style: ElevatedButton.styleFrom(
-                      primary: Color(0xFF392F31), // 색상 변경
+                      primary:  Color(0xFF233067), // 색상 변경
                     ),
                     child: Text('중복 확인'),
                   ),
@@ -570,7 +604,7 @@ class _JoinState extends State<Join> {
                   child: ElevatedButton(
                     onPressed: _register,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF392F31), // 392F31 색상
+                      backgroundColor:  Color(0xFF233067), // 392F31 색상
                       minimumSize: Size(double.infinity, 48), // Set button width and height
                     ),
                     child: Text(

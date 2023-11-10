@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:indie_spot/loading.dart';
 import 'dart:io';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/services.dart';
@@ -10,7 +11,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
-
 import 'buskingReservation.dart';
 
 class AddBuskingSpot extends StatefulWidget {
@@ -87,7 +87,7 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
       if (placemarks.isNotEmpty) {
         Placemark firstPlacemark = placemarks.first;
         print(firstPlacemark);
-        _zip = int.parse(firstPlacemark.postalCode as String);
+        _zip = int.parse(firstPlacemark.postalCode == '' ? '0' : firstPlacemark.postalCode as String);
         _regions = firstPlacemark.administrativeArea as String;
         String address = "${firstPlacemark.street}";
         return address;
@@ -144,7 +144,7 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return LoadingScreen();
+        return LoadingWidget();
       },
       barrierDismissible: false, // 사용자가 화면을 탭해서 닫는 것을 막습니다.
     );
@@ -204,7 +204,7 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
               _TextField('버스킹존 이름', '버스킹존의 장소명을 입력하세요', _spotName),
               Padding(
                 padding: const EdgeInsets.all(15),
-                child: Text('공연 이미지 등록'),
+                child: Text('버스킹존 이미지 등록'),
               ),
               SizedBox(height: 10,),
               _imageAdd(),
@@ -222,7 +222,7 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
                   Expanded(child: ElevatedButton(
                     style: ButtonStyle(
                         minimumSize: MaterialStatePropertyAll(Size(0, 48)),
-                        backgroundColor: MaterialStatePropertyAll(Color(0xFF392F31)),
+                        backgroundColor: MaterialStatePropertyAll(Color(0xFF233067)),
                         elevation: MaterialStatePropertyAll(0),
                         shape: MaterialStatePropertyAll(
                             RoundedRectangleBorder(
@@ -238,8 +238,8 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
                           actions: [
                             TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('취소')),
                             TextButton(onPressed: (){
-                              _addBuskingSpot();
                               Navigator.of(context).pop();
+                              _addBuskingSpot();
                             }, child: Text('등록')),
                           ],
                         );
@@ -304,6 +304,9 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
                 hintText: '주소를 입력해주세요.',
                 hintStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
                 border: OutlineInputBorder(),
+                focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF233067), width: 3)
+                )
               ),
               textInputAction: TextInputAction.go,
               onSubmitted: (value) {
@@ -336,6 +339,9 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
                 hintText: '$hint',
                 hintStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
                 border: OutlineInputBorder(),
+                focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF233067), width: 3)
+                )
               ),
             ),
           )
@@ -364,6 +370,9 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
                 hintText: '$hint',
                 hintStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
                 border: OutlineInputBorder(),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF233067), width: 3)
+                )
               ),
             ),
           )
@@ -375,13 +384,6 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
   AppBar _appBar() {
     return AppBar(
       actions: [
-        IconButton(
-          onPressed: () {
-            // 아이콘 클릭 시 수행할 작업 추가
-          },
-          icon: Icon(Icons.person),
-          color: Colors.black54,
-        ),
         Builder(
           builder: (context) {
             return IconButton(
@@ -389,7 +391,7 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
                 Scaffold.of(context).openDrawer();
               },
               icon: Icon(Icons.menu),
-              color: Colors.black54,
+              color: Colors.white,
             );
           },
         ),
@@ -399,19 +401,19 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
       leading: IconButton(
         icon: Icon(
           Icons.arrow_back,
-          color: Colors.black54,
+          color: Colors.white,
         ),
         onPressed: () {
           // 뒤로가기 버튼을 눌렀을 때 수행할 작업
           Navigator.of(context).pop();
         },
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xFF233067),
       centerTitle: true,
       title: Text(
         '버스킹존 등록',
         style: TextStyle(
-          color: Colors.black,
+          color: Colors.white,
         ),
       ),
     );

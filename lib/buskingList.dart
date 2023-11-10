@@ -89,21 +89,29 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
     busKingList.clear();
     DateTime now = DateTime.now();
     DateTime today = DateTime(now.year, now.month, now.day);
-
+    List<Map<String,dynamic>> list = [];
     QuerySnapshot buskingSnap = await fs.collection("busking")
         .where('buskingStart', isGreaterThan: Timestamp.fromDate(today))
         .orderBy("buskingStart")
         .get();
 
     List<Map<String, dynamic>> buskingData = await _fetchBuskingData(buskingSnap);
-
+    buskingData.sort((a, b) {
+      DateTime dateTimeA = a['startTime'];
+      DateTime dateTimeB = b['startTime'];
+      return dateTimeB.compareTo(dateTimeA);
+    });
     QuerySnapshot pastBuskingSnap = await fs.collection("busking")
         .where('buskingStart', isLessThan: Timestamp.fromDate(today))
         .orderBy("buskingStart")
         .get();
 
     List<Map<String, dynamic>> pastBuskingData = await _fetchBuskingData(pastBuskingSnap);
-
+    pastBuskingData.sort((a, b) {
+      DateTime dateTimeA = a['startTime'];
+      DateTime dateTimeB = b['startTime'];
+      return dateTimeB.compareTo(dateTimeA);
+    });
     return [...buskingData, ...pastBuskingData];
   }
   Widget _buskingList() {
@@ -111,9 +119,15 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
       future: _buskingList2(),
       builder: (BuildContext context, AsyncSnapshot<List> snapshot) {
         if(snapshot.connectionState == ConnectionState.waiting){
-          return SizedBox(
-              height : 400,
-              child: LoadingWidget());
+          return Expanded(
+            child: ListView(
+              children: [
+                SizedBox(
+                    height : 400,
+                    child: LoadingWidget()),
+              ],
+            ),
+          );
         }else{
           if (snapshot.hasData && snapshot.data!.isNotEmpty){
             return Expanded(
