@@ -4,6 +4,7 @@ import 'package:indie_spot/announcementDetailed.dart';
 import 'package:indie_spot/baseBar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:get/get.dart';
 
 class AnnouncementList extends StatefulWidget {
   const AnnouncementList({super.key});
@@ -28,7 +29,7 @@ class _AnnouncementListState extends State<AnnouncementList> {
                   Scaffold.of(context).openDrawer();
                 },
                 icon: Icon(Icons.menu),
-                color: Colors.black54,
+                color: Colors.white,
               );
             },
           ),
@@ -38,19 +39,19 @@ class _AnnouncementListState extends State<AnnouncementList> {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: Colors.black54,
+            color: Colors.white,
           ),
           onPressed: () {
             // 뒤로가기 버튼을 눌렀을 때 수행할 작업
-            Navigator.of(context).pop();
+            Get.back();
           },
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFF233067),
         centerTitle: true,
         title: Text(
           '공지사항',
           style: TextStyle(
-            color: Colors.black,
+            color: Colors.white,
           ),
         ),
       ),
@@ -89,9 +90,13 @@ class _AnnouncementListState extends State<AnnouncementList> {
       ),
       bottomNavigationBar: MyBottomBar(),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Color(0xFF392F31),
+        backgroundColor: Color(0xFF233067),
         onPressed: (){
-          Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddAnnouncement(),)).then((value) => setState(() {}));
+          Get.to(
+              AddAnnouncement(), //이동하려는 페이지
+              preventDuplicates: true, //중복 페이지 이동 방지
+              transition: Transition.noTransition //이동애니메이션off
+          )?.then((value) => setState(() {}));
         },
         child: Icon(Icons.edit),
       ),
@@ -121,7 +126,13 @@ class _AnnouncementListState extends State<AnnouncementList> {
               border: Border(bottom: BorderSide(width: 1, color: Colors.black26))
             ),
               child: ListTile(
-                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => AnnouncementDetailed(announcementDocument),)).then((value) => setState((){})),
+                onTap: () {
+                  Get.to(
+                      AnnouncementDetailed(announcementDocument), //이동하려는 페이지
+                      preventDuplicates: true, //중복 페이지 이동 방지
+                      transition: Transition.noTransition //이동애니메이션off
+                  );
+                },
                 title: Padding(
                   padding: const EdgeInsets.only(bottom: 5),
                   child: Text(title, style: TextStyle(color: Colors.black, fontFamily: 'Noto_Serif_KR', fontSize: 15, fontWeight: FontWeight.w500),),

@@ -71,25 +71,15 @@ class Result extends StatelessWidget {
                   Scaffold.of(context).openDrawer();
                 },
                 icon: Icon(Icons.menu),
-                color: Colors.black54,
+                color: Colors.white,
               );
             },
           ),
         ],
         elevation: 1,
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFF233067),
         centerTitle: true,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: Colors.black54,
-          ),
-          onPressed: () {
-            // 뒤로가기 버튼을 눌렀을 때 수행할 작업
-            Navigator.of(context).pop();
-          },
-        ),
         title: Text(
           '',
           style: TextStyle(color: Colors.black),
@@ -121,7 +111,7 @@ class Result extends StatelessWidget {
                     decoration: BoxDecoration(
                       border: Border(bottom: BorderSide(width: 1, color: Colors.black)),
                     ),
-                    child: Text('결제정보', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    child: Text('결제정보', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
                   )
               ),
             ],
@@ -137,8 +127,8 @@ class Result extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('결제방법', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black54)),
-                        Text('결제방법', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black54))
+                        Text('결제방법', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.black54)),
+                        Text('카드', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.black54))
                       ],
                     )
                   )
@@ -157,8 +147,8 @@ class Result extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('주문번호', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black54)),
-                          Text(result['merchant_uid'], style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black54))
+                          Text('주문번호', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.black54)),
+                          Text(result['merchant_uid'], style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.black54))
                         ]
                       )
                   )
@@ -177,8 +167,8 @@ class Result extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('결제금액', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black54)),
-                          Text("${NumberFormat.decimalPattern().format(int.parse(info['paid_amount']))}원", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black54))
+                          Text('결제금액', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.black54)),
+                          Text("${NumberFormat.decimalPattern().format(int.parse(info['paid_amount']))}원", style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.black54))
                         ],
                       )
                   )
@@ -197,8 +187,8 @@ class Result extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('충전 포인트', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black54)),
-                          Text("${info['point']}P", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black54))
+                          Text('충전 포인트', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.black54)),
+                          Text("${info['point']}P", style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.black54))
                         ],
                       )
                   )
@@ -224,14 +214,14 @@ class Result extends StatelessWidget {
              margin: EdgeInsets.only(bottom: 40),
              child: Column(
                children: [
-                 Text(isSuccessed ? '결제가 완료되었습니다.' : '결제가 실패되었습니다.', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                 Text(isSuccessed ? '결제가 완료되었습니다.' : '결제가 실패되었습니다.', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20)),
                  Text(isSuccessed ? '이용해주셔서 감사합니다.' : '다시 시도해주세요', style: TextStyle(fontSize: 20)),
                ],
              ),
            ),
            ElevatedButton(
              style: ButtonStyle(
-               backgroundColor: MaterialStatePropertyAll(Color(0xFF392F31)),
+               backgroundColor: MaterialStatePropertyAll(Color(0xFF233067)),
                shape: MaterialStatePropertyAll(
                  RoundedRectangleBorder(
                    borderRadius: BorderRadius.zero

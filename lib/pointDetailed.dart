@@ -7,6 +7,7 @@ import 'package:indie_spot/pointRecharge.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:get/get.dart';
 
 class PointDetailed extends StatefulWidget {
   const PointDetailed({super.key});
@@ -31,7 +32,7 @@ class _PointDetailedState extends State<PointDetailed> {
           String,
           dynamic>;
       setState(() {
-        _pointBalance = data!['pointBalance'];
+        _pointBalance = data['pointBalance'];
       });
     } else {}
   }
@@ -41,7 +42,7 @@ class _PointDetailedState extends State<PointDetailed> {
     super.initState();
     final userModel = Provider.of<UserModel>(context, listen: false);
     if (!userModel.isLogin) {
-      Navigator.pop(context);
+      Get.back();
     } else {
       _userId = userModel.userId;
       pointBalanceSearch();
@@ -62,7 +63,7 @@ class _PointDetailedState extends State<PointDetailed> {
                   Scaffold.of(context).openDrawer();
                 },
                 icon: Icon(Icons.menu),
-                color: Colors.black54,
+                color: Colors.white,
               );
             },
           ),
@@ -72,18 +73,18 @@ class _PointDetailedState extends State<PointDetailed> {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: Colors.black54,
+            color: Colors.white,
           ),
           onPressed: () {
             // 뒤로가기 버튼을 눌렀을 때 수행할 작업
-            Navigator.of(context).pop();
+            Get.back();
           },
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFF233067),
         centerTitle: true,
         title: Text(
           '포인트',
-          style: TextStyle(color: Colors.black),
+          style: TextStyle(color: Colors.white),
         ),
       ),
       body: ListView(
@@ -163,7 +164,11 @@ class _PointDetailedState extends State<PointDetailed> {
         children: [
           TextButton(
               onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => PointRecharge(),));
+                Get.to(
+                  PointRecharge(),
+                  preventDuplicates: true,
+                  transition: Transition.noTransition
+                );
               },
               child: Column(
                 children: [
@@ -177,7 +182,11 @@ class _PointDetailedState extends State<PointDetailed> {
           ),
           TextButton(
               onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => PointExchange(),)).then((value) => setState((){}));
+                Get.to(
+                    PointExchange(),
+                    preventDuplicates: true,
+                    transition: Transition.noTransition
+                );
               },
               child: Column(
                 children: [
@@ -190,7 +199,11 @@ class _PointDetailedState extends State<PointDetailed> {
           ),
           TextButton(
               onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => PointHistory(),));
+                Get.to(
+                    PointHistory(),
+                    preventDuplicates: true,
+                    transition: Transition.noTransition
+                );
               },
               child: Column(
                 children: [

@@ -9,7 +9,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter/material.dart';
 import 'donationPage.dart';
 import 'dart:async';
-
+import 'package:get/get.dart';
 class ConcertDetails extends StatefulWidget {
   final DocumentSnapshot document;
   final String spotName;
@@ -281,7 +281,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
     }
   }
   //----------------------------------------------------두번째 탭 영역--------------------------------------------------------------------
- // 필요한 경우 초기값 설정
+  // 필요한 경우 초기값 설정
 
   void onRatingChanged(double newRating) {
     setState(() {
@@ -477,7 +477,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
           .doc(buskingData?['artistId'])
           .get();
 
-       artistId = buskingData?['artistId'];
+      artistId = buskingData?['artistId'];
       if (artistDoc.exists) {
         artistData = artistDoc; // 데이터를 artistData에 할당합니다.
         print(artistDoc.data());
@@ -567,14 +567,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                           left: 340, // 위치 조절
                           child: GestureDetector(
                             onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => DonationPage(
-                                    artistId: _artistId!, // null이 아님을 확신하고 사용
-                                  ),
-                                ),
-                              );
+                              Get.to(DonationPage(artistId: _artistId!)); // null이 아님을 확신하고 사용
                             },
                             child: Image.asset(
                               'assets/nukki.png', // 추가할 이미지의 경로
@@ -583,6 +576,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                             ),
                           ),
                         ),
+
                         Stack(
                           children: [
                             Positioned(
@@ -627,7 +621,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                       color: Color(0xFF3E2007),
                       padding: EdgeInsets.all(8.0), // 내부 여백 설정
                       child: Text(
-                        ' ${buskingData?['description']}',
+                        ' ${buskingData?['title']}',
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color: Colors.white),
                       ),
                     ),
@@ -648,7 +642,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
 
                     Container(
                       color: Colors.grey[200],
-                      height: 210,
+                      height: 610,
                       width: 400,
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
@@ -660,13 +654,21 @@ class _ConcertDetailsState extends State<ConcertDetails> {
 
 
 
-                              ),
+                            ),
 
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8.0), // 네모 모양을 위한 BorderRadius 설정
+                                  child: Image.network(
+                                    _path ?? '',
+                                    height: 380,
+                                    width: 310,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
                                 Text(
                                   '이름: ${artistData2?['artistName']}',
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -679,28 +681,25 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                 ),
                                 SizedBox(height: 20),
                                 Text(
-                                  '장소: ${widget.spotName}', // widget을 사용하여 spotName에 접근합니다.
+                                  '장소:               ${widget.spotName}', // widget을 사용하여 spotName에 접근합니다.
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
                                 SizedBox(height: 20),
                                 Text(
-                                  '버스킹시간: ${DateFormat('yyyy-MM-dd').format(buskingData?['buskingStart'].toDate())}',
+                                  '버스킹시간:    ${DateFormat('yyyy-MM-dd').format(buskingData?['buskingStart'].toDate())}',
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
                                 Text(
-                                  '장르: ${artistData2?['genre']}',
+                                  '장르:                ${artistData2?['genre']}',
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                ),
+                                Text(
+                                  '소개 :               ${buskingData?['description']}',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color: Colors.black),
                                 ),
                               ],
                             ),
-                             ClipRRect(
-                              borderRadius: BorderRadius.circular(8.0), // 네모 모양을 위한 BorderRadius 설정
-                              child: Image.network(
-                                _path ?? '',
-                                height: 160,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
+
                           ],
 
                         ),
@@ -878,6 +877,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                 for (var document in buskingReview!)
                                   if (document['rating'] != null)
                                     Container(
+                                      height: 160,
                                       width: double.infinity,
                                       margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                                       padding: EdgeInsets.all(16.0),
@@ -950,6 +950,10 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                               child: Row(
                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween, // 텍스트와 간격 사이에 공간을 만듭니다.
                                                 children: [
+                                                  Text(
+                                                    "${document['nick']}",
+                                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color: Colors.black), // Adjust font size and weight
+                                                  ),
                                                   SizedBox(width: 8.0),
                                                   Text(
                                                     '수정하기',
@@ -962,10 +966,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                           ),
 
 
-                                          Text(
-                                            "${document['nick']}",
-                                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold), // Adjust font size and weight
-                                          ),
+
                                           Text(
                                             "${document['reviewContents']}",
                                             style: TextStyle(fontSize: 16), // Adjust font size

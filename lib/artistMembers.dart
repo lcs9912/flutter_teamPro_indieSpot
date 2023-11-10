@@ -47,6 +47,7 @@ class _ArtistMembersStatus extends State<ArtistMembers> {
         "position": position,
         "userId": joinId,
         "status": 'N',
+        "createtime" : Timestamp.now()
       });
 
       // "team_join" 컬렉션에서 문서 삭제

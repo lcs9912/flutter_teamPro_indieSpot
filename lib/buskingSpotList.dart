@@ -36,16 +36,16 @@ class _BuskingZoneListState extends State<BuskingZoneList> {
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: TextField(
+            cursorColor: Color(0xFF233067),
             decoration: InputDecoration(
               hintText: '검색',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.search),
-              suffixIcon: IconButton(
-                onPressed: () {_searchControl.clear(); setState(() {});},
-                icon: Icon(Icons.cancel_outlined),
-                highlightColor: Colors.transparent, // 클릭 시 하이라이트 효과를 제거
-                splashColor: Colors.transparent,
+              focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF233067))
               ),
+              enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF233067))
+              ),
+              prefixIcon: Icon(Icons.search, color: Color(0xFF233067),),
             ),
             controller: _searchControl,
             textInputAction: TextInputAction.go,
@@ -142,7 +142,7 @@ class _BuskingZoneListState extends State<BuskingZoneList> {
                           onPressed: (){
                             Scaffold.of(context).openDrawer();
                           },
-                          icon: Icon(Icons.menu),color: Colors.black54);
+                          icon: Icon(Icons.menu),color: Colors.white);
                     }
                 ),
               ],
@@ -150,22 +150,23 @@ class _BuskingZoneListState extends State<BuskingZoneList> {
               leading: IconButton(
                 icon: Icon(
                   Icons.arrow_back, // 뒤로가기 아이콘
-                  color: Colors.black54, // 원하는 색상으로 변경
+                  color: Colors.white, // 원하는 색상으로 변경
                 ),
                 onPressed: () {
                   // 뒤로가기 버튼을 눌렀을 때 수행할 작업
                   Navigator.of(context).pop(); // 이 코드는 화면을 닫는 예제입니다
                 },
               ),
-              backgroundColor: Colors.white,
+              backgroundColor: Color(0xFF233067),
               centerTitle: true,
-              title: Text('버스킹존 목록', style: TextStyle(color: Colors.black),),
+              title: Text('버스킹존 목록', style: TextStyle(color: Colors.white),),
               bottom: TabBar(
                 isScrollable: true,
+                indicatorColor: Colors.white,
                 tabs: [
                   for(String region in _regions)
                     Tab(
-                      child: Text(region, style: TextStyle(color: Colors.black),),
+                      child: Text(region, style: TextStyle(color: Colors.white),),
                     )
                 ],
                 unselectedLabelColor: Colors.black, // 선택되지 않은 탭의 텍스트 색상
@@ -187,7 +188,7 @@ class _BuskingZoneListState extends State<BuskingZoneList> {
           body: _spotList(),
           bottomNavigationBar: MyBottomBar(),
           floatingActionButton: FloatingActionButton(
-            backgroundColor: Color(0xFF392F31),
+            backgroundColor: Color(0xFF233067),
             onPressed: (){
               Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddBuskingSpot(),)).then((value) => setState(() {}));
             },

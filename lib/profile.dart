@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/pointDetailed.dart';
 import 'package:indie_spot/userEdit.dart';
-
+import 'package:get/get.dart';
+import 'boardList.dart';
+import 'donationArtistList.dart';
 import 'followList.dart';
 
 class Profile extends StatefulWidget {
@@ -24,7 +26,8 @@ class Profile extends StatefulWidget {
 List<Map<String, dynamic>> _postsData = [];
 List<QueryDocumentSnapshot<Map<String, dynamic>>>? userImages;
 class _ProfileState extends State<Profile> {
-
+  Map<String,dynamic>? userData;
+  Map<String,dynamic>? imgData;
   List<String> imagePaths = []; // Define the list of image paths
   String? _nickFromFirestore; // Firestore에서 가져온 'nick' 값을 저장할 변수
   String? _introductionFromFirestore;
@@ -34,8 +37,8 @@ class _ProfileState extends State<Profile> {
   String? _followingCount;
   String? _followingCnt;
   String? _path;
-
-
+  FirebaseFirestore fs = FirebaseFirestore.instance;
+  ImageProvider<Object>? imageProvider;
 
   @override
   void initState() {
@@ -126,17 +129,18 @@ class _ProfileState extends State<Profile> {
             .get();
 
         if (snapshot.exists) {
+          var image = await snapshot.reference.collection('image').get();
           var nick = snapshot.data()!['nick'];
           var introduction = snapshot.data()!['introduction'];
           var followingCnt = snapshot.data()!['followingCnt'];
           var followerCnt = snapshot.data()!['followerCnt'];
           setState(() {
+            _path = image.docs.first.data()['PATH'];
             _nickFromFirestore = nick;
             _introductionFromFirestore = introduction;
             _followingCntFromFirestore = followingCnt.toString();
             _followerCntFromFirestore = followerCnt.toString();
           });
-
         }
       }
     } catch (e) {
@@ -324,42 +328,51 @@ class _ProfileState extends State<Profile> {
   }
   List<Widget> getUserImageWidgets() {
     List<Widget> imageWidgets = [];
-    if (userImages != null) { // artistImages가 null인지 확인합니다.
-      for (var index = 0; index < userImages!.length; index++) {
-        var imagePath = userImages![index]['path'];
-
+    if (_path != null) { // artistImages가 null인지 확인합니다.
         // 이미지 URL이 유효한지 확인
-        if (Uri.parse(imagePath).isAbsolute) {
-          // 유효한 URL일 경우 Image.network 사용
-          imageWidgets.add(
-            Image.network(
-              imagePath,
-              height: 130,
-              width: double.infinity,
-              fit: BoxFit.cover,
+      if (Uri.parse(_path!).isAbsolute) {
+        // 유효한 URL일 경우 Image.network 사용
+        imageWidgets.add(
+          Image.network(
+            _path!,
+            height: 130,
+            width: double.infinity,
+            fit: BoxFit.cover,
 
-            ),
-          );
-          print(userImages![index]['path']);
-        } else {
-          // 잘못된 URL이면 에러 핸들링 또는 대체 이미지를 사용할 수 있습니다.
-          imageWidgets.add(
-            Placeholder(
-              fallbackHeight: 130,
-              fallbackWidth: double.infinity,
-            ),
-          );
-          print(userImages![index]['path']);
-        }
+          ),
+        );
+        print(_path);
+      } else {
+        // 잘못된 URL이면 에러 핸들링 또는 대체 이미지를 사용할 수 있습니다.
+        imageWidgets.add(
+          Placeholder(
+            fallbackHeight: 130,
+            fallbackWidth: double.infinity,
+          ),
+        );
       }
     }
 
     return imageWidgets;
   }
-
+  void userInfo() async{
+    DocumentSnapshot user = await fs.collection("userList").doc(widget.userId).get();
+    if(user.exists){
+      setState(() {
+        userData = user.data() as Map<String,dynamic>;
+      });
+      QuerySnapshot userImg = await fs.collection("userList").doc(widget.userId).collection("image").get();
+      if(userImg.docs.isNotEmpty){
+        setState(() {
+          imgData = userImg.docs.first.data() as Map<String,dynamic>;
+          imageProvider = NetworkImage(imgData?['PATH']);
+        });
+      }else{imageProvider = NetworkImage(imgData?['PATH']);}
+    }
+  }
   @override
   Widget build(BuildContext context) {
-
+    print('asdas$imgData');
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white, // AppBar 배경색을 흰색으로 설정
@@ -377,7 +390,7 @@ class _ProfileState extends State<Profile> {
           },
         ),
       ),
-        body: SingleChildScrollView(
+      body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -385,19 +398,29 @@ class _ProfileState extends State<Profile> {
             Row(
               children: [
                 CircleAvatar(
-                  radius: 50,
-                  backgroundImage: imagePaths.isNotEmpty
-                      ? AssetImage(
-                      imagePaths[0]) // Assuming you want to use the first image from the list
-                      : AssetImage('assets/기본.jpg'),
+                  radius: 40,
+                  backgroundColor: Colors.transparent, // 배경색을 투명하게 설정
+                  backgroundImage: imageProvider, // 프로필 이미지
+                  child: _path != null
+                      ? ClipOval(
+                    child: Image.network(
+                      _path!,
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover, // 이미지를 둥글게 자르기
+                    ),
+                  )
+                      : null,
                 ),
+
                 GestureDetector(
-                  onTap: () {
-                    Navigator.of(context, rootNavigator: true).push(
-                      MaterialPageRoute(builder: (context) => FollowList()),
+                  onTap: () async {
+                    await Get.to(
+                      FollowList(), // 이동하려는 페이지
+                      preventDuplicates: true, // 중복 페이지 이동 방지
+                      transition: Transition.noTransition, // 이동 애니메이션 off
                     );
                   },
-
                   child: Column(
                     children: [
                       Align(
@@ -416,8 +439,6 @@ class _ProfileState extends State<Profile> {
                       ),
                     ],
                   ),
-
-
                 )
 
               ],
@@ -445,13 +466,13 @@ class _ProfileState extends State<Profile> {
                     alignment: Alignment.topRight,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Navigate to userEdit.dart
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => UserEdit()),
+                        // Navigate to DonationArtistList
+                        Get.to(
+                          UserEdit(),
+                          preventDuplicates: true,
+                          transition: Transition.noTransition,
                         );
                       },
-
                       child: Text(
                         '계정 수정',
                         style: TextStyle(color: Colors.white),
@@ -462,18 +483,14 @@ class _ProfileState extends State<Profile> {
                     ),
                   ),
                 ),
+
               ],
             ),
             SizedBox(height: 40),
             ElevatedButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => PointDetailed()),
-                );
-
+                Get.to(PointDetailed());
               },
-
               child: Text(
                 '포인트 상세',
                 style: TextStyle(color: Colors.white),
@@ -483,6 +500,7 @@ class _ProfileState extends State<Profile> {
                 fixedSize: Size.fromWidth(500), // 가로로 꽉 차도록 설정
               ),
             ),
+
             SizedBox(height: 21,),
             Text(
               "post",
@@ -500,42 +518,49 @@ class _ProfileState extends State<Profile> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: _postsData.map((postData) {
-                return Card(
-                  elevation: 5, // 그림자 추가
-                  margin: EdgeInsets.all(10), // 카드 주위의 간격
-                  child: Padding(
-                    padding: EdgeInsets.all(10), // 내부 내용의 간격
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '제목:',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                return GestureDetector(
+                  onTap: () {
+                    Get.to(BoardList());
+                  },
+                  child: Card(
+                    elevation: 5, // 그림자 추가
+                    margin: EdgeInsets.all(10), // 카드 주위의 간격
+                    child: Padding(
+                      padding: EdgeInsets.all(10), // 내부 내용의 간격
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '제목:',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        Text(
-                          '${postData['title']}',
-                          style: TextStyle(
-                            fontSize: 16,
+                          Text(
+                            '${postData['title']}',
+                            style: TextStyle(
+                              fontSize: 16,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 10), // 간격 추가
+                          SizedBox(height: 10), // 간격 추가
 
-                        Text(
-                          '${postData['content']}',
-                          style: TextStyle(
-                            fontSize: 16,
+                          Text(
+                            '${postData['content']}',
+                            style: TextStyle(
+                              fontSize: 16,
+                            ),
                           ),
-                        ),
-                        // 다른 정보들도 원하는대로 추가하세요.
-                      ],
+                          // 다른 정보들도 원하는대로 추가하세요.
+                        ],
+                      ),
                     ),
                   ),
                 );
               }).toList(),
             )
+
+
 
           ],
         ),

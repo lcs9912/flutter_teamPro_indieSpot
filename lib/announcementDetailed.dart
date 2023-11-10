@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:indie_spot/baseBar.dart';
 import 'package:intl/intl.dart';
+import 'package:get/get.dart';
 
 class AnnouncementDetailed extends StatefulWidget {
   final QueryDocumentSnapshot<Map<String, dynamic>> announcementDocument;
@@ -47,7 +48,7 @@ class _AnnouncementDetailedState extends State<AnnouncementDetailed> {
                   Scaffold.of(context).openDrawer();
                 },
                 icon: Icon(Icons.menu),
-                color: Colors.black54,
+                color: Colors.white,
               );
             },
           ),
@@ -57,19 +58,19 @@ class _AnnouncementDetailedState extends State<AnnouncementDetailed> {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: Colors.black54,
+            color: Colors.white,
           ),
           onPressed: () {
             // 뒤로가기 버튼을 눌렀을 때 수행할 작업
-            Navigator.of(context).pop();
+            Get.back();
           },
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFF233067),
         centerTitle: true,
         title: Text(
           '공지사항',
           style: TextStyle(
-            color: Colors.black,
+            color: Colors.white,
           ),
         ),
       ),

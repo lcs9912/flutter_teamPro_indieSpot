@@ -32,20 +32,16 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-        title: Text("indieSpot"),
-        backgroundColor: Colors.white,
+        title: Text("IndieSpot", style: TextStyle(color: Color(0xFFFFFFFF)),),
+        elevation: 0,
+        backgroundColor: Color(0xFF233067),
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
               onPressed: (){
-
-              },
-              icon: Icon(Icons.person),color: Colors.black54),
-          IconButton(
-              onPressed: (){
                 Scaffold.of(context).openDrawer();
               },
-              icon: Icon(Icons.menu),color: Colors.black54),
+              icon: Icon(Icons.menu),color: Colors.white),
         ]
     );
   }
@@ -193,6 +189,7 @@ class _MyDrawerState extends State<MyDrawer> {
                   Get.to(
                     AnnouncementList(),
                     preventDuplicates: true,
+                    transition: Transition.noTransition
                   );
                 },
               ),
@@ -202,6 +199,7 @@ class _MyDrawerState extends State<MyDrawer> {
                   Get.to(
                     BuskingList(),
                     preventDuplicates: true,
+                    transition: Transition.noTransition
                   );
                 },
               ),
@@ -210,8 +208,9 @@ class _MyDrawerState extends State<MyDrawer> {
                 onTap: () {
                   if(_userId != null){
                     Get.to(
-                      DonationArtistList(),
-                      preventDuplicates: true,
+                      DonationArtistList(), //이동하려는 페이지
+                      preventDuplicates: true, //중복 페이지 이동 방지
+                      transition: Transition.noTransition //이동애니메이션off
                     );
                   }else{
                     DialogHelper.showUserRegistrationDialog(context);
@@ -225,6 +224,7 @@ class _MyDrawerState extends State<MyDrawer> {
                     Get.to(
                       UserDonationHistory(),
                       preventDuplicates: true,
+                      transition: Transition.noTransition
                     );
                   }else{
                     DialogHelper.showUserRegistrationDialog(context);
@@ -238,6 +238,7 @@ class _MyDrawerState extends State<MyDrawer> {
                     Get.to(
                       DonationList(artistId: _artistId!,),
                       preventDuplicates: true,
+                      transition: Transition.noTransition
                     );
                   }else{
                     DialogHelper.showArtistRegistrationDialog(context);
@@ -250,12 +251,15 @@ class _MyDrawerState extends State<MyDrawer> {
                   var user = Provider.of<UserModel>(context, listen: false);
                   if(user.isArtist){
                     Get.to(
-                      ArtistInfo(doc!, 'aaa')
+                      ArtistInfo(user.artistId!),
+                      preventDuplicates: true,
+                      transition: Transition.noTransition
                     );
                   } else {
                     Get.to(
                       ArtistRegi(),
                       preventDuplicates: true,
+                      transition: Transition.noTransition
                     );
                   }
                 },
@@ -267,6 +271,7 @@ class _MyDrawerState extends State<MyDrawer> {
                      Get.to(
                        ProprietorAdd(),
                        preventDuplicates: true,
+                       transition: Transition.noTransition
                      );
                   }else{
                     DialogHelper.showUserRegistrationDialog(context);
@@ -278,7 +283,8 @@ class _MyDrawerState extends State<MyDrawer> {
                 onTap: () {
                   Get.to(
                     Support(),
-                    preventDuplicates: true
+                    preventDuplicates: true,
+                    transition: Transition.noTransition
                   );
                 },
               ),
@@ -292,7 +298,8 @@ class _MyDrawerState extends State<MyDrawer> {
                 onTap: () {
                   Get.to(
                     AdminMain(),
-                    preventDuplicates: true
+                    preventDuplicates: true,
+                    transition: Transition.noTransition
                   );
                 },
               ),
@@ -309,7 +316,8 @@ class _MyDrawerState extends State<MyDrawer> {
                 onTap: () {
                   Get.to(
                     BuskingZoneList(),
-                    preventDuplicates: true
+                    preventDuplicates: true,
+                    transition: Transition.noTransition
                   );
                 },
               ),
@@ -318,7 +326,8 @@ class _MyDrawerState extends State<MyDrawer> {
                 onTap: () {
                   Get.to(
                     CommercialList(),
-                    preventDuplicates: true
+                    preventDuplicates: true,
+                    transition: Transition.noTransition
                   );
                 },
               ),
@@ -339,7 +348,8 @@ class _MyDrawerState extends State<MyDrawer> {
                     }else{
                       Get.to(
                         RenTalHistory(),
-                        preventDuplicates: true
+                        preventDuplicates: true,
+                        transition: Transition.noTransition
                       );
                     }
                   }
@@ -381,6 +391,7 @@ class _MyBottomBarState extends State<MyBottomBar> {
                       Get.to(
                         ArtistList(),
                         preventDuplicates: true,
+                        transition: Transition.noTransition
                       );
                     },
                     child: Image.asset('assets/mic.png',width: 23,),
@@ -390,15 +401,17 @@ class _MyBottomBarState extends State<MyBottomBar> {
                       Get.to(
                         BuskingList(),
                         preventDuplicates: true,
+                        transition: Transition.noTransition
                       );
                     },
                     child: Icon(Icons.calendar_month_outlined,color: Colors.black54,),
                   ),
                   InkWell(
                     onTap: () {
-                      Get.toNamed(
-                        '/',
-                        preventDuplicates: true, // 현재 페이지와 동일한 페이지로의 이동 방지
+                      Get.to(
+                          MyApp(),
+                          preventDuplicates: true,
+                          transition: Transition.noTransition
                       );
                     },
                     child: Icon(Icons.home_outlined,color: Colors.black54,),
@@ -408,6 +421,7 @@ class _MyBottomBarState extends State<MyBottomBar> {
                       Get.to(
                         VideoList(),
                         preventDuplicates: true,
+                        transition: Transition.noTransition
                       );
                     },
                     child: Icon(Icons.play_circle_outline,color: Colors.black54,),
@@ -421,6 +435,7 @@ class _MyBottomBarState extends State<MyBottomBar> {
                               userId: user.userId,
                           ),
                           preventDuplicates: true,
+                          transition: Transition.noTransition
                         );
                       } else{
                         DialogHelper.showUserRegistrationDialog(context);

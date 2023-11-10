@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:get/get.dart';
 
 class VideoDetailed extends StatefulWidget {
   final Map<String, dynamic> videoDetailData;
@@ -113,7 +114,7 @@ class _VideoDetailedState extends State<VideoDetailed> {
   Widget build(BuildContext context) {
 
     return Scaffold(
-      backgroundColor: Color(0xFFEEEEEE),
+      backgroundColor: Color(0xFFFFFFFF),
       drawer: MyDrawer(),
       appBar: AppBar(
         actions: [
@@ -124,7 +125,7 @@ class _VideoDetailedState extends State<VideoDetailed> {
                   Scaffold.of(context).openDrawer();
                 },
                 icon: Icon(Icons.menu),
-                color: Colors.black54,
+                color: Colors.white,
               );
             },
           ),
@@ -134,18 +135,18 @@ class _VideoDetailedState extends State<VideoDetailed> {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: Colors.black54,
+            color: Colors.white,
           ),
           onPressed: () {
             // 뒤로가기 버튼을 눌렀을 때 수행할 작업
-            Navigator.of(context).pop();
+            Get.back();
           },
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFF233067),
         centerTitle: true,
         title: Text(
           widget.videoDetailData['title'],
-          style: TextStyle(color: Colors.black,),
+          style: TextStyle(color: Colors.white),
         ),
       ),
       body: ListView(
@@ -174,7 +175,7 @@ class _VideoDetailedState extends State<VideoDetailed> {
                   padding: EdgeInsets.only(bottom: 15),
                   child: ListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: Text(widget.videoDetailData['title'], style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(
+                    title: Text(widget.videoDetailData['title'], style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: Color(
                         0xFF484848)),),
                     subtitle: Row(
                       children: [
@@ -202,12 +203,15 @@ class _VideoDetailedState extends State<VideoDetailed> {
                     ),
                     TextButton(
                       onPressed: (){
-                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => ArtistInfo(widget.artistName as DocumentSnapshot<Object?>, img),));
+                        Get.to(
+                          ArtistInfo(widget.artistName?.id as String),
+                          transition: Transition.noTransition
+                        );
                       },
                       style: ButtonStyle(
                         padding: MaterialStatePropertyAll(EdgeInsets.zero), // 패딩 없음
                       ),
-                      child : Text(widget.artistName?.get("artistName"),style: TextStyle(fontSize: 16,fontWeight: FontWeight.bold)),
+                      child : Text(widget.artistName?.get("artistName"),style: TextStyle(fontSize: 16,fontWeight: FontWeight.w500, color: Color(0xFF233067))),
                     ),
                   ],
                 ),
@@ -229,8 +233,9 @@ class _VideoDetailedState extends State<VideoDetailed> {
                         addComment();
                         _commentControl.clear();
                       },
-                      icon: Icon(Icons.send),
-                    )
+                      icon: Icon(Icons.send, color: Color(0xFF233067),),
+                    ),
+                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF233067)))
                   ),
                   textInputAction: TextInputAction.go,
                   onSubmitted: (value) {
@@ -349,7 +354,7 @@ class _VideoDetailedState extends State<VideoDetailed> {
                                         padding: EdgeInsets.only(left: 10),
                                         child: TextButton(
                                           onPressed: (){
-                                            Navigator.of(context).pop();
+                                            Get.back();
                                             _editComment(pointDetailDocument.id, vedioDocRef, comment);
                                           },
                                           style: ButtonStyle(

@@ -16,10 +16,9 @@ import 'package:provider/provider.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 
 class ArtistInfo extends StatefulWidget {
-  final DocumentSnapshot doc;
-  final String artistImg;
+  final String docId;
 
-  ArtistInfo(this.doc, this.artistImg, {super.key});
+  ArtistInfo(this.docId, {super.key});
 
   @override
   State<ArtistInfo> createState() => _ArtistInfoState();
@@ -29,49 +28,51 @@ class _ArtistInfoState extends State<ArtistInfo> {
   FirebaseFirestore fs = FirebaseFirestore.instance;
 
   bool _followerFlg = false; // 팔로우 했는지!
-  bool scheduleFlg = false;
+  bool scheduleFlg = true;
   int? folCnt; // 팔로워
   String? _artistId; // 리더
   String? _artistId2; // 맴버
   String? _userId;
 
+  // 아티스트 정보
+  String? artistName;
+  String? artistImg;
+  DocumentSnapshot? documentSnapshotoc;
+  Map<String,dynamic>? infoMap;
   //////////////세션 확인//////////
   bool isDataLoaded = false; // 데이터 로드 완료 여부를 확인하는 변수
   @override
   void initState() {
     _followerCount();
+    _infoTitle();
+    _followCheck();
+
     final userModel = Provider.of<UserModel>(context, listen: false);
     if (!userModel.isLogin) {
     } else {
       _userId = userModel.userId;
-      _loadData().then((_) {
+      artistCheck();
         // 데이터 로딩이 완료된 경우 artistCheck 함수 호출
-        _followCheck();
-        artistCheck();
+
         isDataLoaded = true; // 데이터 로드 완료 표시
         setState(() {}); // 상태 업데이트
-      });
+
     }
     super.initState();
   }
 
-  Future<void> _loadData() async {
-    // 데이터 로딩 로직
-
-  }
 
   // 아티스트 권한 확인
   // 아티스트 멤버 권한이 리더 인 userId 가 _userId 와 같을때
   void artistCheck() async {
     final artistCheckSnap = await fs.collection('artist')
-        .doc(widget.doc.id)
+        .doc(widget.docId)
         .collection('team_members')
         .where('status', isEqualTo: 'Y')
         .where('userId', isEqualTo: _userId)
         .get();
-
     final artistMemberCheck = await fs.collection('artist')
-        .doc(widget.doc.id)
+        .doc(widget.docId)
         .collection('team_members')
         .where('userId', isEqualTo: _userId)
         .get();
@@ -92,7 +93,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
     final CollectionReference artistCollection =
         FirebaseFirestore.instance.collection('artist');
     final DocumentReference artistDocument =
-        artistCollection.doc(widget.doc.id);
+        artistCollection.doc(widget.docId);
 
     artistDocument.get().then((DocumentSnapshot documentSnapshot) {
       if (documentSnapshot.exists) {
@@ -110,7 +111,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
   void _followCheck() async {
     final followYnSnapshot = await fs
         .collection('artist')
-        .doc(widget.doc.id)
+        .doc(widget.docId)
         .collection('follower')
         .where('userId', isEqualTo: _userId)
         .get(); // 데이터를 검색하기 위해 get()를 사용합니다.
@@ -130,18 +131,18 @@ class _ArtistInfoState extends State<ArtistInfo> {
       _alertDialogWidget();
     } else {
       CollectionReference followAdd =
-          fs.collection('artist').doc(widget.doc.id).collection('follower');
+          fs.collection('artist').doc(widget.docId).collection('follower');
 
 
       await followAdd.add({'userId': _userId});
-      DocumentReference artistDoc = fs.collection('artist').doc(widget.doc.id);
+      DocumentReference artistDoc = fs.collection('artist').doc(widget.docId);
       artistDoc.update({
         'followerCnt': FieldValue.increment(1), // 1을 증가시킵니다.
       });
       // 유저
       var myFollowingRef = fs.collection('userList').doc(_userId);
       var myFollowing = await myFollowingRef.collection('following');
-      await myFollowing.add({"artistId": widget.doc.id});
+      await myFollowing.add({"artistId": widget.docId});
       myFollowingRef.update({
         'followingCnt': FieldValue.increment(1),
       });
@@ -153,7 +154,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
   // 팔로우 취소
   void _followDelete() async {
     CollectionReference followDelete =
-        fs.collection('artist').doc(widget.doc.id).collection('follower');
+        fs.collection('artist').doc(widget.docId).collection('follower');
 
     var myFollowingRef = fs.collection('userList').doc(_userId);
 
@@ -166,7 +167,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
         await document.reference.delete();
 
         DocumentReference artistDoc =
-            fs.collection('artist').doc(widget.doc.id);
+            fs.collection('artist').doc(widget.docId);
         artistDoc.update({
           'followerCnt': FieldValue.increment(-1), // 1을 감소시킵니다.
         });
@@ -174,7 +175,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
 
       await myFollowingRef
           .collection('following')
-          .where('artistId', isEqualTo: widget.doc.id)
+          .where('artistId', isEqualTo: widget.docId)
           .get()
           .then((querySnapshot) {
           querySnapshot.docs.forEach((doc) {
@@ -188,6 +189,32 @@ class _ArtistInfoState extends State<ArtistInfo> {
       _followCheck();
     }
   }
+
+  /////////////////상세 타이틀///////////////
+  // // 아티스트정보 불러오기
+  void _infoTitle() async {
+    DocumentSnapshot artistDoc = await fs.collection('artist').doc(widget.docId).get();
+
+    if (artistDoc.exists) {
+      setState(() {
+        infoMap = artistDoc.data() as Map<String, dynamic>;
+        documentSnapshotoc = artistDoc;
+      });
+
+      final imageCollection = await fs.collection('artist')
+          .doc(widget.docId)
+          .collection('image')
+          .get();
+
+      if (imageCollection.docs.isNotEmpty) {
+        setState(() {
+          artistImg = imageCollection.docs.isNotEmpty ? imageCollection.docs.first['path'] as String? : null;
+        });
+      }
+    }
+  }
+
+
   // 기본 엘럿 
   void inputDuplicateAlert(String content) {
     showDialog(
@@ -243,7 +270,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
         animatedIcon: AnimatedIcons.menu_close,
         visible: true,
         curve: Curves.bounceIn,
-        backgroundColor: Color(0xFF392F31),
+        backgroundColor: Color(0xFF233067),
         children: [
           SpeedDialChild(
               child: const Icon(Icons.settings_sharp, color: Colors.white),
@@ -252,8 +279,8 @@ class _ArtistInfoState extends State<ArtistInfo> {
                   fontWeight: FontWeight.w500,
                   color: Colors.white,
                   fontSize: 13.0),
-              backgroundColor: Color(0xFF392F31),
-              labelBackgroundColor: Color(0xFF392F31),
+              backgroundColor: Color(0xFF233067),
+              labelBackgroundColor: Color(0xFF233067),
               onTap: () {
 
                 if(_artistId != null){ // 리더가 맞다면
@@ -262,7 +289,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
                   }
                   Navigator.of(context).push(MaterialPageRoute(
                     builder: (context) {
-                      return ArtistEdit(widget.doc, widget.artistImg); // 새 페이지로 이동
+                      return ArtistEdit(documentSnapshotoc!, artistImg!); // 새 페이지로 이동
                     },
                   ));
                 } else{
@@ -277,8 +304,8 @@ class _ArtistInfoState extends State<ArtistInfo> {
               color: Colors.white,
             ),
             label: "내 후원기록",
-            backgroundColor: Color(0xFF392F31),
-            labelBackgroundColor: Color(0xFF392F31),
+            backgroundColor: Color(0xFF233067),
+            labelBackgroundColor: Color(0xFF233067),
             labelStyle: const TextStyle(
                 fontWeight: FontWeight.w500,
                 color: Colors.white,
@@ -287,7 +314,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
               if(_artistId != null){
                 Navigator.of(context)
                     .push(MaterialPageRoute(
-                  builder: (context) => DonationList(artistId: widget.doc.id),
+                  builder: (context) => DonationList(artistId: widget.docId),
                 ))
                     .then((value) => setState(() {}));
               } else {
@@ -301,8 +328,8 @@ class _ArtistInfoState extends State<ArtistInfo> {
                   color: Colors.white,
                 ),
                 label: "팀 관리",
-                backgroundColor: Color(0xFF392F31),
-                labelBackgroundColor: Color(0xFF392F31),
+                backgroundColor: Color(0xFF233067),
+                labelBackgroundColor: Color(0xFF233067),
                 labelStyle: const TextStyle(
                     fontWeight: FontWeight.w500,
                     color: Colors.white,
@@ -310,7 +337,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
                 onTap: () {
                   Navigator.of(context)
                       .push(MaterialPageRoute(
-                    builder: (context) => ArtistMembers(widget.doc, widget.artistImg, _artistId),
+                    builder: (context) => ArtistMembers(documentSnapshotoc!, artistImg!, _artistId),
                   ))
                       .then((value) => setState(() {}));
                 }),
@@ -321,7 +348,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
         animatedIcon: AnimatedIcons.menu_close,
         visible: true,
         curve: Curves.bounceIn,
-        backgroundColor: Color(0xFF392F31),
+        backgroundColor: Color(0xFF233067),
         children: [
           SpeedDialChild(
               child: const Icon(Icons.settings_sharp, color: Colors.white),
@@ -330,13 +357,13 @@ class _ArtistInfoState extends State<ArtistInfo> {
                   fontWeight: FontWeight.w500,
                   color: Colors.white,
                   fontSize: 13.0),
-              backgroundColor: Color(0xFF392F31),
-              labelBackgroundColor: Color(0xFF392F31),
+              backgroundColor: Color(0xFF233067),
+              labelBackgroundColor: Color(0xFF233067),
               onTap: () {
                 if (_userId != null) {
                   Navigator.of(context).push(MaterialPageRoute(
                     builder: (context) =>
-                        DonationPage(artistId: widget.doc.id),
+                        DonationPage(artistId: widget.docId),
                   ));
                 } else {
                   _alertDialogWidget();
@@ -349,8 +376,8 @@ class _ArtistInfoState extends State<ArtistInfo> {
                 color: Colors.white,
               ),
               label: "팀 가입신청",
-              backgroundColor: Color(0xFF392F31),
-              labelBackgroundColor: Color(0xFF392F31),
+              backgroundColor: Color(0xFF233067),
+              labelBackgroundColor: Color(0xFF233067),
               labelStyle: const TextStyle(
                   fontWeight: FontWeight.w500,
                   color: Colors.white,
@@ -359,7 +386,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
                 if(_userId != null){
                   Navigator.of(context)
                       .push(MaterialPageRoute(
-                    builder: (context) => ArtistTeamJoin(widget.doc),
+                    builder: (context) => ArtistTeamJoin(documentSnapshotoc!),
                   )).then((value) => setState(() {}));
                 } else{
                   _alertDialogWidget();
@@ -372,87 +399,18 @@ class _ArtistInfoState extends State<ArtistInfo> {
     }
   }
 
-  /////////////////상세 타이틀///////////////
-  Widget _infoTitle() {
-    return Stack(
-      children: [
-        Image.network(
-          widget.artistImg,
-          width: double.infinity, // 화면에 가로로 꽉 차게 하려면 width를 화면 너비로 설정합니다.
-          height: 300, // 원하는 높이로 설정합니다.
-          fit: BoxFit.fill, // 이미지를 화면에 맞게 채우도록 설정합니다.
-        ),
-        Positioned(
-            left: 5,
-            bottom: 5,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${widget.doc['artistName']}',
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white),
-                ),
-                Text(
-                  '${widget.doc['genre']}',
-                  style: TextStyle(fontSize: 14, color: Colors.white),
-                ),
-              ],
-            )),
-        Positioned(
-            right: 5,
-            bottom: 5,
-            child: Row(
-              children: [
-                Stack(
-                  children: [
-                    if (_followerFlg)
-                      IconButton(
-                          onPressed: () {
-                            _followDelete();
-                            setState(() {});
-                          },
-                          icon: Icon(Icons.person_add)),
-                    if (!_followerFlg)
-                      IconButton(
-                          onPressed: () {
-                            _followAdd();
-                            setState(() {});
-                          },
-                          icon: Icon(Icons.person_add_alt)),
-                    Positioned(
-                        right: 1, top: 1, child: Text(folCnt.toString())),
-                  ],
-                ),
-                IconButton(
-                  onPressed: () {
-                    if (_userId != null) {
-                      Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) =>
-                            DonationPage(artistId: widget.doc.id),
-                      ));
-                    } else {
-                      _alertDialogWidget();
-                    }
-                  },
-                  icon: Icon(Icons.price_change),
-                )
-              ],
-            )),
-      ],
-    );
-  }
+
+
 
 ////////////////////////////////아이스트 소개/////////////////////////////////////////
   // 아티스트 소개 데이터호출 위젯
   Future<List<Widget>> _artistDetails() async {
     final membersQuerySnapshot = await fs
         .collection('artist')
-        .doc(widget.doc.id)
+        .doc(widget.docId)
         .collection('team_members')
-        .get(); // 데이터를 검색하기 위해 get()를 사용합니다.
+        .orderBy('createtime', descending: false) // 'createtime'을 기준으로 최신 순으로 정렬
+        .get();
 
     List<Widget> memberWidgets = [];
 
@@ -499,45 +457,6 @@ class _ArtistInfoState extends State<ArtistInfo> {
     }
   }
 
-  // 아티스트 소개 탭
-  Widget tab1() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(widget.doc['artistInfo']),
-        ),
-        SizedBox(
-          height: 50,
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '기본공연비(공연시간 30분기준)',
-                style: TextStyle(fontSize: 15),
-              ),
-              Text(
-                '${widget.doc['basicPrice']} 원',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              )
-            ],
-          ),
-        ),
-        Divider(thickness: 1, height: 1, color: Colors.grey),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(
-            "멤버",
-            style: TextStyle(fontSize: 20),
-          ),
-        ),
-      ],
-    );
-  }
 
 //////////////////////////////아티스트 공연 일정//////////////////////////////////
 
@@ -549,7 +468,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
     // 버스킹 일정 확인
     final buskingScheduleSnapshot = await fs
         .collection('busking')
-        .where('artistId', isEqualTo: widget.doc.id)
+        .where('artistId', isEqualTo: widget.docId)
         .get();
 
     // 버스킹 일정
@@ -649,7 +568,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
             .collection('commercial_space')
             .doc(commerDoc.id)
             .collection('rental')
-            .where('artistId', isEqualTo: widget.doc.id)
+            .where('artistId', isEqualTo: widget.docId)
             .get();
 
         if (commerScheduleSnapshot.docs.isNotEmpty) {
@@ -748,11 +667,19 @@ class _ArtistInfoState extends State<ArtistInfo> {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
+        //extendBodyBehindAppBar: true, // AppBar를 바디 영역 뒤에 확장
         appBar: AppBar(
+          backgroundColor: Colors.transparent, // AppBar 배경을 투명하게 설정
+          elevation: 1,
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              color: Color(0xFFffffff), // 원하는 배경 색상으로 변경
+            ),
+          ),
           leading: Builder(
             builder: (context) {
               return IconButton(
-                color: Colors.black54,
+                color: Color(0xFF233067),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -762,16 +689,16 @@ class _ArtistInfoState extends State<ArtistInfo> {
           ),
           title: Center(
             child: Text(
-              "${widget.doc['artistName']}",
+              infoMap?['artistName'] ?? "",
               style:
-                  TextStyle(color: Colors.black54, fontWeight: FontWeight.bold),
+                  TextStyle(color: Color(0xFF233067), fontWeight: FontWeight.bold),
             ),
           ),
           actions: [
             Builder(
               builder: (context) {
                 return IconButton(
-                  color: Colors.black54,
+                  color: Color(0xFF233067),
                   onPressed: () {
                     Scaffold.of(context).openDrawer();
                   },
@@ -780,168 +707,232 @@ class _ArtistInfoState extends State<ArtistInfo> {
               },
             )
           ],
-          backgroundColor: Colors.white,
-          bottom: TabBar(
-            tabs: [
-              Tab(text: '소개'),
-              Tab(text: '공연일정'),
-              Tab(text: '클립'),
-            ],
-            unselectedLabelColor: Colors.black,
-            labelColor: Colors.blue,
-            labelStyle: TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
-            unselectedLabelStyle: TextStyle(
-              fontWeight: FontWeight.normal,
-            ),
-          ),
-          elevation: 1,
         ),
         drawer: MyDrawer(),
-        body: TabBarView(
+        body: Column(
           children: [
-            ListView(
-              // 소개 탭
-              children: [
-                Container(
-                  child: FutureBuilder(
-                    future: _artistDetails(),
-                    builder: (BuildContext context,
-                        AsyncSnapshot<dynamic> snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Container();
-                      } else if (snapshot.hasError) {
-                        return Text('Error: ${snapshot.error}');
-                      } else {
-                        return Column(
-                          children: [
-                            _infoTitle(),
-                            tab1(),
-                            Container(
-                              padding: EdgeInsets.only(top: 10),
-                              margin: EdgeInsets.all(20),
-                              child: Column(
-                                children: snapshot.data ?? [Container()],
-                              ),
-                            ),
-                          ],
-                        );
-                      }
-                    },
+            SizedBox(
+              height: 250,
+              child: Column(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipOval(
+                        child: artistImg != null ? Image.network(
+                          artistImg!,
+                          width: 100, // 원 모양 이미지의 너비
+                          height: 100, // 원 모양 이미지의 높이
+                          fit: BoxFit.cover, // 이미지를 화면에 맞게 조절
+                        ) : ClipOval(child: Container(width: 100,height: 100,color: Colors.grey,)),
+                      ),
+                      artistName != null ? Text(
+                        artistName!, // artistName
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black),
+                      ) : Text(""),
+                      infoMap?['artistInfo'] != null ?Text(
+                        infoMap?['artistInfo'], // artistName
+                        style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.black),
+                      ) : Text(""),
+                      infoMap?['genre'] != null ? Text(
+                        infoMap?['genre'],
+                        style: TextStyle(fontSize: 14, color: Colors.black),
+                      ) : Text(""),
+                      Row(
+                        children: [
+                          Stack(
+                            children: [
+                              if (_followerFlg)
+                                IconButton(
+                                    onPressed: () {
+                                      _followDelete();
+                                      setState(() {});
+                                    },
+                                    icon: Icon(Icons.person_add)),
+                              if (!_followerFlg)
+                                IconButton(
+                                    onPressed: () {
+                                      _followAdd();
+                                      setState(() {});
+                                    },
+                                    icon: Icon(Icons.person_add_alt)),
+                              Positioned(
+                                  right: 1, top: 1, child: Text(folCnt.toString())),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                )
-              ],
+                ],
+              ),
             ),
-            //////////////공연 일정 탭////////////
-            ListView(
-              //////////////공연 일정 탭////////////
-              children: [
-                Container(
-                  child: FutureBuilder(
-                    future:
-                        scheduleFlg ? _buskingSchedule() : _commerSchedule(),
-                    builder: (BuildContext context,
-                        AsyncSnapshot<dynamic> scheduleSnap) {
-                      if (scheduleSnap.connectionState ==
-                          ConnectionState.waiting) {
-                        return Container();
-                      } else if (scheduleSnap.hasError) {
-                        return Text('Error: ${scheduleSnap.error}');
-                      } else {
-                        return Column(
-                          children: [
-                            _infoTitle(),
-                            Container(
-                              child: Row(
+            TabBar(
+              tabs: [
+                Tab(text: '소개',),
+                Tab(text: '공연일정'),
+                Tab(text: '클립'),
+              ],
+              indicatorColor:Color(0xFF233067),
+              unselectedLabelColor: Colors.black,
+              labelColor: Color(0xFF233067),
+              labelStyle: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+              unselectedLabelStyle: TextStyle(
+                fontWeight: FontWeight.normal,
+              ),
+            ),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  ListView(
+                    // 소개 탭
+                    children: [
+                      Container(
+                        child: FutureBuilder(
+                          future: _artistDetails(),
+                          builder: (BuildContext context,
+                              AsyncSnapshot<dynamic> snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return Container();
+                            } else if (snapshot.hasError) {
+                              return Text('Error: ${snapshot.error}');
+                            } else {
+                              return Column(
                                 children: [
                                   Container(
-                                    child: Center(
-                                      child: TextButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            scheduleFlg = true;
-                                          });
-                                        },
-                                        child: Text(
-                                          "버스킹",
-                                          style: TextStyle(color: Colors.grey),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Container(
-                                    child: Center(
-                                      child: TextButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            scheduleFlg = false;
-                                          });
-                                        },
-                                        child: Text(
-                                          "상업공간",
-                                          style: TextStyle(color: Colors.grey),
-                                        ),
-                                      ),
+                                    padding: EdgeInsets.only(top: 10),
+                                    margin: EdgeInsets.all(20),
+                                    child: Column(
+                                      children: snapshot.data ?? [Container()],
                                     ),
                                   ),
                                 ],
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.only(top: 10),
-                              margin: EdgeInsets.all(20),
-                              child: Column(
-                                children: scheduleSnap.data ?? [Container()],
-                              ),
-                            ),
-                          ],
-                        );
-                      }
-                    },
+                              );
+                            }
+                          },
+                        ),
+                      )
+                    ],
                   ),
-                )
-              ],
+                  //////////////공연 일정 탭////////////
+                  ListView(
+                    //////////////공연 일정 탭////////////
+                    children: [
+                      Container(
+                        child: FutureBuilder(
+                          future:
+                          scheduleFlg ? _buskingSchedule() : _commerSchedule(),
+                          builder: (BuildContext context,
+                              AsyncSnapshot<dynamic> scheduleSnap) {
+                            if (scheduleSnap.connectionState ==
+                                ConnectionState.waiting) {
+                              return Container();
+                            } else if (scheduleSnap.hasError) {
+                              return Text('Error: ${scheduleSnap.error}');
+                            } else {
+                              return Column(
+                                children: [
+                                  Container(
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          child: Center(
+                                            child: TextButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  scheduleFlg = true;
+                                                });
+                                              },
+                                              child: Text(
+                                                "버스킹",
+                                                style: TextStyle(color: Color(0xFF233067)),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          child: Center(
+                                            child: TextButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  scheduleFlg = false;
+                                                });
+                                              },
+                                              child: Text(
+                                                "상업공간",
+                                                style: TextStyle(color: Colors.grey),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: EdgeInsets.only(top: 10),
+                                    margin: EdgeInsets.all(20),
+                                    child: Column(
+                                      children: scheduleSnap.data ?? [Container()],
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }
+                          },
+                        ),
+                      )
+                    ],
+                  ),
+
+                  ///////////클립 탭/////////////
+                  StreamBuilder(
+                      stream: fs
+                          .collection('video')
+                          .where('artistId', isEqualTo: widget.docId)
+                          .orderBy('cnt', descending: true)
+                          .snapshots(),
+                      builder: (context, AsyncSnapshot<QuerySnapshot> videoSnap) {
+                        if (!videoSnap.hasData) {
+                          return Center();
+                        }
+                        return GridView.builder(
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2, // 2개의 열을 가진 그리드
+                                crossAxisSpacing: 2,
+                                mainAxisSpacing: 2),
+                            itemCount: videoSnap.data!.docs.length,
+                            itemBuilder: (context, index) {
+                              DocumentSnapshot doc = videoSnap.data!.docs[index];
+                              Map<String, dynamic> data =
+                                  doc.data() as Map<String, dynamic>;
+                              String url = data['url'];
+                              return GestureDetector(
+                                  onTap: () {
+                                    Navigator.of(context)
+                                        .push(MaterialPageRoute(
+                                            builder: (context) => VideoDetailed(
+                                                data,
+                                                doc.id,
+                                                doc as DocumentSnapshot<
+                                                    Map<String, dynamic>>?)))
+                                        .then((value) => setState(() {}));
+                                  },
+                                  child: Image.network(
+                                    'https://img.youtube.com/vi/$url/0.jpg',
+                                    fit: BoxFit.cover,
+                                  ));
+                            });
+                      }),
+                ],
+              ),
             ),
-            ///////////클립 탭/////////////
-            StreamBuilder(
-                stream: fs
-                    .collection('video')
-                    .where('artistId', isEqualTo: widget.doc.id)
-                    .orderBy('cnt', descending: true)
-                    .snapshots(),
-                builder: (context, AsyncSnapshot<QuerySnapshot> videoSnap) {
-                  if (!videoSnap.hasData) {
-                    return Center();
-                  }
-                  return GridView.builder(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2, // 2개의 열을 가진 그리드
-                          crossAxisSpacing: 2,
-                          mainAxisSpacing: 2),
-                      itemCount: videoSnap.data!.docs.length,
-                      itemBuilder: (context, index) {
-                        DocumentSnapshot doc = videoSnap.data!.docs[index];
-                        Map<String, dynamic> data =
-                            doc.data() as Map<String, dynamic>;
-                        String url = data['url'];
-                        return GestureDetector(
-                            onTap: () {
-                              Navigator.of(context)
-                                  .push(MaterialPageRoute(
-                                      builder: (context) => VideoDetailed(
-                                          data,
-                                          doc.id,
-                                          widget.doc as DocumentSnapshot<
-                                              Map<String, dynamic>>?)))
-                                  .then((value) => setState(() {}));
-                            },
-                            child: Image.network(
-                              'https://img.youtube.com/vi/$url/0.jpg',
-                              fit: BoxFit.cover,
-                            ));
-                      });
-                }),
           ],
         ),
         floatingActionButton: floatingButtons(),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:indie_spot/baseBar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:indie_spot/loading.dart';
+import 'package:indie_spot/pointDetailed.dart';
 import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
 import 'buskingReservation.dart';
@@ -67,7 +69,7 @@ class _ExchangeInformationState extends State<ExchangeInformation> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return LoadingScreen();
+        return LoadingWidget();
       },
       barrierDismissible: false, // 사용자가 화면을 탭해서 닫는 것을 막습니다.
     );
@@ -109,7 +111,7 @@ class _ExchangeInformationState extends State<ExchangeInformation> {
           });
 
           if (!context.mounted) return;
-          Navigator.of(context).pop();
+          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => PointDetailed(),));
         } else {
           // 사용자가 교환을 위한 충분한 포인트를 가지고 있지 않을 때 처리
           print('교환을 위한 포인트가 부족합니다.');
@@ -143,7 +145,7 @@ class _ExchangeInformationState extends State<ExchangeInformation> {
               Expanded(child: ElevatedButton(
                 style: ButtonStyle(
                     minimumSize: MaterialStatePropertyAll(Size(0, 48)),
-                    backgroundColor: MaterialStatePropertyAll(Color(0xFF392F31)),
+                    backgroundColor: MaterialStatePropertyAll(Color(0xFF233067)),
                     elevation: MaterialStatePropertyAll(0),
                     shape: MaterialStatePropertyAll(
                         RoundedRectangleBorder(
@@ -212,11 +214,11 @@ class _ExchangeInformationState extends State<ExchangeInformation> {
                           ],
                         ),
                         actions: [
-                          TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('취소')),
+                          TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('취소', style: TextStyle(color: Color(0xFF233067)),)),
                           TextButton(onPressed: (){
                             _addExchange();
                             Navigator.of(context).pop();
-                          }, child: Text('신청')),
+                          }, child: Text('신청', style: TextStyle(color: Color(0xFF233067)),)),
                         ],
                       );
                     },);
@@ -259,7 +261,14 @@ class _ExchangeInformationState extends State<ExchangeInformation> {
                 fontWeight: FontWeight.w500,
               ),
               controller: control,
+              cursorColor: Color(0xFF233067),
               decoration: InputDecoration(
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF233067)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF233067))
+                  ),
                   contentPadding: EdgeInsets.only(left: 10),
                   hintText: '$hint',
                   hintStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
@@ -301,7 +310,14 @@ class _ExchangeInformationState extends State<ExchangeInformation> {
                   fontWeight: FontWeight.w500,
               ),
               controller: control,
+              cursorColor: Color(0xFF233067),
               decoration: InputDecoration(
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF233067)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF233067))
+                  ),
                 contentPadding: EdgeInsets.only(left: 10),
                 hintText: '$hint',
                 hintStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
@@ -333,7 +349,14 @@ class _ExchangeInformationState extends State<ExchangeInformation> {
                   fontWeight: FontWeight.w500
               ),
               controller: control,
+              cursorColor: Color(0xFF233067),
               decoration: InputDecoration(
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF233067)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF233067))
+                ),
                 contentPadding: EdgeInsets.only(left: 10),
                 hintText: '$hint',
                 hintStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
@@ -356,7 +379,7 @@ class _ExchangeInformationState extends State<ExchangeInformation> {
                 Scaffold.of(context).openDrawer();
               },
               icon: Icon(Icons.menu),
-              color: Colors.black54,
+              color: Colors.white,
             );
           },
         ),
@@ -366,19 +389,19 @@ class _ExchangeInformationState extends State<ExchangeInformation> {
       leading: IconButton(
         icon: Icon(
           Icons.arrow_back,
-          color: Colors.black54,
+          color: Colors.white,
         ),
         onPressed: () {
           // 뒤로가기 버튼을 눌렀을 때 수행할 작업
           Navigator.of(context).pop();
         },
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xFF233067),
       centerTitle: true,
       title: Text(
         '정보입력',
         style: TextStyle(
-          color: Colors.black,
+          color: Colors.white,
         ),
       ),
     );

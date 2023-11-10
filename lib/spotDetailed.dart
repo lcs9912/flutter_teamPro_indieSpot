@@ -53,8 +53,8 @@ class _SpotDetailedState extends State<SpotDetailed> {
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(widget._data['spotName'], style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                ElevatedButton(onPressed: (){_launchWeb(widget._addr[0]['addr'], widget._addr[0]['addr2']);}, child: Text('길찾기'), style: ButtonStyle(elevation: MaterialStatePropertyAll(0), backgroundColor: MaterialStatePropertyAll(Color(0xFF392F31))),)
+                Text(widget._data['spotName'], style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
+                ElevatedButton(onPressed: (){_launchWeb(widget._addr[0]['addr'], widget._addr[0]['addr2']);}, child: Text('길찾기'), style: ButtonStyle(elevation: MaterialStatePropertyAll(0), backgroundColor: MaterialStatePropertyAll(Color(0xFF233067))),)
               ],
             ),
             subtitle: Column(
@@ -130,7 +130,7 @@ class _SpotDetailedState extends State<SpotDetailed> {
             Expanded(child: ElevatedButton(
               style: ButtonStyle(
                 minimumSize: MaterialStatePropertyAll(Size(0, 48)),
-                backgroundColor: MaterialStatePropertyAll(Color(0xFF392F31)),
+                backgroundColor: MaterialStatePropertyAll(Color(0xFF233067)),
                 elevation: MaterialStatePropertyAll(0),
                 shape: MaterialStatePropertyAll(
                   RoundedRectangleBorder(
@@ -159,7 +159,7 @@ class _SpotDetailedState extends State<SpotDetailed> {
                   onPressed: (){
                     Scaffold.of(context).openDrawer();
                   },
-                  icon: Icon(Icons.menu),color: Colors.black54);
+                  icon: Icon(Icons.menu),color: Colors.white);
             }
         ),
       ],
@@ -167,16 +167,16 @@ class _SpotDetailedState extends State<SpotDetailed> {
       leading: IconButton(
         icon: Icon(
           Icons.arrow_back, // 뒤로가기 아이콘
-          color: Colors.black54, // 원하는 색상으로 변경
+          color: Colors.white, // 원하는 색상으로 변경
         ),
         onPressed: () {
           // 뒤로가기 버튼을 눌렀을 때 수행할 작업
           Navigator.of(context).pop(); // 이 코드는 화면을 닫는 예제입니다
         },
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xFF233067),
       centerTitle: true,
-      title: Text('버스킹존', style: TextStyle(color: Colors.black),),
+      title: Text('버스킹존', style: TextStyle(color: Colors.white),),
     );
   }
 

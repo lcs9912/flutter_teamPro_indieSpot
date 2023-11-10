@@ -47,7 +47,7 @@ void main() async {
         ],
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          scaffoldBackgroundColor: Colors.white, // 전체 페이지의 배경 색상
+          scaffoldBackgroundColor: Color(0xFFffffff), // 전체 페이지의 배경 색상
           fontFamily: 'Noto_Serif_KR', // 폰트 패밀리 이름을 지정
         ),
         getPages: [
@@ -56,7 +56,7 @@ void main() async {
           GetPage(name: '/', page: () => MyApp()),
           // 다른 경로와 페이지 설정
         ],
-        initialRoute: '/',
+        home: MyApp(),
       ),
     ),
   );
@@ -98,19 +98,13 @@ class _MyAppState extends State<MyApp> {
       child: Container(
         padding: EdgeInsets.only(top: 15,bottom: 15),
         decoration: BoxDecoration(
-          color: Colors.grey[300], // 백그라운드 색상
+          color: Color(0xFFffffff), // 백그라운드 색상
           border: Border.all(
             color: Color(0xFF392F31), // 보더 색상
-            width: 2.0, // 보더 두께
+            width: 0.5, // 보더 두께
           ),
           borderRadius: BorderRadius.circular(10.0), // 모서리 라운드
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey, // 그림자 색상
-              blurRadius: 5.0, // 그림자 블러 반지름
-              offset: Offset(0, 3), // 그림자 위치 (가로, 세로)
-            ),
-          ],
+
         ),
         child: Column(
           children: [
@@ -147,14 +141,40 @@ class _MyAppState extends State<MyApp> {
                   children: [
                     IconButton(
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => Profile(
-                              userId: _userId,
+                        if (_userId != null) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Profile(
+                                userId: _userId,
+                              ),
                             ),
-                          ),
-                        );
+                          );
+                        } else {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text('로그인 필요'),
+                                content: SingleChildScrollView(
+                                  child: ListBody(
+                                    children: <Widget>[
+                                      Text('로그인 후에 이용해주세요.'),
+                                    ],
+                                  ),
+                                ),
+                                actions: <Widget>[
+                                  TextButton(
+                                    child: Text('확인'),
+                                    onPressed: () {
+                                      Navigator.of(context).pop(); // 다이얼로그 닫기
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        }
                       },
                       icon: Icon(Icons.pages),
                     ),
@@ -388,7 +408,8 @@ class _MyAppState extends State<MyApp> {
         .where('buskingStart', isGreaterThan: Timestamp.fromDate(selectedDay))
         .get();
     // Firestore 쿼리를 생성하여 "busking" 컬렉션에서 현재 날짜를 지난 문서를 삭제합니다.
-    fs.collection('busking').where('buskingStart', isLessThan: Timestamp.fromDate(selectedDay)).get().then((querySnapshot) {
+    DateTime threeMonthsAgo = selectedDay.subtract(Duration(days: 3 * 30));
+    fs.collection('busking').where('buskingStart', isLessThan: Timestamp.fromDate(threeMonthsAgo)).get().then((querySnapshot) {
       querySnapshot.docs.forEach((doc) async {
         // "image" 서브컬렉션 삭제
         QuerySnapshot imageSubcollection = await doc.reference.collection('image').get();
@@ -484,7 +505,7 @@ class _MyAppState extends State<MyApp> {
           margin: EdgeInsets.only(right: 30),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16.0),
-            color: Colors.white, // 배경 색상
+            color: Color(0xFFffffff), // 배경 색상
             boxShadow: [
               BoxShadow(
                 color: Colors.grey.withOpacity(0.5),
@@ -646,12 +667,20 @@ class _MyAppState extends State<MyApp> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        "공연등록", style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white
-                                      ),
+                                      TextButton(
+                                        child: Text(
+                                          "공연등록", style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white
+                                        ),
+                                       ),
+                                        onPressed: (){
+                                          Navigator.push(
+                                              context,
+                                              MaterialPageRoute(builder: (_) => BuskingReservation()) // 상세페이지로 넘어갈것
+                                          );
+                                        },
                                       ),
                                       Text(
                                         "나의 재능을 홍보해보세요",
@@ -662,7 +691,6 @@ class _MyAppState extends State<MyApp> {
                                 ),
                               ],
                             ),
-
                             Stack(
                               children: [
                                 ElevatedButton(
@@ -705,6 +733,28 @@ class _MyAppState extends State<MyApp> {
                                 )
                               ],
                             ),
+                          ],
+                        ),
+                      ),
+                      Text("best artist"), // 인기많은 아티스트
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          children: [
+                            Column(
+                              children: [
+                                ClipOval(
+                                  child: Image.asset(
+                                    'assets/기본.jpg',
+                                    width: 100, // 원 모양 이미지의 너비
+                                    height: 100, // 원 모양 이미지의 높이
+                                    fit: BoxFit.cover, // 이미지를 화면에 맞게 조절
+                                  ),
+                                ),
+                                Text("루시")
+                              ],
+                            ),
+                            
                           ],
                         ),
                       ),
@@ -777,8 +827,11 @@ class _MyAppState extends State<MyApp> {
     }
 
     List<Widget> commerWidgets = [];
-
+    int count = 0;
     for (QueryDocumentSnapshot commerDoc in commerQuerySnapshot.docs) {
+      if(count == 3){
+        break;
+      }
       final spaceName = commerDoc['spaceName'];
       final _id = commerDoc.id;
       final startTime = Timestamp.fromDate(selectedDay);
@@ -830,75 +883,77 @@ class _MyAppState extends State<MyApp> {
 
               if (addrDoc.docs.isNotEmpty) {
                 final addr = addrDoc.docs.first['addr'];
-
-                final listItem = Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ListTile(
-                      visualDensity: VisualDensity(vertical: 4),
-                      contentPadding: EdgeInsets.all(0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      tileColor: Colors.white,
-                      title: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Container(
+                final listItem = Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16.0),
+                    color: Color(0xFFffffff), // 배경 색상
+                  ),
+                  padding: const EdgeInsets.all(8.0),
+                  child: ListTile(
+                    visualDensity: VisualDensity(vertical: 4),
+                    contentPadding: EdgeInsets.all(0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6.0),
+                    ),
+                    tileColor: Colors.white,
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Container(
+                                width: 100,
+                                height: 100,
+                                child: CachedNetworkImage(
+                                  imageUrl: img[0], // 이미지 URL
                                   width: 100,
                                   height: 100,
-                                  child: CachedNetworkImage(
-                                    imageUrl: img[0], // 이미지 URL
-                                    width: 100,
-                                    height: 100,
-                                    fit: BoxFit.cover,
-                                    placeholder: (context, url) => CircularProgressIndicator(),
-                                    errorWidget: (context, url, error) => Icon(Icons.error),
-                                  ),
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => CircularProgressIndicator(),
+                                  errorWidget: (context, url, error) => Icon(Icons.error),
                                 ),
                               ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    spaceName,
-                                    style: TextStyle(
-                                      fontSize: 18.0,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                            ),
+                            SizedBox(width: 10,),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  spaceName,
+                                  style: TextStyle(
+                                    fontSize: 18.0,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  Text('공연팀: $artistName'),
-                                  Container(
-                                    width: 200,
-                                    child: Text(
-                                      addr,
-                                      style: TextStyle(fontSize: 13),
-                                    ),
+                                ),
+                                Text('공연팀: $artistName'),
+                                Container(
+                                  width: 200,
+                                  child: Text(
+                                    addr,
+                                    style: TextStyle(fontSize: 13),
                                   ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          Column(
-                            children: [
-                              Text(date),
-                              Text(startTime),
-                              Text(endTime),
-                            ],
-                          ),
-                        ],
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => SpaceInfo(_id)),
-                        );
-                      },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        Column(
+                          children: [
+                            Text(date),
+                            Text(startTime),
+                            Text(endTime),
+                          ],
+                        ),
+                      ],
                     ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => SpaceInfo(_id)),
+                      );
+                    },
                   ),
                 );
                 commerWidgets.add(listItem);
@@ -907,10 +962,8 @@ class _MyAppState extends State<MyApp> {
           }
         }
       }
+      count++;
     }
-
     return commerWidgets;
   }
-
-
 }

@@ -5,6 +5,7 @@ import 'package:indie_spot/artistInfo.dart';
 import 'baseBar.dart';
 import 'userModel.dart';
 import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 
 class RadioItem {
   final String label;
@@ -39,7 +40,7 @@ class _ArtistListState extends State<ArtistList> {
   FocusNode _focusNode = FocusNode();
   late TextField sharedTextField;
 
-  dynamic? _stream; // 쿼리문
+  dynamic _stream; // 쿼리문
 
   int cnt = 0; // 팔로우 갯수
 
@@ -127,10 +128,10 @@ class _ArtistListState extends State<ArtistList> {
                           genreText = '${data['genre']} / ${data['detailedGenre']}';
                         }
 
-
+                        artistId = doc.id;
                         var img = imgSnap.data!.docs.first;
                         if (data['followerCnt'] != null) {
-                          artistId = doc.id;
+
                           cnt = data['followerCnt'];
                         } else {
                           cnt = 0;
@@ -160,7 +161,7 @@ class _ArtistListState extends State<ArtistList> {
                                       } else if (snapshot.hasError) {
                                         return Text('Error: ${snapshot.error}');
                                       } else {
-                                        return snapshot.data;
+                                        return snapshot.data ?? Container();
                                       }
                                     },
                                   ),
@@ -172,14 +173,11 @@ class _ArtistListState extends State<ArtistList> {
                           isThreeLine: true,
                           trailing: Icon(Icons.chevron_right),
                           onTap: () {
-                            String artistImg = img['path'];
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    ArtistInfo(doc, artistImg),
-                              ),
-                            );
+                            Get.to(
+                                ArtistInfo(doc.id), //이동하려는 페이지
+                                preventDuplicates: true, //중복 페이지 이동 방지
+                                transition: Transition.noTransition //이동애니메이션off
+                            )?.then((value) => setState(() {}));
                           },
                         );
                       } else {
@@ -267,7 +265,7 @@ class _ArtistListState extends State<ArtistList> {
           leading: Builder(
             builder: (context) {
               return IconButton(
-                color: Colors.black54,
+                color: Color(0xFF233067),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -279,14 +277,14 @@ class _ArtistListState extends State<ArtistList> {
             child: Text(
               "아티스트 목록",
               style:
-                  TextStyle(color: Colors.black54, fontWeight: FontWeight.bold),
+                  TextStyle(color: Color(0xFF233067), fontWeight: FontWeight.bold),
             ),
           ),
           actions: [
             Builder(
               builder: (context) {
                 return IconButton(
-                  color: Colors.black54,
+                  color: Color(0xFF233067),
                   onPressed: () {
                     Scaffold.of(context).openDrawer();
                   },
@@ -297,6 +295,15 @@ class _ArtistListState extends State<ArtistList> {
           ],
           backgroundColor: Colors.white,
           bottom: TabBar(
+            indicatorColor:Color(0xFF233067),
+            unselectedLabelColor: Colors.black,
+            labelColor: Color(0xFF233067),
+            labelStyle: TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+            unselectedLabelStyle: TextStyle(
+              fontWeight: FontWeight.normal,
+            ),
             tabs: [
               Tab(text: '전체'),
               Tab(text: '장르'),
@@ -316,14 +323,6 @@ class _ArtistListState extends State<ArtistList> {
                 });
               }
             },
-            unselectedLabelColor: Colors.black,
-            labelColor: Colors.blue,
-            labelStyle: TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
-            unselectedLabelStyle: TextStyle(
-              fontWeight: FontWeight.normal,
-            ),
           ),
           elevation: 1,
         ),
@@ -333,13 +332,13 @@ class _ArtistListState extends State<ArtistList> {
             Column(
               // 전체
               children: [
+                sharedTextField,
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: radioItems
                       .map((item) => customRadio(item.label, item.isSelected))
                       .toList(),
                 ),
-                sharedTextField,
                 _artistList(),
               ],
             ),
@@ -365,7 +364,7 @@ class _ArtistListState extends State<ArtistList> {
       },
       style: ButtonStyle(
         backgroundColor: MaterialStateProperty.all(
-            isSelected ? Color(0xFF392F31) : Colors.white),
+            isSelected ? Color(0xFF233067) : Colors.white),
       ),
       child: Text(
         label,

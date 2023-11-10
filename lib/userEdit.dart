@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
-
+import 'package:image_cropper/image_cropper.dart';
 import 'package:flutter/services.dart';
 import 'package:indie_spot/profile.dart';
 import 'package:indie_spot/userModel.dart';
@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart'; // ImagePicker를 import 해주세요.
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:get/get.dart';
 class UserEdit extends StatefulWidget {
 
 
@@ -23,7 +24,7 @@ class _UserEditState extends State<UserEdit> {
   TextEditingController _nicknameController = TextEditingController();
   TextEditingController _birthdayController = TextEditingController();
   TextEditingController _introductionController = TextEditingController();
-
+  ImageProvider<Object>? imageProvider;
   File? _selectedImage; // _selectedImage 변수를 정의합니다.
   bool _isNameChecked = false; // _isNameChecked 변수를 정의합니다.
   String? _userId;
@@ -42,6 +43,7 @@ class _UserEditState extends State<UserEdit> {
     getEmailFromFirestore();
 
   }
+
 
 
   Future<void> showLoginDialog(BuildContext context) async {
@@ -138,11 +140,19 @@ class _UserEditState extends State<UserEdit> {
     final pickedImage = await picker.pickImage(source: ImageSource.gallery);
 
     if (pickedImage != null) {
-      setState(() {
-        _selectedImage = File(pickedImage.path);
-      });
+      final croppedImage = await ImageCropper().cropImage(
+        sourcePath: pickedImage.path,
+        aspectRatio: CropAspectRatio(ratioX: 1.5, ratioY: 1), // 원하는 가로세로 비율 설정
+      );
+
+      if (croppedImage != null) {
+        setState(() {
+          _selectedImage = File(croppedImage.path);
+        });
+      }
     }
   }
+
 
   void _change() {
     setState(() {
@@ -218,15 +228,29 @@ class _UserEditState extends State<UserEdit> {
 
   Future<void> updateProfileImage(String imageUrl) async {
     try {
-      // Firestore에서 'userList' 컬렉션의 문서를 가져옵니다.
+      // 1. Firestore에서 'userList' 컬렉션의 문서를 가져옵니다.
       DocumentReference documentReference = FirebaseFirestore.instance
           .collection('userList')
           .doc(_userId); // 아이디를 사용하여 문서를 가져옵니다.
 
-      // 사용자 정보를 업데이트합니다.
+      // 2. 'userList' 컬렉션의 문서를 업데이트합니다.
       await documentReference.update({'profileImage': imageUrl});
 
-      // 업데이트가 성공하면 사용자에게 알림을 띄워줍니다.
+      // 3. 'image' 서브컬렉션에 대한 참조 가져오기
+      CollectionReference imageCollection = documentReference.collection('image');
+
+      // 4. 'image' 서브컬렉션에서 문서를 가져옵니다. 이 예시에서는 하나의 문서만 가져온다고 가정합니다.
+      QuerySnapshot<Object?> imageSnapshot =
+      await imageCollection.get();
+
+      if (imageSnapshot.docs.isNotEmpty) {
+        String imageDocumentId = imageSnapshot.docs[0].id;
+
+        // 5. 'image' 서브컬렉션의 문서를 업데이트합니다.
+        await imageCollection.doc(imageDocumentId).update({'PATH': imageUrl});
+      }
+
+      // 6. 업데이트가 성공하면 사용자에게 알림을 띄워줍니다.
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -249,6 +273,7 @@ class _UserEditState extends State<UserEdit> {
     }
   }
 
+
   // Widget _buildSelectedImage() {
   //   if (_selectedImage != null) {
   //     return Center(
@@ -270,7 +295,7 @@ class _UserEditState extends State<UserEdit> {
 
         // Process the image paths
         imagePaths =
-            imageSnapshot.docs.map((doc) => doc.data()['path'].toString()).toList();
+            imageSnapshot.docs.map((doc) => doc.data()['PATH'].toString()).toList();
       }
 
       return imagePaths;
@@ -310,13 +335,40 @@ class _UserEditState extends State<UserEdit> {
 
               ],
             ),
-            CircleAvatar(
-              radius: 50,
-              backgroundImage: imagePaths.isNotEmpty
-                  ? AssetImage(
-                  imagePaths[0]) // Assuming you want to use the first image from the list
-                  : AssetImage('assets/기본.jpg'),
+            FutureBuilder<List<String>>(
+              future: getImageData(),
+              builder: (BuildContext context, AsyncSnapshot<List<String>> snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator(); // 데이터를 가져오는 중입니다.
+                } else if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                } else {
+                  List<String> imagePaths = snapshot.data!;
+                  if (imagePaths.isNotEmpty) {
+                    return Column(
+                      children: imagePaths.map((path) {
+                        return CircleAvatar(
+                          radius: 40,
+                          backgroundColor: Colors.transparent, // 배경색을 투명하게 설정
+                          child: ClipOval(
+                            child: Image.network(
+                              path,
+                              width: 100, // 이미지의 가로 크기를 조절할 수 있습니다.
+                              height: 100, // 이미지의 세로 크기를 조절할 수 있습니다.
+                              fit: BoxFit.cover, // 이미지를 둥글게 자르기
+                            ),
+                          ),
+                        );
+
+                      }).toList(),
+                    );
+                  } else {
+                    return Text('이미지가 없습니다.');
+                  }
+                }
+              },
             ),
+
             SizedBox(height: 30),
             Column(
               children: [
@@ -397,14 +449,7 @@ class _UserEditState extends State<UserEdit> {
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => Profile(
-                      userId: _userId,
-                    ),
-                  ),
-                );
+                Get.to(Profile(userId: _userId));
               },
               child: Text('프로필 페이지로 이동'),
               style: ElevatedButton.styleFrom(
