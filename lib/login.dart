@@ -153,91 +153,122 @@ class _LoginPageState extends State<LoginPage> {
   void _login() async {
     FocusScope.of(context).unfocus();
     String email = _email.text;
-    const uniqueKey = 'Indie_spot'; // 비밀번호 추가 암호화를 위해 유니크 키 추가
-    final bytes = utf8.encode(_pwd.text + uniqueKey); // 비밀번호와 유니크 키를 바이트로 변환
-    final hash = sha512.convert(bytes); // 비밀번호를 sha256을 통해 해시 코드로 변환
+    const uniqueKey = 'Indie_spot';
+    final bytes = utf8.encode(_pwd.text + uniqueKey);
+    final hash = sha512.convert(bytes);
     String password = hash.toString();
 
-
-    if(email.isEmpty || _pwd.text.isEmpty){
+    if (email.isEmpty || _pwd.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('이메일과 비밀번호를 입력하세요'),
-            dismissDirection: DismissDirection.up,
-            behavior: SnackBarBehavior.floating,
-        )
+        SnackBar(
+          content: Text('이메일과 비밀번호를 입력하세요'),
+          dismissDirection: DismissDirection.up,
+          behavior: SnackBarBehavior.floating,
+        ),
       );
-       return;
+      return;
     }
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return LoadingWidget();
-      },
-      barrierDismissible: false, // 사용자가 화면을 탭해서 닫는 것을 막습니다.
-    );
+    try {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return LoadingWidget();
+        },
+        barrierDismissible: false,
+      );
 
-    final userDocs = await _fs.collection('userList')
-        .where('email', isEqualTo: email)
-        .where('pwd', isEqualTo: password).get();
+      final userDocs = await _fs
+          .collection('userList')
+          .where('email', isEqualTo: email)
+          .where('pwd', isEqualTo: password)
+          .get();
 
-    if (userDocs.docs.isNotEmpty) {
-      var data = userDocs.docs.first.data();
-      if(data['banYn'] == 'Y'){
-        if(!context.mounted) return;
+      if (userDocs.docs.isNotEmpty) {
+        var data = userDocs.docs.first.data();
+        if (data['banYn'] == 'Y') {
+          if (context.mounted) {
+            Get.back();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  '정지된 계정입니다 \n사유 : ${data['banReason']}',
+                ),
+              ),
+            );
+          }
+        } else {
+          final userId = userDocs.docs[0].id;
+          String? artistId;
+          CollectionReference artistCollectionRef = _fs.collection('artist');
+
+          QuerySnapshot artistDocs = await artistCollectionRef.get();
+
+          for (QueryDocumentSnapshot artistDoc in artistDocs.docs) {
+            CollectionReference teamMembersRef =
+            artistDoc.reference.collection('team_members');
+
+            // 각 teamMembers 쿼리를 병렬로 처리하기 위해 Future.wait 사용
+            List<Future<QuerySnapshot>> teamMembersQueries = [];
+
+            // userId를 사용하여 특정 문서 내에서 검색
+            teamMembersQueries.add(teamMembersRef
+                .where('userId', isEqualTo: userId)
+                .get());
+
+            // 병렬 처리를 위해 Future.wait 사용
+            List<QuerySnapshot> teamMembersSnapshots =
+            await Future.wait(teamMembersQueries);
+
+            if (teamMembersSnapshots.any((snapshot) => snapshot.docs.isNotEmpty)) {
+              artistId = artistDoc.id;
+              break; // 찾았으면 반복문 종료
+            }
+          }
+
+          if (context.mounted) {
+            if (artistId != null) {
+              // 아티스트 로그인
+              Provider.of<UserModel>(context, listen: false)
+                  .loginArtist(userId, artistId);
+              print('아티스트');
+            } else {
+              // 일반 사용자 로그인
+              Provider.of<UserModel>(context, listen: false).login(userId);
+              print('일반');
+            }
+
+            Get.off(
+              MyApp(),
+              transition: Transition.noTransition,
+            );
+          }
+        }
+      } else {
+        if (context.mounted) {
+          Get.back();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '이메일과 패스워드를 다시 확인해주세요.',
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // 에러가 발생할 경우 로그 출력
+      print('Error in login: $e');
+      if (context.mounted) {
         Get.back();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '정지된 계정입니다 \n사유 : ${data['banReason']}',
+              '로그인 중 오류가 발생했습니다.',
             ),
           ),
         );
-      } else{
-        final userId = userDocs.docs[0].id;
-        String? artistId;
-        CollectionReference artistCollectionRef = _fs.collection('artist');
-
-        QuerySnapshot artistDocs = await artistCollectionRef.get();
-
-        for (QueryDocumentSnapshot artistDoc in artistDocs.docs) {
-          // 각 artist 문서에서 team_members 컬렉션 참조
-          CollectionReference teamMembersRef = artistDoc.reference.collection('team_members');
-
-          // userId를 사용하여 특정 문서 내에서 검색
-          QuerySnapshot teamMembers = await teamMembersRef.where('userId', isEqualTo: userId).get();
-
-          if (teamMembers.docs.isNotEmpty) {
-            artistId = artistDoc.id;
-          }
-        }
-
-
-        if(!context.mounted) return;
-
-        if (artistId != null) {
-          Provider.of<UserModel>(context, listen: false).loginArtist(userId, artistId);
-          print('아티스트');
-        } else {
-          Provider.of<UserModel>(context, listen: false).login(userId);
-          print('일반');
-        }
-
-        Get.off(
-          MyApp(),
-          transition: Transition.noTransition
-        );
       }
-    } else {
-      if(!context.mounted) return;
-      Get.back();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '이메일과 패스워드를 다시 확인해주세요.',
-          ),
-        ),
-      );
     }
   }
 }

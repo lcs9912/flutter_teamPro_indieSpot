@@ -113,7 +113,7 @@ class _AdminUserInfoState extends State<AdminUserInfo> {
         animatedIcon: AnimatedIcons.menu_close,
         visible: true,
         curve: Curves.bounceIn,
-        backgroundColor: Color(0xFF392F31),
+        backgroundColor: Color(0xFF233067),
         children: [
           if(_banYn == 'N' || _banYn == null)
             ...[
@@ -124,8 +124,8 @@ class _AdminUserInfoState extends State<AdminUserInfo> {
                       fontWeight: FontWeight.w500,
                       color: Colors.white,
                       fontSize: 13.0),
-                  backgroundColor: Color(0xFF392F31),
-                  labelBackgroundColor: Color(0xFF392F31),
+                  backgroundColor: Color(0xFF233067),
+                  labelBackgroundColor: Color(0xFF233067),
                   onTap: () => _blockUser()
               ),
             ]
@@ -138,8 +138,8 @@ class _AdminUserInfoState extends State<AdminUserInfo> {
                       fontWeight: FontWeight.w500,
                       color: Colors.white,
                       fontSize: 13.0),
-                  backgroundColor: Color(0xFF392F31),
-                  labelBackgroundColor: Color(0xFF392F31),
+                  backgroundColor: Color(0xFF233067),
+                  labelBackgroundColor: Color(0xFF233067),
                   onTap: () => _unBlockUser()
               ),
             ],
@@ -149,8 +149,8 @@ class _AdminUserInfoState extends State<AdminUserInfo> {
                 color: Colors.white,
               ),
               label: "비밀번호 변경",
-              backgroundColor: Color(0xFF392F31),
-              labelBackgroundColor: Color(0xFF392F31),
+              backgroundColor: Color(0xFF233067),
+              labelBackgroundColor: Color(0xFF233067),
               labelStyle: const TextStyle(
                   fontWeight: FontWeight.w500,
                   color: Colors.white,
@@ -163,8 +163,8 @@ class _AdminUserInfoState extends State<AdminUserInfo> {
                 color: Colors.white,
               ),
               label: "사진 삭제",
-              backgroundColor: Color(0xFF392F31),
-              labelBackgroundColor: Color(0xFF392F31),
+              backgroundColor: Color(0xFF233067),
+              labelBackgroundColor: Color(0xFF233067),
               labelStyle: const TextStyle(
                   fontWeight: FontWeight.w500,
                   color: Colors.white,
@@ -317,155 +317,168 @@ class _AdminUserInfoState extends State<AdminUserInfo> {
   }
 
   Future<List<Widget>?> _adminUserInfoDetails() async {
-    String userId = widget.id;
+    try {
+      String userId = widget.id;
+      var userQuerySnapshot = await fs.collection('userList').doc(userId).get();
+      var allData = await fetchAllData();
+      var csQuerySnapshot = await fs.collection('commercial_space').where('proprietorId', isEqualTo: userId).get();
 
-    var userQuerySnapshot = await fs.collection('userList').doc(userId).get();
+      if (userQuerySnapshot.exists) {
+        var userdata = userQuerySnapshot.data();
+        String nick = userdata!['nick'];
+        String email = userdata!['email'];
+        String gender = userdata!['gender'];
+        String name = userdata!['name'];
+        var userImageSnapshot = await userQuerySnapshot.reference.collection('image').limit(1).get();
 
-    var allData = await fetchAllData();
+        if (userImageSnapshot.docs.isNotEmpty) {
+          String image = userImageSnapshot.docs.first.data()['PATH'];
 
-    var csQuerySnapshot = await fs.collection('commercial_space').where('proprietorId', isEqualTo: userId).get();
-    var artistQuerySnapshot = await getArtistsWithMatchingTeamMember(userId);
-
-    List<Map<String, dynamic>> csList = [];
-
-    for (var document in csQuerySnapshot.docs) {
-      Map<String, dynamic> data = document.data();
-      data['id'] = document.id; // id를 Map에 추가
-      csList.add(data);
-    }
-
-    if (userQuerySnapshot.exists) {
-      var userdata = userQuerySnapshot.data();
-      String nick = userdata!['nick'];
-      String email = userdata!['email'];
-      String gender = userdata!['gender'];
-      String name = userdata!['name'];
-      var userImageSnapshot = await userQuerySnapshot.reference.collection('image').limit(1).get();
-      List<Widget> userItems = [];
-
-      if (userImageSnapshot.docs.isNotEmpty) {
-        String image = userImageSnapshot.docs.first.data()['PATH'];
-
-        userItems.add(
-          Column(
-            children: [
-              Container(
-                height: 200,
-                color: Color(0xFF392F31),
-                padding: EdgeInsets.all(10),
-                child: Row(
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ClipOval(
-                          child: SizedBox(
-                            width: 120,
-                            height: 120,
-                            child: Image.network(image, fit: BoxFit.cover,)
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(width: 50,),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          height: 130,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text('이름  ', style: TextStyle(color: Colors.white),),
-                                  Text(name, style: TextStyle(color: Colors.white),),
-                                ],
-                              ),
-                              SizedBox(height: 5,),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text('닉네임  ', style: TextStyle(color: Colors.white),),
-                                  Text(nick, style: TextStyle(color: Colors.white),),
-                                ],
-                              ),
-                              SizedBox(height: 5,),
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('이메일  ', style: TextStyle(color: Colors.white),),
-                                  Text(email, style: TextStyle(color: Colors.white),),
-                                ],
-                              ),
-                              SizedBox(height: 5,),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text('성별  ', style: TextStyle(color: Colors.white),),
-                                  Text(gender, style: TextStyle(color: Colors.white),),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                  ],
-                ),
-              ),
-              TabBar(
-                tabs: [
-                  Tab(child: Text('게시판', style: TextStyle(color: Colors.black),)),
-                  Tab(child: Text('상업공간', style: TextStyle(color: Colors.black),)),
-                ], onTap: (value) => setState(() {
-                _currentTabIndex = value;
-              }),),
-              if (_currentTabIndex == 0)
-                SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: allData.map((data){
-                      return Container(
-                        decoration: BoxDecoration(
-                          border: Border(bottom: BorderSide(width: 1, color: Colors.black12))
-                        ),
-                        child: ListTile(
-                          onTap: () => _editPosts(data['document']),
-                          title: Text(data['data']['title']),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                )
-              else if (_currentTabIndex == 1)
-                  SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: csList.map((data){
-                        return Container(
-                          decoration: BoxDecoration(
-                              border: Border(bottom: BorderSide(width: 1, color: Colors.black12))
-                          ),
-                          child: ListTile(
-                            onTap: () => _editCs(data['id']),
-                            title: Text(data['spaceName']),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  )
-            ],
-          )
-        );
+          return [
+            _buildUserInfoWidget(image, name, nick, email, gender),
+            _buildTabBar(),
+            _buildTabContents(allData, csQuerySnapshot),
+          ];
+        }
       }
 
-      return userItems; // 수정: 반환 값을 설정합니다.
+      return null;
+    } catch (e) {
+      print("Error in _adminUserInfoDetails: $e");
+      return null; // 애플리케이션에서 오류를 적절하게 처리하세요.
+    }
+  }
+
+  Widget _buildUserInfoWidget(String image, String name, String nick, String email, String gender) {
+    return Column(
+      children: [
+        Container(
+          height: 200,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border(bottom: BorderSide(width: 1, color: Colors.black12))
+          ),
+          padding: EdgeInsets.all(10),
+          child: Row(
+            children: [
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ClipOval(
+                    child: SizedBox(
+                        width: 120,
+                        height: 120,
+                        child: Image.network(image, fit: BoxFit.cover,)
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(width: 50,),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    height: 130,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('이름  ', style: TextStyle(color: Colors.black),),
+                            Text(name, style: TextStyle(color: Colors.black),),
+                          ],
+                        ),
+                        SizedBox(height: 5,),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('닉네임  ', style: TextStyle(color: Colors.black),),
+                            Text(nick, style: TextStyle(color: Colors.black),),
+                          ],
+                        ),
+                        SizedBox(height: 5,),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('이메일  ', style: TextStyle(color: Colors.black),),
+                            Text(email, style: TextStyle(color: Colors.black),),
+                          ],
+                        ),
+                        SizedBox(height: 5,),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('성별  ', style: TextStyle(color: Colors.black),),
+                            Text(gender, style: TextStyle(color: Colors.black),),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              )
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTabBar() {
+    return TabBar(
+      indicatorColor: Color(0xFF233067),
+      tabs: [
+        Tab(child: Text('게시판', style: TextStyle(color: Colors.black),)),
+        Tab(child: Text('상업공간', style: TextStyle(color: Colors.black),)),
+      ],
+      onTap: (value) => setState(() {
+        _currentTabIndex = value;
+      }),
+    );
+  }
+
+  Widget _buildTabContents(List allData, QuerySnapshot csQuerySnapshot) {
+    if (_currentTabIndex == 0) {
+      return SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: allData.map((data) {
+            return Container(
+              decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(width: 1, color: Colors.black12)),
+              ),
+              child: ListTile(
+                onTap: () => _editPosts(data['document']),
+                title: Text(data['data']['title']),
+              ),
+            );
+          }).toList(),
+        ),
+      );
+    } else if (_currentTabIndex == 1) {
+      return SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: csQuerySnapshot.docs.map((document) {
+            Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+            data['id'] = document.id;
+            return Container(
+              decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(width: 1, color: Colors.black12)),
+              ),
+              child: ListTile(
+                onTap: () => _editCs(data['id']),
+                title: Text(data['spaceName']),
+              ),
+            );
+          }).toList(),
+        ),
+      );
     }
 
-    return null; // 사용자가 존재하지 않을 경우 null을 반환합니다.
+    return SizedBox.shrink();
   }
   
   Future<void> _editCs(String id) async {

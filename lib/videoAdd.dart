@@ -354,7 +354,8 @@ class _YoutubeTestState extends State<YoutubeAdd> {
           "content" : _videoContent.text,
           "title" : videoTitle.text,
           "url" : videoUrl.text,
-          "artistId" : _artistId
+          "artistId" : _artistId,
+          'deleteYn' : 'N'
         }
     );
   }
