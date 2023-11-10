@@ -29,7 +29,7 @@ class _DonationPageState extends State<DonationPage> {
   Map<String, dynamic>? userPoint;
   final List<int> _price = [1000 ,5000,10000];
   Map<String, dynamic>? userData;
-  Map<String, dynamic>? artistData;
+  Map<String, dynamic> artistData = {};
   Map<String, dynamic>? artistImg;
   FirebaseFirestore fs = FirebaseFirestore.instance;
   int amountInput = 1;
@@ -43,9 +43,9 @@ class _DonationPageState extends State<DonationPage> {
       Navigator.pop(context);
     } else {
       _userId = userModel.userId;
-      print(_userId);
       pointBalanceSearch().then((value) => _donationUser.text = userData?['nick']);
       print(widget.artistId);
+      print(_userId);
       artistInfo();
     }
   }
@@ -80,7 +80,10 @@ class _DonationPageState extends State<DonationPage> {
   }
   void _updataDonation() async{
     String amount1 = _donationAmount.text.replaceAll(',', '');
-    int amount = artistData?['donationAmount']+int.parse(amount1);
+    print(artistData);
+    await Future.delayed(Duration(seconds: 1));
+    print(artistData['donationAmount']);
+    int amount = artistData['donationAmount']+int.parse(amount1);
     FirebaseFirestore.instance.collection("artist").doc(widget.artistId).update({'donationAmount' : amount});
     int userPoint1 = userPoint?['pointBalance'] - int.parse(amount1);
     QuerySnapshot userPointSnap = await FirebaseFirestore.instance.collection("userList").doc(_userId).collection("point").get();
@@ -112,13 +115,7 @@ class _DonationPageState extends State<DonationPage> {
       drawer: MyDrawer(),
       appBar: AppBar(
         actions: [
-          IconButton(
-            onPressed: () {
-              // 아이콘 클릭 시 수행할 작업 추가
-            },
-            icon: Icon(Icons.person),
-            color: Colors.black54,
-          ),
+          
           Builder(
             builder: (context) {
               return IconButton(
@@ -126,7 +123,7 @@ class _DonationPageState extends State<DonationPage> {
                   Scaffold.of(context).openDrawer();
                 },
                 icon: Icon(Icons.menu),
-                color: Colors.black54,
+                color: Colors.white,
               );
             },
           ),
@@ -136,18 +133,18 @@ class _DonationPageState extends State<DonationPage> {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: Colors.black54,
+            color: Colors.white,
           ),
           onPressed: () {
             // 뒤로가기 버튼을 눌렀을 때 수행할 작업
             Navigator.of(context).pop();
           },
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFF233067),
         centerTitle: true,
         title: Text(
           'DONATION',
-          style: TextStyle(color: Colors.black,),
+          style: TextStyle(color: Colors.white,),
         ),
       ),
       body: ListView(
@@ -223,7 +220,7 @@ class _DonationPageState extends State<DonationPage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                        color: Colors.blue, // 활성 상태 보더 색상 설정
+                          color: Color(0xFF233067), // 활성 상태 보더 색상 설정
                       ),
                     ),
                   ),
@@ -247,7 +244,8 @@ class _DonationPageState extends State<DonationPage> {
                                amountInput = 1;
                              });
                            },
-                           child: Text("${_numberFormat.format(price)}원")
+                           child: Text("${_numberFormat.format(price)}원"),
+                         style: ButtonStyle(backgroundColor: MaterialStatePropertyAll(Color(0xFF233067))),
                        ),
                      ),
                    Padding(
@@ -259,7 +257,8 @@ class _DonationPageState extends State<DonationPage> {
                              amountInput = 1;
                            });
                          },
-                         child: Text("전액")
+                         child: Text("전액"),
+                       style: ButtonStyle(backgroundColor: MaterialStatePropertyAll(Color(0xFF233067))),
                      ),
                    )
                  ],
@@ -294,7 +293,7 @@ class _DonationPageState extends State<DonationPage> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                              color: Colors.blue, // 활성 상태 보더 색상 설정
+                              color: Color(0xFF233067), // 활성 상태 보더 색상 설정
                             ),
                           ),
                           isCollapsed: true,
@@ -323,7 +322,7 @@ class _DonationPageState extends State<DonationPage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                        color: Colors.blue, // 활성 상태 보더 색상 설정
+                        color: Color(0xFF233067), // 활성 상태 보더 색상 설정
                       ),
                     ),
                   ),
@@ -354,7 +353,7 @@ class _DonationPageState extends State<DonationPage> {
                 });
               }
               String amount1 = _donationAmount.text.replaceAll(',', '');
-              if(int.parse(amount1) < 1000){
+              if(_donationAmount.text.isNotEmpty&&int.parse(amount1) < 1000){
                 showDialog(context: context, builder: (context) {
                   return AlertDialog(
                     title: Text("최소 1,000원부터 후원 가능합니다."),
@@ -373,11 +372,15 @@ class _DonationPageState extends State<DonationPage> {
                   return AlertDialog(
                     title: Text("후원하시겠습니까?"),
                     actions: [
-                      ElevatedButton(onPressed: (){Navigator.of(context).pop();}, child: Text("취소")),
+                      ElevatedButton(
+                        onPressed: (){Navigator.of(context).pop();}, child: Text("취소"),
+                        style: ButtonStyle(backgroundColor: MaterialStatePropertyAll(Color(0xFF233067))),
+                      ),
                       ElevatedButton(onPressed: (){
                         _updataDonation();
                         Navigator.push(context, MaterialPageRoute(builder: (context) => DonationArtistList(),));
-                      }, child: Text("확인"))
+                      },style: ButtonStyle(backgroundColor: MaterialStatePropertyAll(Color(0xFF233067)))
+                      , child: Text("확인"))
                     ],
                   );
                 },);
@@ -385,6 +388,7 @@ class _DonationPageState extends State<DonationPage> {
             },
             child: Text("후원하기"),
             style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF233067),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.zero, // 모서리를 없애는 부분
               ),

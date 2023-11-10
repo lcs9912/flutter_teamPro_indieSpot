@@ -45,13 +45,6 @@ class _RenTalHistoryState extends State<RenTalHistory> {
       drawer: MyDrawer(),
       appBar: AppBar(
         actions: [
-          IconButton(
-            onPressed: () {
-              // 아이콘 클릭 시 수행할 작업 추가
-            },
-            icon: Icon(Icons.person),
-            color: Colors.black54,
-          ),
           Builder(
             builder: (context) {
               return IconButton(
@@ -59,7 +52,7 @@ class _RenTalHistoryState extends State<RenTalHistory> {
                   Scaffold.of(context).openDrawer();
                 },
                 icon: Icon(Icons.menu),
-                color: Colors.black54,
+                color: Colors.white,
               );
             },
           ),
@@ -69,18 +62,18 @@ class _RenTalHistoryState extends State<RenTalHistory> {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: Colors.black54,
+            color: Colors.white,
           ),
           onPressed: () {
             // 뒤로가기 버튼을 눌렀을 때 수행할 작업
             Navigator.of(context).pop();
           },
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFF233067),
         centerTitle: true,
         title: Text(
           '예약 내역',
-          style: TextStyle(color: Colors.black,),
+          style: TextStyle(color: Colors.white,),
         ),
       ),
       body: Column(
