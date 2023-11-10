@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/dialog.dart';
 import 'package:indie_spot/pointRecharge.dart';
+import 'package:indie_spot/rentalHistory.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'baseBar.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-
+import 'package:get/get.dart';
 
 class SpaceRental extends StatefulWidget {
   DocumentSnapshot document;
@@ -49,13 +50,7 @@ class _SpaceRentalState extends State<SpaceRental> {
       drawer: MyDrawer(),
       appBar: AppBar(
         actions: [
-          IconButton(
-            onPressed: () {
-              // 아이콘 클릭 시 수행할 작업 추가
-            },
-            icon: Icon(Icons.person),
-            color: Colors.black54,
-          ),
+
           Builder(
             builder: (context) {
               return IconButton(
@@ -63,7 +58,7 @@ class _SpaceRentalState extends State<SpaceRental> {
                   Scaffold.of(context).openDrawer();
                 },
                 icon: Icon(Icons.menu),
-                color: Colors.black54,
+                color: Colors.white,
               );
             },
           ),
@@ -73,18 +68,18 @@ class _SpaceRentalState extends State<SpaceRental> {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: Colors.black54,
+            color: Colors.white,
           ),
           onPressed: () {
             // 뒤로가기 버튼을 눌렀을 때 수행할 작업
             Navigator.of(context).pop();
           },
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFF233067),
         centerTitle: true,
         title: Text(
           '장소 예약',
-          style: TextStyle(color: Colors.black,),
+          style: TextStyle(color: Colors.white),
         ),
       ),
       body: ListView(
@@ -157,7 +152,7 @@ class _SpaceRentalState extends State<SpaceRental> {
               Expanded(child: ElevatedButton(
                 style: ButtonStyle(
                     minimumSize: MaterialStatePropertyAll(Size(0, 48)),
-                    backgroundColor: MaterialStatePropertyAll(Color(0xFF392F31)),
+                    backgroundColor: MaterialStatePropertyAll(Color(0xFF233067)),
                     elevation: MaterialStatePropertyAll(0),
                     shape: MaterialStatePropertyAll(
                         RoundedRectangleBorder(
@@ -177,6 +172,7 @@ class _SpaceRentalState extends State<SpaceRental> {
                                 Navigator.of(context).pop();
                                 return;
                               },
+                              style: ButtonStyle(backgroundColor: MaterialStatePropertyAll(Color(0xFF233067))),
                               child: Text("확인")
                           )
                         ],
@@ -195,11 +191,16 @@ class _SpaceRentalState extends State<SpaceRental> {
                                   Navigator.of(context).pop();
                                   return;
                                 },
+                                style: ButtonStyle(backgroundColor: MaterialStatePropertyAll(Color(0xFF233067))),
                                 child: Text("취소")
                             ),
                             ElevatedButton(
                               onPressed: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => PointRecharge(),)).then((value) {
+                                Get.to(
+                                    PointRecharge(), //이동하려는 페이지
+                                    preventDuplicates: true, //중복 페이지 이동 방지
+                                    transition: Transition.noTransition //이동애니메이션off
+                                )?.then((value) {
                                   if (value != null && value) {
                                     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SpaceRental(document: widget.document),));
                                     Navigator.pop(context, true);
@@ -207,6 +208,7 @@ class _SpaceRentalState extends State<SpaceRental> {
                                   }
                                 });
                               },
+                              style: ButtonStyle(backgroundColor: MaterialStatePropertyAll(Color(0xFF233067))),
                               child: Text("충전"),
                             )
                           ],
@@ -216,6 +218,11 @@ class _SpaceRentalState extends State<SpaceRental> {
                     }
                   }
                   rentalAdd();
+                  Get.to(
+                      RenTalHistory(), //이동하려는 페이지
+                      preventDuplicates: true, //중복 페이지 이동 방지
+                      transition: Transition.noTransition //이동애니메이션off
+                  );
                 },
                 child: Text('예약', style: TextStyle(fontSize: 17),),
               ),)
@@ -424,16 +431,39 @@ class _SpaceRentalState extends State<SpaceRental> {
             style: ButtonStyle(
               backgroundColor: MaterialStateProperty.all<Color>(
                 isSelected
-                    ? Colors.green
+                    ? Color(0xFF233067)
                     : isReserved
                     ? Colors.grey
                     : checked
                     ? Colors.grey
-                    : Colors.blue,
+                    : Colors.white,
+              ),
+              shape: MaterialStateProperty.all<OutlinedBorder>(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(0), // 버튼의 모서리를 둥글게 설정
+                  side: BorderSide(color:
+                  isSelected
+                      ? Color(0xFF233067)
+                      : isReserved
+                      ? Colors.grey
+                      : checked
+                      ? Colors.grey
+                      : Color(0xFF233067),
+                  ), // 버튼의 테두리 색상 설정
+                ),
               ),
             ),
             child: Text(
               hour.toString() + ':00',
+              style: TextStyle(
+                color: isSelected
+                    ? Colors.white
+                    : isReserved
+                    ? Colors.black38
+                    : checked
+                    ? Colors.black38
+                    : Color(0xFF233067),
+              ),
             ),
           );
         })

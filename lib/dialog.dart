@@ -1,134 +1,84 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
+import 'package:material_dialogs/dialogs.dart';
+import 'package:material_dialogs/widgets/buttons/icon_button.dart';
+import 'package:get/get.dart';
 
 import 'login.dart';
 
 class DialogHelper {
   static void showArtistRegistrationDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5.0),
+    Dialogs.materialDialog(
+        color: Colors.white,
+        msg: '아티스트 등록 후 이용해주세요.',
+        title: '아티스트 등록 후 이용가능',
+        lottieBuilder: Lottie.asset(
+          'assets/Animation - 1699599464228.json',
+          fit: BoxFit.contain,
+        ),
+        context: context,
+        actions: [
+          IconsButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            text: '취소',
+            iconData: Icons.done,
+            color: Color(0xFF233067),
+            textStyle: TextStyle(color: Colors.white),
+            iconColor: Colors.white,
           ),
-          elevation: 0.0,
-          backgroundColor: Colors.white,
-          child: Container(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 330,
-                  height: 45,
-                  color: Colors.black12,
-                  child:Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 13, 0, 0),
-                    child: Text("알림",style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold),),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 20, 20, 0),
-                  child: Text("아티스트 등록을 먼저 한 후에 이용이 가능합니다."),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 2, 20, 30),
-                  child: Text("아티스트 등록 페이지로 이동하시겠습니까?"),
-                ),
-                Container(
-                  color: Colors.black12,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 5, 4, 5),
-                        child: ElevatedButton(
-                            onPressed: (){
-                              Navigator.of(context).pop();
-                            },
-                            child: Text("취소")
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 5, 8, 5),
-                        child: ElevatedButton(
-                          onPressed: (){},
-                          child: Text("확인"),
-                        ),
-                      )
-                    ],
-                  ),
-                )
-              ],
-            ),
+          IconsButton(
+            onPressed: () {
+              Get.to(
+                  LoginPage(), //이동하려는 페이지
+                  preventDuplicates: true, //중복 페이지 이동 방지
+                  transition: Transition.noTransition //이동애니메이션off
+              );
+            },
+            text: '아티스트 등록',
+            iconData: Icons.done,
+            color: Color(0xFF233067),
+            textStyle: TextStyle(color: Colors.white),
+            iconColor: Colors.white,
           ),
-        );
-      },
-    );
+        ]);
   }
   static void showUserRegistrationDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5.0),
+    Dialogs.materialDialog(
+        color: Colors.white,
+        msg: '로그인 후 이용해주세요.',
+        title: '로그인 후 이용가능',
+        lottieBuilder: Lottie.asset(
+          'assets/Animation - 1699599464228.json',
+          fit: BoxFit.contain,
+        ),
+        context: context,
+        actions: [
+          IconsButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            text: '취소',
+            iconData: Icons.done,
+            color: Color(0xFF233067),
+            textStyle: TextStyle(color: Colors.white),
+            iconColor: Colors.white,
           ),
-          elevation: 0.0,
-          backgroundColor: Colors.white,
-          child: Container(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 330,
-                  height: 45,
-                  color: Colors.black12,
-                  child:Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 13, 0, 0),
-                    child: Text("알림",style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold),),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 20, 20, 0),
-                  child: Text("로그인 후 이용 가능 합니다"),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 2, 20, 30),
-                  child: Text("로그인 페이지로 이동하시겠습니까?"),
-                ),
-                Container(
-                  color: Colors.black12,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 5, 4, 5),
-                        child: ElevatedButton(
-                            onPressed: (){
-                              Navigator.of(context).pop();
-                            },
-                            child: Text("취소")
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 5, 8, 5),
-                        child: ElevatedButton(
-                          onPressed: (){
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage(),));
-                          },
-                          child: Text("확인"),
-                        ),
-                      )
-                    ],
-                  ),
-                )
-              ],
-            ),
+          IconsButton(
+            onPressed: () {
+              Get.to(
+                  LoginPage(), //이동하려는 페이지
+                  preventDuplicates: true, //중복 페이지 이동 방지
+                  transition: Transition.noTransition //이동애니메이션off
+              );
+            },
+            text: '로그인',
+            iconData: Icons.done,
+            color: Color(0xFF233067),
+            textStyle: TextStyle(color: Colors.white),
+            iconColor: Colors.white,
           ),
-        );
-      },
-    );
+        ]);
   }
 }

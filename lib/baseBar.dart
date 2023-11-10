@@ -73,7 +73,7 @@ class _MyDrawerState extends State<MyDrawer> {
     } else {
       _userId = userModel.userId;
       userInfo();
-      if(!userModel.isArtist){
+      if(userModel.isArtist){
         _artistId = userModel.artistId;
       }
     }
@@ -234,7 +234,7 @@ class _MyDrawerState extends State<MyDrawer> {
               ListTile(
                 title: Text('받은 후원 내역'),
                 onTap: () {
-                  if(_artistId != null){
+                  if(_artistId != ""){
                     Get.to(
                       DonationList(artistId: _artistId!,),
                       preventDuplicates: true,
@@ -343,7 +343,7 @@ class _MyDrawerState extends State<MyDrawer> {
                   if(_userId == null){
                     DialogHelper.showUserRegistrationDialog(context);
                   }else{
-                    if(_artistId == null){
+                    if(_artistId == ""){
                       DialogHelper.showArtistRegistrationDialog(context);
                     }else{
                       Get.to(

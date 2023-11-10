@@ -68,13 +68,6 @@ class _SpaceInfoState extends State<SpaceInfo> {
         drawer: MyDrawer(),
         appBar: AppBar(
           actions: [
-            IconButton(
-              onPressed: () {
-                // 아이콘 클릭 시 수행할 작업 추가
-              },
-              icon: Icon(Icons.person),
-              color: Colors.black54,
-            ),
             Builder(
               builder: (context) {
                 return IconButton(
@@ -82,7 +75,7 @@ class _SpaceInfoState extends State<SpaceInfo> {
                     Scaffold.of(context).openDrawer();
                   },
                   icon: Icon(Icons.menu),
-                  color: Colors.black54,
+                  color: Colors.white,
                 );
               },
             ),
@@ -92,18 +85,18 @@ class _SpaceInfoState extends State<SpaceInfo> {
           leading: IconButton(
             icon: Icon(
               Icons.arrow_back,
-              color: Colors.black54,
+              color: Colors.white,
             ),
             onPressed: () {
               // 뒤로가기 버튼을 눌렀을 때 수행할 작업
               Navigator.of(context).pop();
             },
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: Color(0xFF233067),
           centerTitle: true,
           title: Text(
             '상업 공간',
-            style: TextStyle(color: Colors.black,),
+            style: TextStyle(color: Colors.white,),
           ),
         ),
         body: ListView(
@@ -135,7 +128,8 @@ class _SpaceInfoState extends State<SpaceInfo> {
                 ],
               ),
             ),
-            SizedBox(
+            Container(
+              color: Color(0xFF233067),
               height: 50,
               child: TabBar(
                 tabs: [
@@ -143,7 +137,8 @@ class _SpaceInfoState extends State<SpaceInfo> {
                  Tab(text: "일정"),
                  Tab(text: "교통"),
                 ],
-                labelColor: Colors.black54,
+                labelColor: Colors.white,
+                indicatorColor: Colors.white,
                 onTap: (index) {
                   if(index == 0){
                     setState(() {
@@ -463,7 +458,7 @@ class _SpaceInfoState extends State<SpaceInfo> {
                 Expanded(child: ElevatedButton(
                   style: ButtonStyle(
                       minimumSize: MaterialStatePropertyAll(Size(0, 48)),
-                      backgroundColor: MaterialStatePropertyAll(Color(0xFF392F31)),
+                      backgroundColor: MaterialStatePropertyAll(Color(0xFF233067)),
                       elevation: MaterialStatePropertyAll(0),
                       shape: MaterialStatePropertyAll(
                           RoundedRectangleBorder(

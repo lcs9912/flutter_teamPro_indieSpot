@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/donationPage.dart';
 import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
+import 'package:get/get.dart';
 class DonationArtistList extends StatefulWidget {
   const DonationArtistList({super.key});
 
@@ -34,7 +35,7 @@ class _DonationArtistListState extends State<DonationArtistList> {
           leading: Builder(
               builder: (context) {
                 return IconButton(
-                    color: Colors.black54,
+                    color: Colors.white,
                     onPressed: (){
                       Navigator.of(context).pop();
                     },
@@ -42,12 +43,13 @@ class _DonationArtistListState extends State<DonationArtistList> {
                 );
               }
           ),
-        title: Center(child: Text("DONATION", style: TextStyle(color: Colors.black54, fontWeight: FontWeight.bold),)),
+        backgroundColor: Color(0xFF233067),
+        title: Center(child: Text("DONATION", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),)),
         actions: [
           Builder(
               builder: (context) {
                 return IconButton(
-                    color: Colors.black54,
+                    color: Colors.white,
                     onPressed: (){
                       Scaffold.of(context).openDrawer();
                     },
@@ -57,11 +59,10 @@ class _DonationArtistListState extends State<DonationArtistList> {
               }
           )
         ],
-        backgroundColor: Colors.white,
         elevation: 1,
       ),
       drawer: MyDrawer(),
-      body: Column(
+      body: ListView(
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -83,6 +84,9 @@ class _DonationArtistListState extends State<DonationArtistList> {
                   onPressed: () {
                     _focusNode.unfocus();
                     _search.clear();
+                    setState(() {
+
+                    });
                   },
                   icon: Icon(Icons.cancel_outlined),
                 ),
@@ -91,13 +95,17 @@ class _DonationArtistListState extends State<DonationArtistList> {
         ),
           ),
          _artistSearch(),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("FOLLOWING",style: TextStyle(fontWeight: FontWeight.bold),),
-              ],
+          Container(
+            color: Color(0xFF233067),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("FOLLOWING",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white),),
+                ],
+              ),
             ),
           ),
           _following()
@@ -109,50 +117,59 @@ class _DonationArtistListState extends State<DonationArtistList> {
 
   Widget _artistSearch(){
     return Container(
-      height: 300,
+      height: 280,
       decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: Colors.black38))),
+        border: Border(bottom: BorderSide(color: Colors.black38)),
+      ),
       child: StreamBuilder(
         stream: FirebaseFirestore.instance.collection("artist").snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
           if (!snap.hasData) {
             return Container();
           }
+
+          List<DocumentSnapshot> filteredArtists = snap.data!.docs.where((doc) {
+            Map<String, dynamic> artistData = doc.data() as Map<String, dynamic>;
+            return artistData['artistName'].contains(_search.text);
+          }).toList();
+
+          if (filteredArtists.isEmpty) {
+            return Center(
+              child: Text("검색 결과가 없습니다."),
+            );
+          }
+
           return ListView.builder(
-            itemCount: snap.data!.docs.length,
+            itemCount: filteredArtists.length,
             itemBuilder: (context, index) {
-              DocumentSnapshot doc = snap.data!.docs[index];
-              Map<String, dynamic> artistData = doc.data() as Map<String,dynamic>;
-              if(artistData['artistName'].contains(_search.text)) {
-                return FutureBuilder(
-                  future: FirebaseFirestore.instance.collection("artist")
-                      .doc(doc.id).collection("image")
-                      .get(),
-                  builder: (BuildContext context,
-                      AsyncSnapshot<QuerySnapshot>imageSnapshot) {
-                    if (!imageSnapshot.hasData) {
-                      return Container();
-                    }
-                    Map<String, dynamic> imgData = imageSnapshot.data!
-                        .docs
-                        .first.data() as Map<String, dynamic>;
-                    return ListTile(
-                      title: Text("${artistData['artistName']}"),
-                      subtitle: Text("${artistData['genre']}"),
-                      leading: Image.network(
-                          imgData['path'],
-                          width: 80,
-                          fit: BoxFit.fill
-                      ),
-                      onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => DonationPage(artistId : doc.id),));
-                      },
-                    );
-                  },
-                );
-              }else{
-                return Container();
-              }
+              DocumentSnapshot doc = filteredArtists[index];
+              Map<String, dynamic> artistData = doc.data() as Map<String, dynamic>;
+              return FutureBuilder(
+                future: FirebaseFirestore.instance.collection("artist").doc(doc.id).collection("image").get(),
+                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> imageSnapshot) {
+                  if (!imageSnapshot.hasData || imageSnapshot.data!.docs.isEmpty) {
+                    return Container();
+                  }
+
+                  Map<String, dynamic> imgData = imageSnapshot.data!.docs.first.data() as Map<String, dynamic>;
+                  return ListTile(
+                    title: Text("${artistData['artistName']}"),
+                    subtitle: Text("${artistData['genre']}"),
+                    leading: Image.network(
+                      imgData['path'],
+                      width: 80,
+                      fit: BoxFit.fill,
+                    ),
+                    onTap: (){
+                      Get.to(
+                        DonationPage(artistId: doc.id),
+                        preventDuplicates: true,
+                        transition: Transition.noTransition,
+                      );
+                    },
+                  );
+                },
+              );
             },
           );
         },
@@ -161,29 +178,25 @@ class _DonationArtistListState extends State<DonationArtistList> {
   }
   Widget _following(){
     return Container(
-      height: 210,
+      height: 235,
       child: StreamBuilder(
         stream: FirebaseFirestore.instance.collection("userList").doc(userId).collection("following").snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
-          if (!snap.hasData) {
-            return Container();
-          }
-          return ListView.builder(
-            itemCount: snap.data!.docs.length,
-            itemBuilder: (context, index) {
-              DocumentSnapshot doc = snap.data!.docs[index];
-              String artistId = doc.get("artistId");
+          if (snap.hasData && snap.data!.docs.isNotEmpty) {
+            return ListView.builder(
+              itemCount: snap.data!.docs.length,
+              itemBuilder: (context, index) {
+                DocumentSnapshot doc = snap.data!.docs[index];
+                String artistId = doc.get("artistId");
                 return FutureBuilder(
                   future: FirebaseFirestore.instance.collection("artist")
                       .doc(artistId)
                       .get(),
                   builder: (BuildContext context,
                       AsyncSnapshot<DocumentSnapshot>artistSnapshot) {
-                    if (!artistSnapshot.hasData) {
-                      return Container();
-                    }
-                    Map<String, dynamic> artistData = artistSnapshot.data!.data() as Map<String, dynamic>;
-                    return FutureBuilder(
+                    if (artistSnapshot.hasData&&artistSnapshot.data!.exists) {
+                      Map<String, dynamic> artistData = artistSnapshot.data!.data() as Map<String, dynamic>;
+                      return FutureBuilder(
                         future: FirebaseFirestore.instance.collection("artist").doc(artistId).collection("image").get(),
                         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> imgSnap) {
                           if(imgSnap.hasData){
@@ -196,17 +209,33 @@ class _DonationArtistListState extends State<DonationArtistList> {
                                   fit: BoxFit.fill
                               ),
                               onTap: (){
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => DonationPage(artistId : doc.id),));
+                                Get.to(
+                                    DonationPage(artistId : doc.id), //이동하려는 페이지
+                                    preventDuplicates: true, //중복 페이지 이동 방지
+                                    transition: Transition.noTransition //이동애니메이션off
+                                );
                               },
                             );
                           }
                           return Container();
                         },
-                    );
+                      );
+                    }else{
+                      return Container();
+                    }
                   },
                 );
-            },
-          );
+              },
+            );
+          }
+            return Container(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [Text("팔로잉 아티스트가 없습니다.")],
+              ),
+            );
+
         },
       ),
     );

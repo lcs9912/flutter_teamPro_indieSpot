@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:indie_spot/loading.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:lottie/lottie.dart';
 
 import 'baseBar.dart';
 
@@ -132,12 +134,12 @@ class _UserDonationHistoryState extends State<UserDonationHistory> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFEEE9DA),
+      backgroundColor: Colors.white,
       drawer: MyDrawer(),
       appBar: AppBar(
         flexibleSpace: Container(
           decoration: BoxDecoration(
-            color: Color(0xFF6096B4)
+            color: Color(0xFF233067)
           ),
         ),
         actions: [
@@ -146,7 +148,7 @@ class _UserDonationHistoryState extends State<UserDonationHistory> {
               // 아이콘 클릭 시 수행할 작업 추가
             },
             icon: Icon(Icons.person),
-            color: Colors.black54,
+            color: Colors.white,
           ),
           Builder(
             builder: (context) {
@@ -155,7 +157,7 @@ class _UserDonationHistoryState extends State<UserDonationHistory> {
                   Scaffold.of(context).openDrawer();
                 },
                 icon: Icon(Icons.menu),
-                color: Colors.black54,
+                color: Colors.white,
               );
             },
           ),
@@ -165,277 +167,282 @@ class _UserDonationHistoryState extends State<UserDonationHistory> {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: Colors.black54,
+            color: Colors.white,
           ),
           onPressed: () {
             // 뒤로가기 버튼을 눌렀을 때 수행할 작업
             Navigator.of(context).pop();
           },
         ),
-        backgroundColor: Colors.white,
         centerTitle: true,
         title: Text(
           '후원 내역',
-          style: TextStyle(color: Colors.black,),
+          style: TextStyle(color: Colors.white,),
         ),
       ),
       body: Column(
         children: [
           Container(
-            color: const Color(0xFFBDCDD6),
+            color: Colors.white,
             height: 200,
             child: Container(
               padding: const EdgeInsets.all(15),
               child: Column(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Image.asset('assets/point2.png', height: 30, width: 30),
-                          const Text(' 총 후원 포인트', style: TextStyle(color: Colors.white, fontSize: 15)),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Text(totalDonationPoint.toString(), style: const TextStyle(color: Colors.white, fontSize: 25)),
-                          const Text('P', style: TextStyle(color: Colors.white, fontSize: 17)),
-                        ],
-                      )
-                    ],
+                  Padding(
+                    padding: const EdgeInsets.only(top: 30),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Image.asset('assets/point2.png', height: 30, width: 30),
+                            const Text(' 총 후원 포인트', style: TextStyle(color: Colors.black, fontSize: 15)),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Text(totalDonationPoint.toString(), style: const TextStyle(color: Colors.black, fontSize: 25)),
+                            const Text('P', style: TextStyle(color: Colors.black, fontSize: 25)),
+                          ],
+                        )
+                      ],
+                    ),
                   ),
-                  Row(
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            margin: const EdgeInsets.only(bottom: 5),
-                            child: const Text('기간별 조회', style: TextStyle(color: Colors.white, fontSize: 15)),
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              ElevatedButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _num = 30;
-                                  });
-                                  totalPoint();
-                                },
-                                style: ButtonStyle(
-                                  shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.zero,
-                                    side: _num == 30 ? BorderSide(color: Colors.white, width: 1) : BorderSide.none,
-                                  )),
-                                  backgroundColor: MaterialStateProperty.all(const Color(0xFF93BFCF)),
-                                ),
-                                child: const Padding(
-                                  padding: EdgeInsets.only(top: 13, bottom: 13),
-                                  child: Text('최근 1개월'),
-                                ),
-                              ),
-                              ElevatedButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _num = 90;
-                                  });
-                                  totalPoint();
-                                },
-                                style: ButtonStyle(
-                                  shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.zero,
-                                    side: _num == 90 ? BorderSide(color: Colors.white, width: 1) : BorderSide.none,
-                                  )),
-                                  backgroundColor: MaterialStateProperty.all(const Color(0xFF93BFCF)),
-                                ),
-                                child: const Padding(
-                                  padding: EdgeInsets.only(top: 13, bottom: 13),
-                                  child: Text('최근 3개월'),
-                                ),
-                              ),
-                              Container(
-                                margin: const EdgeInsets.only(left: 20),
-                                height: 46,
-                                padding: const EdgeInsets.only(left: 13),
-                                decoration: BoxDecoration(
-                                  border: Border.all(width: _num == 0 ? 1 : 0, color: Colors.white),
-                                  color: const Color(0xFF93BFCF),
-                                ),
-                                child: DropdownButton<String>(
-                                  underline: Container(),
-                                  icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white60),
-                                  value: _selectedItem,
-                                  items: _items.map((item) {
-                                    return DropdownMenuItem<String>(
-                                      value: item,
-                                      child: Container(
-                                        padding: const EdgeInsets.only(right: 10),
-                                        child: Text(item),
-                                      ),
-                                    );
-                                  }).toList(),
-                                  onChanged: (value) {
+                  Padding(
+                    padding: const EdgeInsets.only(top: 20),
+                    child: Row(
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              margin: const EdgeInsets.only(bottom: 5),
+                              child: const Text('기간별 조회', style: TextStyle(color: Colors.black, fontSize: 15)),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () {
                                     setState(() {
-                                      _selectedItem = value!;
-                                      _num = 0;
+                                      _num = 30;
                                     });
                                     totalPoint();
                                   },
+                                  style: ButtonStyle(
+                                    shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.zero,
+                                      side: _num == 30 ? BorderSide.none : BorderSide(color: Color(0xFF233067), width: 1),
+                                    )),
+                                    backgroundColor:_num == 30 ?MaterialStateProperty.all(const Color(0xFF233067)): MaterialStateProperty.all(const Color(0xFFFFFFFF)),
+                                  ),
+                                  child: Padding(
+                                    padding: EdgeInsets.only(top: 13, bottom: 13),
+                                    child: Text('최근 1개월',style: _num == 30 ?TextStyle(color: Colors.white) : TextStyle(color: Color(0xFF233067)),),
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
+                                ElevatedButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _num = 90;
+                                    });
+                                    totalPoint();
+                                  },
+                                  style: ButtonStyle(
+                                    shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.zero,
+                                      side: _num == 90 ? BorderSide.none : BorderSide(color: Color(0xFF233067), width: 1),
+                                    )),
+                                    backgroundColor:_num == 90 ? MaterialStateProperty.all(const Color(0xFF233067)) : MaterialStateProperty.all(const Color(0xFFffffff)),
+                                  ),
+                                  child: Padding(
+                                    padding: EdgeInsets.only(top: 13, bottom: 13),
+                                    child: Text('최근 3개월', style: _num == 90 ? TextStyle(color: Colors.white) : TextStyle(color: Color(0xFF233067)),),
+                                  ),
+                                ),
+                                Container(
+                                  height: 48,
+                                  padding: EdgeInsets.only(left: 13),
+                                  margin: EdgeInsets.only(left: 30),
+                                  decoration: BoxDecoration(
+                                      border: Border.all(width: 1, color: _num == 0 ? Color(0xFF233067) : Colors.black),
+                                      color: _num == 0 ? Color(0xFF233067) : Colors.white
+                                  ),
+                                  child: DropdownButton<String>(
+                                    dropdownColor: Color(_num == 0 ? 0xFF233067 : 0xFFFFFFFF),
+                                    underline: Container(),
+                                    icon: Icon(Icons.keyboard_arrow_down, color: Color(_num == 0 ? 0xFFFFFFFF : 0xFF233067),),
+                                    value: _selectedItem,
+                                    items: _items.map((item) {
+                                      return DropdownMenuItem<String>(
+                                          value: item,
+                                          child: Text(item, style: TextStyle(color: Color(_num == 0 ? 0xFFFFFFFF : 0xFF233067)),)
+                                      );
+                                    }).toList(),
+                                    onChanged:(value) {
+                                      setState(() {
+                                        _selectedItem = value!;
+                                        _num = 0;
+                                      });
+                                    },
+                                  ),
+                                )
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Table(
-              children: <TableRow>[
-                TableRow(
-                  decoration: BoxDecoration(color: Color(0xFF93BFCF)), // 헤더의 배경색 지정
-                  children: <Widget>[
-                    Container(
-                      height: 50,
-                      child:  Center(child: Text('날짜', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-                    ),
-                    Container(
-                      height: 50,
-                      child:  Center(child: Text('닉네임', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-                    ),
-                    Container(
-                      height: 50,
-                      child: Center(child: Text('금액', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-                    ),
-                    Container(
-                      height: 50,
-                      child: Center(child: Text('메시지', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+          Table(
+            children: <TableRow>[
+              TableRow(
+                decoration: BoxDecoration(color: Color(0xFF233067)), // 헤더의 배경색 지정
+                children: <Widget>[
+                  Container(
+                    height: 50,
+                    child:  Center(child: Text('날짜', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                  ),
+                  Container(
+                    height: 50,
+                    child:  Center(child: Text('닉네임', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                  ),
+                  Container(
+                    height: 50,
+                    child: Center(child: Text('금액', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                  ),
+                  Container(
+                    height: 50,
+                    child: Center(child: Text('메시지', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                  ),
+                ],
+              ),
+            ],
           ),
           FutureBuilder<List<Map<String, dynamic>>>(
             future: getDonationData(_num, _selectedItem),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
+                return SizedBox(
+                    height: 400,
+                    child: LoadingWidget()
+                );
               } else if (snapshot.hasError) {
-                return const Center(child: Text('Error fetching data'));
+                return Center(child: Text('Error fetching data'));
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('후원 내역이 없습니다'));
+                return Column(
+                  children: [
+                    Lottie.asset(
+                      'assets/empty.json',
+                      fit: BoxFit.contain,
+                    ),
+                    Center(child: Text('후원 내역이 없습니다')),
+                  ],
+                );
               } else {
                 return Expanded(
-                  child: ListView(
-                    children: [
-                      Padding(
+                  child: ListView.builder(
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      Map<String, dynamic> data = snapshot.data![index];
+                      return Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Table(
-                          border: TableBorder(bottom: BorderSide(color: Colors.black12)),
-                          children: (snapshot.data ?? []).map((data) {
-                            return TableRow(
-                              children: [
-                                TableCell(
-                                  child: Container(
-                                    height: 50,
-                                    child: Center(
-                                      child: Column(
-                                        children: [
-                                          Text(data['formattedDate']),
-                                          Text(data['formattedHour']),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                TableCell(
-                                  child: Container(
-                                    height: 40,
-                                    child: Center(child: Text(data['artistName'])),
-                                  ),
-                                ),
-                                TableCell(
-                                  child: Container(
-                                    height: 40,
-                                    child: Center(child: Text(data['amount'])),
-                                  ),
-                                ),
-                                TableCell(
-                                  child: Container(
-                                    height: 40,
-                                    child: Center(
-                                      child: TextButton(
-                                        onPressed: () {
-                                          showDialog(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return Dialog(
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius: BorderRadius.circular(5.0),
-                                                ),
-                                                elevation: 0.0,
-                                                backgroundColor: Colors.white,
-                                                child: Container(
-                                                  child: Column(
-                                                    mainAxisSize: MainAxisSize.min,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 1,
+                              child: Column(
+                                children: [
+                                  Text(data['formattedDate']),
+                                  Text(data['formattedHour']),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Center(child: Text(data['artistName'])),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Center(child: Text(data['amount'])),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Center(
+                                child: TextButton(
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return Dialog(
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(5.0),
+                                          ),
+                                          elevation: 0.0,
+                                          backgroundColor: Colors.white,
+                                          child: SizedBox(
+                                            height: 200,
+                                            child: Column(
+                                              children: [
+                                                Padding(
+                                                  padding: const EdgeInsets.all(8.0),
+                                                  child: Row(
                                                     crossAxisAlignment: CrossAxisAlignment.start,
                                                     children: [
-                                                      Container(
-                                                        width: 330,
-                                                        height: 45,
-                                                        color: Colors.black12,
-                                                        child: Padding(
-                                                          padding: const EdgeInsets.fromLTRB(8, 13, 0, 0),
-                                                          child: Text("알림", style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-                                                        ),
-                                                      ),
-                                                      Padding(
-                                                        padding: const EdgeInsets.fromLTRB(8, 20, 20, 0),
-                                                        child: Text(data['message']),
-                                                      ),
-                                                      Container(
-                                                        color: Colors.black12,
-                                                        child: Row(
-                                                          mainAxisAlignment: MainAxisAlignment.end,
-                                                          children: [
-                                                            Padding(
-                                                              padding: const EdgeInsets.fromLTRB(0, 5, 4, 5),
-                                                              child: ElevatedButton(
-                                                                onPressed: () {
-                                                                  Navigator.of(context).pop();
-                                                                },
-                                                                child: const Text("닫기"),
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      )
+                                                      Text("후원 메시지",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),)
                                                     ],
                                                   ),
                                                 ),
-                                              );
-                                            },
-                                          );
-                                        },
-                                        child: const Text("보기", style: TextStyle(color: Color(0xFF6096B4)),),
-                                      ),
-                                    ),
-                                  ),
+                                                Padding(
+                                                  padding: const EdgeInsets.all(15.0),
+                                                  child: Row(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      SizedBox(
+                                                          height: 80,
+                                                          child: SingleChildScrollView(
+                                                            child:
+                                                            Text(data["message"]),
+                                                          )
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                Padding(
+                                                  padding: const EdgeInsets.only(right: 10),
+                                                  child: Row(
+                                                    mainAxisAlignment: MainAxisAlignment.end,
+                                                    children: [
+                                                      ElevatedButton(
+                                                        onPressed: (){
+                                                          Navigator.of(context).pop();
+                                                        },
+                                                        child: Text("닫기"),
+                                                        style: ButtonStyle(backgroundColor: MaterialStatePropertyAll(Color(0xFF233067))),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
+                                  child: const Text("보기", style: TextStyle(color: Color(0xFF233067))),
                                 ),
-                              ],
-                            );
-                          }).toList(),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
                 );
               }

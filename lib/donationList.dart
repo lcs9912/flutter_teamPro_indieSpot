@@ -96,15 +96,17 @@ class _DonationListState extends State<DonationList> {
     }
     List<TableRow> tableRows = [];
 
-    for (int index = 0; index < artistSnap.docs.length; index++) {
-      Map<String, dynamic> _artistData = artistSnap.docs[index].data() as Map<String, dynamic>;
+    for (var artistDoc in artistSnap.docs) {
+      Map<String, dynamic> _artistData = artistDoc.data() as Map<String, dynamic>;
       var userId = _artistData['user'];
 
-      var userSnap = await fs.collection("userList").doc(userId).get();
-      Map<String, dynamic> userData = userSnap.data() as Map<String, dynamic>;
+      // 병렬로 데이터 가져오기
+      var userSnap = fs.collection("userList").doc(userId).get();
+      var imgSnap = fs.collection("userList").doc(userId).collection("image").get();
 
-      var imgSnap = await fs.collection("userList").doc(userId).collection("image").get();
-      var imgData = imgSnap.docs.first;
+      // await을 사용하여 데이터를 가져올 때까지 기다립니다.
+      Map<String, dynamic> userData = (await userSnap).data() as Map<String, dynamic>;
+      var imgData = (await imgSnap).docs.first;
 
       Timestamp timeStamp = _artistData['date'];
       DateTime date = timeStamp.toDate();
@@ -114,110 +116,122 @@ class _DonationListState extends State<DonationList> {
       tableRows.add(
         TableRow(
           children: [
-            TableCell(child: Container(
-              height: 50,
-              child: Center(child: Container(
-                height: 50,
-                child: Column(
+            TableCell(child: _buildTableCell(
+                Column(
                   children: [
                     Text(formattedDate),
-                    Text(formattedHour)
+                    Text(formattedHour),
                   ],
-                ),
-              )),
+                )
             )),
-            TableCell(child: Container(height : 50 ,child: Center(child: Text(userData['nick'])))),
-            TableCell(child: Container(height : 50 ,child: Center(child: Text(_numberFormat.format(_artistData['amount']))))),
-            TableCell(child: Container(
-              height: 50,
-              child: Center(
-                child: TextButton(onPressed: (){
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return Dialog(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5.0),
-                        ),
-                        elevation: 0.0,
-                        backgroundColor: Colors.white,
-                        child: Container(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                width: 330,
-                                height: 45,
-                                color: Colors.black12,
-                                child:Padding(
-                                  padding: const EdgeInsets.fromLTRB(8, 13, 0, 0),
-                                  child: Text("알림",style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold),),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(8, 20, 20, 0),
-                                child: Text(_artistData['message']),
-                              ),
-
-                              Container(
-                                color: Colors.black12,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.fromLTRB(0, 5, 4, 5),
-                                      child: ElevatedButton(
-                                          onPressed: (){
-                                            Navigator.of(context).pop();
-                                          },
-                                          child: Text("닫기")
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                }, child: Text("보기")),
+            TableCell(child: _buildTableCell(
+                Center(child: Text(userData['nick']))
+            )),
+            TableCell(child: _buildTableCell(
+                Center(child: Text(_numberFormat.format(_artistData['amount'])))
+            )),
+            TableCell(child: _buildTableCell(
+              Center(
+                child: TextButton(
+                  onPressed: () => _showDialog(_artistData['message']),
+                  child: Text("보기",style: TextStyle(color: Color(0xFF233067)),),
+                ),
               ),
             )),
           ],
         ),
       );
     }
-
-    return Expanded( 
+    return Expanded(
       child: ListView(
-        children: [Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Table(
-            border: TableBorder(bottom: BorderSide(color: Colors.black12)),
-            children: tableRows,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Table(
+              children: tableRows,
+            ),
           ),
-        ),],
+        ],
       ),
+    );
+  }
+
+// TableRow의 Cell을 생성하는 함수
+  Widget _buildTableCell(Widget child) {
+    return Container(
+      height: 50,
+      child: Center(child: child),
+    );
+  }
+
+// Dialog를 표시하는 함수
+  void _showDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5.0),
+          ),
+          elevation: 0.0,
+          backgroundColor: Colors.white,
+          child: SizedBox(
+            height: 200,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("후원 메시지",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),)
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                          height: 80,
+                          child: SingleChildScrollView(
+                            child:
+                              Text(message),
+                          )
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      ElevatedButton(
+                          onPressed: (){
+                            Navigator.of(context).pop();
+                          },
+                          child: Text("닫기"),
+                        style: ButtonStyle(backgroundColor: MaterialStatePropertyAll(Color(0xFF233067))),
+                      ),
+                    ],
+                  ),
+                )
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
   @override
   Widget build(BuildContext context) {
-    print("zz : ${artistImg?['path']}");
     return Scaffold(
       backgroundColor: Colors.white,
       drawer: MyDrawer(), 
       appBar: AppBar(
         actions: [
-          IconButton(
-            onPressed: () {
-              // 아이콘 클릭 시 수행할 작업 추가
-            },
-            icon: Icon(Icons.person),
-            color: Colors.black54,
-          ),
           Builder(
             builder: (context) {
               return IconButton(
@@ -225,7 +239,7 @@ class _DonationListState extends State<DonationList> {
                   Scaffold.of(context).openDrawer();
                 },
                 icon: Icon(Icons.menu),
-                color: Colors.black54,
+                color: Colors.white,
               );
             },
           ),
@@ -235,18 +249,18 @@ class _DonationListState extends State<DonationList> {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: Colors.black54,
+            color: Colors.white,
           ),
           onPressed: () {
             // 뒤로가기 버튼을 눌렀을 때 수행할 작업
             Navigator.of(context).pop();
           },
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFF233067),
         centerTitle: true,
         title: Text(
           '받은 후원',
-          style: TextStyle(color: Colors.black,),
+          style: TextStyle(color: Colors.white,),
         ),
       ),
       body: Container(
@@ -318,33 +332,30 @@ class _DonationListState extends State<DonationList> {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Table(
-                  children: <TableRow>[
-                    TableRow(
-                      decoration: BoxDecoration(color: Colors.grey[300]), // 헤더의 배경색 지정
-                      children: <Widget>[
-                        Container(
+            Table(
+                children: <TableRow>[
+                  TableRow(
+                    decoration: BoxDecoration(color: Color(0xFF233067)), // 헤더의 배경색 지정
+                    children: <Widget>[
+                      Container(
+                        height: 50,
+                        child: Center(child: Text('날짜', style: TextStyle(color:Colors.white,fontWeight: FontWeight.bold)))
+                      ),
+                      Container(
                           height: 50,
-                          child: Center(child: Text('날짜', style: TextStyle(fontWeight: FontWeight.bold)))
-                        ),
-                        Container(
-                            height: 50,
-                            child: Center(child: Text('닉네임', style: TextStyle(fontWeight: FontWeight.bold)))
-                        ),
-                        Container(
-                            height: 50,
-                            child: Center(child: Text('금액', style: TextStyle(fontWeight: FontWeight.bold)))
-                        ),
-                        Container(
-                            height: 50,
-                            child: Center(child: Text('메시지', style: TextStyle(fontWeight: FontWeight.bold)))
-                        ),
-                      ],
-                    ),
-                  ]
-              ),
+                          child: Center(child: Text('닉네임', style: TextStyle(color:Colors.white,fontWeight: FontWeight.bold)))
+                      ),
+                      Container(
+                          height: 50,
+                          child: Center(child: Text('금액', style: TextStyle(color:Colors.white,fontWeight: FontWeight.bold)))
+                      ),
+                      Container(
+                          height: 50,
+                          child: Center(child: Text('메시지', style: TextStyle(color:Colors.white,fontWeight: FontWeight.bold)))
+                      ),
+                    ],
+                  ),
+                ]
             ),
             FutureBuilder(
                 future: _donationList(_selectedItem), builder: (context, snapshot) => snapshot.data ?? Container()
@@ -361,7 +372,7 @@ class _DonationListState extends State<DonationList> {
             Expanded(child: ElevatedButton(
               style: ButtonStyle(
                   minimumSize: MaterialStatePropertyAll(Size(0, 48)),
-                  backgroundColor: MaterialStatePropertyAll(Color(0xFF392F31)),
+                  backgroundColor: MaterialStatePropertyAll(Color(0xFF233067)),
                   elevation: MaterialStatePropertyAll(0),
                   shape: MaterialStatePropertyAll(
                       RoundedRectangleBorder(
