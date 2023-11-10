@@ -524,18 +524,18 @@ class _ConcertDetailsState extends State<ConcertDetails> {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.white, // 앱바 배경색
+          backgroundColor:Color(0xFF233067), // 앱바 배경색
           title: Text(
             '공연 상세 페이지',
             style: TextStyle(
-              color: Colors.black, // 글자색
+              color: Colors.white, // 글자색
             ),
           ),
-          iconTheme: IconThemeData(color: Colors.black), // 뒤로가기 아이콘 색상
+          iconTheme: IconThemeData(color: Colors.white), // 뒤로가기 아이콘 색상
           bottom: TabBar(
-            indicatorColor: Colors.black, // 선택된 탭 아래의 효과 색상
-            labelColor: Colors.black, // 선택된 탭의 글자색
-            unselectedLabelColor: Colors.grey, // 선택되지 않은 탭의 글자색
+            indicatorColor: Colors.white, // 선택된 탭 아래의 효과 색상
+            labelColor: Colors.white, // 선택된 탭의 글자색
+            unselectedLabelColor: Colors.white, // 선택되지 않은 탭의 글자색
             tabs: [
               Tab(text: '상세 정보'),
               Tab(text: '공연 후기'),
@@ -816,7 +816,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  primary: Color(0xFF392F31), // 배경색을 392F31로 설정
+                                  primary: Color(0xFF233067), // 배경색을 392F31로 설정
                                 ),
                                 child: Text('댓글작성'),
                               ),

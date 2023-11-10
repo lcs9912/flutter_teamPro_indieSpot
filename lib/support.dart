@@ -71,17 +71,17 @@ class _SupportState extends State<Support> {
         length: 2,
         child: Scaffold(
             appBar: AppBar(
-              backgroundColor: Colors.white, // 앱바 배경색
+              backgroundColor: Color(0xFF233067), // 앱바 배경색
               title: Text(
                 '고객센터',
                 style: TextStyle(
-                  color: Colors.black, // 앱바 글자색
+                  color: Colors.white, // 앱바 글자색
                 ),
               ),
-              iconTheme: IconThemeData(color: Colors.black),
+              iconTheme: IconThemeData(color: Colors.white),
               bottom: TabBar(
-                labelColor: Colors.black,
-                unselectedLabelColor: Colors.black,
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.white,
                 onTap: (index) {
                   if (index == 1 && (_userId == null || _userId.isEmpty)) {
                     showDialog(
