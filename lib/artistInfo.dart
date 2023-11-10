@@ -964,7 +964,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
                                                         child: TextButton(
                                                             onPressed: (){
                                                               Get.back();
-                                                             // _editComment(pointDetailDocument.id, vedioDocRef, comment);
+                                                              _editVideo(doc);
                                                             },
                                                             style: ButtonStyle(
                                                                 alignment: Alignment.centerLeft
@@ -1064,4 +1064,69 @@ class _ArtistInfoState extends State<ArtistInfo> {
       'deleteYn' : 'Y'
     });
   }
+
+  Future<void> _editVideo(DocumentSnapshot<Object?> doc) async{
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    final titleControl = TextEditingController(text: data['title']);
+    final contentControl = TextEditingController(text: data['content']);
+
+    showDialog(context: context, builder: (context) {
+      return AlertDialog(
+        title: Text('영상수정'),
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('영상 제목'),
+            TextField(
+              decoration: InputDecoration(
+                hintText: "수정할 영상의 제목을 입력하세요",
+                enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF233067))
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Color(0xFF233067), // 활성 상태 보더 색상 설정
+                  ),
+                ),
+              ),
+             controller: titleControl,
+            ),
+            Text('영상 설명'),
+            TextField(
+              maxLines: 4,
+              decoration: InputDecoration(
+                hintText: "수정할 영상의 설명을 입력하세요",
+                enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF233067))
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Color(0xFF233067), // 활성 상태 보더 색상 설정
+                  ),
+                ),
+              ),
+              controller: contentControl,
+            )
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('취소')),
+          TextButton(onPressed: () async{
+            await fs.collection('video').doc(doc.id).update({
+              'title' : titleControl.text,
+              'content' : contentControl.text
+            });
+
+            if(!context.mounted) return;
+
+            Navigator.of(context).pop();
+          }, child: Text('수정')),
+        ],
+      );
+    },);
+
+  }
 }
+
+
