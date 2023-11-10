@@ -294,7 +294,7 @@ class _BoardEditState extends State<BoardEdit> {
               ),
               SizedBox(height: 10),
               TextField(
-                maxLines: 3,
+                maxLines: 6,
                 controller: _content,
                 decoration: InputDecoration(
                     hintText: "내용을 입력해주세요",
