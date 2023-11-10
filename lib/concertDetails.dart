@@ -783,7 +783,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                               Spacer(),
 
                               ElevatedButton(
-                                onPressed: () {
+                                onPressed: () async {
                                   if (_nick == null) {
                                     showDialog(
                                       context: context,
@@ -803,7 +803,13 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                     );
                                   } else {
                                     double userRating = rating;
-                                    submitReview(widget.document.id, userRating);
+                                    await submitReview(widget.document.id, userRating);
+
+                                    // 리뷰가 제출된 후에 화면을 다시 그립니다.
+                                    setState(() {
+                                      // 여기에 화면을 다시 그리는 코드를 추가하세요.
+                                      // 예를 들어, 필요한 상태 변수들을 업데이트할 수 있습니다.
+                                    });
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
@@ -811,6 +817,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                 ),
                                 child: Text('댓글작성'),
                               ),
+
 
                               SizedBox(height: 20,),
                             ],
