@@ -57,7 +57,7 @@ class _ArtistListState extends State<ArtistList> {
     }
   }
 
-  Future<Widget> _followIcon() async {
+  Future<Widget> _followImg() async {
     final followYnSnapshot = await fs
         .collection('artist')
         .doc(artistId)
@@ -66,9 +66,9 @@ class _ArtistListState extends State<ArtistList> {
         .get(); // 데이터를 검색하기 위해 get()를 사용합니다.
 
     if (followYnSnapshot.docs.isEmpty || _userId == null) {
-      return Icon(Icons.person_add_alt);
+      return Image.asset('assets/commer.png',width: 20,height: 20,);
     } else {
-      return Icon(Icons.person_add);
+      return Image.asset('assets/following.png',width: 5,height: 5,);
     }
   }
 
@@ -152,7 +152,7 @@ class _ArtistListState extends State<ArtistList> {
                               Row(
                                 children: [
                                   FutureBuilder(
-                                    future: _followIcon(),
+                                    future: _followImg(),
                                     builder: (BuildContext context,
                                         AsyncSnapshot<dynamic> snapshot) {
                                       if (snapshot.connectionState ==

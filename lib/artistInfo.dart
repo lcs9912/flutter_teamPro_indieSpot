@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:indie_spot/artistInfo.dart';
 import 'package:indie_spot/login.dart';
+import 'package:indie_spot/spaceInfo.dart';
 import 'package:indie_spot/videoDetailed.dart';
 import 'artistEdit.dart';
 import 'artistMembers.dart';
@@ -11,6 +11,7 @@ import 'baseBar.dart';
 import 'package:intl/intl.dart';
 import 'donationList.dart';
 import 'donationPage.dart';
+import 'spotDetailed.dart';
 import 'userModel.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
@@ -47,22 +48,22 @@ class _ArtistInfoState extends State<ArtistInfo> {
   //////////////세션 확인//////////
   bool isDataLoaded = false; // 데이터 로드 완료 여부를 확인하는 변수
   @override
-  void initState() {
-
+  void initState()  {
     _infoTitle();
+    _followerCount();
 
+    artistCheck();
+    setState(() {}); // 상태 업데이트
     final userModel = Provider.of<UserModel>(context, listen: false);
     if (!userModel.isLogin) {
+      print("init111 ㅁㄴ이;람ㄴ어ㅏㅣ;런아ㅣ;");
     } else {
       _userId = userModel.userId;
       _followCheck();
-      _followerCount();
-      artistCheck();
-        // 데이터 로딩이 완료된 경우 artistCheck 함수 호출
-
-        isDataLoaded = true; // 데이터 로드 완료 표시
-        setState(() {}); // 상태 업데이트
-
+      print('팔로우 했음? => $_followerFlg');
+      // 데이터 로딩이 완료된 경우 artistCheck 함수 호출
+      isDataLoaded = true; // 데이터 로드 완료 표시
+      setState(() {}); // 상태 업데이트
     }
     super.initState();
   }
@@ -75,8 +76,8 @@ class _ArtistInfoState extends State<ArtistInfo> {
         .doc(widget.docId)
         .collection('team_members')
         .where('status', isEqualTo: 'Y')
-        .where('userId', isEqualTo: _userId)
         .get();
+
     final artistMemberCheck = await fs.collection('artist')
         .doc(widget.docId)
         .collection('team_members')
@@ -84,34 +85,47 @@ class _ArtistInfoState extends State<ArtistInfo> {
         .get();
 
     if (artistCheckSnap.docs.isNotEmpty) {
-      setState(() {
-        _artistId = _userId;
-      });
-    } else if (artistMemberCheck.docs.isNotEmpty) {
+      if(artistCheckSnap.docs.first['userId'] == _userId){
+        setState(() {
+          _artistId = _userId;
+          print('내 문서 아이디 => $_userId');
+          print('팀에 리더 => ${artistCheckSnap.docs.first['userId']}');
+        });
+        return; // 리더일 경우 함수 종료
+      }
+
+    }
+    if (artistMemberCheck.docs.isNotEmpty) {
       setState(() {
         _artistId2 = _userId;
+        print("리더는 아님 => $_artistId2");
       });
+      return; // 리더일 경우 함수 종료
     }
   }
 
   // 팔로우COUNT 불러오기
-  void _followerCount() async {
-    final CollectionReference artistCollection =
-        fs.collection('artist');
-    final DocumentReference artistDocument =
-        artistCollection.doc(widget.docId);
+  // 팔로우COUNT 불러오기
+  Future<void> _followerCount() async {
 
-    artistDocument.get().then((DocumentSnapshot documentSnapshot) {
+    final CollectionReference artistCollection = fs.collection('artist');
+    final DocumentReference artistDocument = artistCollection.doc(widget.docId);
+
+    try {
+      DocumentSnapshot documentSnapshot = await artistDocument.get();
+
       if (documentSnapshot.exists) {
         // 문서가 존재하는 경우 필드 가져오기
         folCnt = documentSnapshot['followerCnt'];
       } else {
         folCnt = 0;
       }
-    }).catchError((error) {
+    } catch (error) {
       print('데이터 가져오기 중 오류 발생: $error');
-    });
+    }
   }
+
+
 
   //////////////팔로우 확인/////////////
   void _followCheck() async {
@@ -121,14 +135,18 @@ class _ArtistInfoState extends State<ArtistInfo> {
         .collection('follower')
         .where('userId', isEqualTo: _userId)
         .get(); // 데이터를 검색하기 위해 get()를 사용합니다.
-    setState(() {
-      if (followYnSnapshot.docs.isNotEmpty) {
-          _followerFlg = true;
-      } else {
-          _followerFlg = false;
-      }
 
-    });
+      setState(() {
+        if (followYnSnapshot.docs.isNotEmpty) {
+          _followerFlg = true;
+
+        } else {
+          _followerFlg = false;
+
+        }
+      });
+
+
   }
 
   ///// 팔로우 하기
@@ -204,6 +222,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
       print("팔로우 안되어있음");
       return;
     }
+    _followCheck();
   }
 
   /////////////////상세 타이틀///////////////
@@ -619,11 +638,11 @@ class _ArtistInfoState extends State<ArtistInfo> {
             .collection('rental')
             .where('artistId', isEqualTo: widget.docId)
             .get();
-
         if (commerScheduleSnapshot.docs.isNotEmpty) {
           for (QueryDocumentSnapshot commerScheduleDoc
               in commerScheduleSnapshot.docs) {
-            if (commerScheduleDoc['acceptYn'] == "y") {
+
+
               String startDate = DateFormat('MM-dd(EEEE) HH:mm', 'ko_KR')
                   .format(commerScheduleDoc['startTime'].toDate());
               String endDate = DateFormat(' ~ HH:mm')
@@ -649,47 +668,60 @@ class _ArtistInfoState extends State<ArtistInfo> {
                   if (commerAddrSnapshot.docs.isNotEmpty) {
                     for (QueryDocumentSnapshot commerAddrDoc
                         in commerAddrSnapshot.docs) {
-                      String addr = commerAddrDoc['addr'];
 
-                      Widget buskingScheduleWidget = Card(
-                        child: Container(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Image.network(cmmerImg[0],
-                                  width: screenWidth * 0.2,
-                                  height: screenHeight * 0.1,
-                                  fit: BoxFit.cover),
-                              SizedBox(width: 10),
-                              Container(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        spaceName,
-                                        style: TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      Text(
-                                        addr,
-                                        style: TextStyle(fontSize: 13),
-                                      ),
-                                      Text(
-                                        startDate + endDate,
-                                        style: TextStyle(fontSize: 11),
-                                      ),
-                                    ],
+                      String addr = commerAddrDoc['addr'];
+                      if (addr.length >= 15) {
+                        addr = addr.substring(0, 15) + "\n" + addr.substring(15);
+                      }
+                      Widget buskingScheduleWidget = InkWell(
+                        onTap: (){
+                          Get.to(
+                              SpaceInfo(commerDoc.id),
+                              transition: Transition.noTransition
+                          );
+                        },
+                        child: Card(
+                          child: Container(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Image.network(cmmerImg[0],
+                                    width: screenWidth * 0.2,
+                                    height: screenHeight * 0.1,
+                                    fit: BoxFit.cover),
+                                SizedBox(width: 10),
+                                Container(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          spaceName,
+                                          style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        SizedBox(
+                                          height: 10,
+                                        ),
+                                        Text(
+                                          addr,
+                                          style: TextStyle(fontSize: 13),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        Text(
+                                          startDate + endDate,
+                                          style: TextStyle(fontSize: 11),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       );
@@ -699,13 +731,12 @@ class _ArtistInfoState extends State<ArtistInfo> {
                 }
               }
 
-              return buskingScheduleWidgets;
-            } else {
-              return [Container()];
-            }
+
+
           }
         }
       }
+      return buskingScheduleWidgets;
     }
 
     return [Container()];
@@ -760,6 +791,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
         ),
         drawer: MyDrawer(),
         body: Column(
+
           children: [
             SizedBox(
               height: isExpanded ? 320 : 230,
@@ -818,14 +850,14 @@ class _ArtistInfoState extends State<ArtistInfo> {
                                 ),
                                 onPressed: () {
                                   if (_isButtonEnabled) {
-                                    _isButtonEnabled = false; // 클릭 비활성화
+                                      _isButtonEnabled = false; // 클릭 비활성화
 
                                     // _followerFlg 가 true 이면 _followDelete() 호출, 그렇지 않으면 _followAdd() 호출
                                     _followerFlg ? _followDelete() : _followAdd();
                                     print('유저아이디 = >$_userId');
                                     // 2초 후에 클릭 활성화
-                                    Future.delayed(Duration(seconds: 1), () {
-                                      _isButtonEnabled = true;
+                                    Future.delayed(Duration(seconds: 2), () {
+                                        _isButtonEnabled = true;
                                     });
                                   }
                                 },
@@ -855,6 +887,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
 
                     },
                     child: Container(
+                      width: double.infinity,
                       height: isExpanded ? 200 : 100,
                       padding: EdgeInsets.all(10),
                       child: infoMap?['artistInfo'] != null

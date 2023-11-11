@@ -14,6 +14,7 @@ import 'artistInfo.dart';
 import 'artistRegi.dart';
 import 'buskingList.dart';
 import 'buskingReservation.dart';
+import 'buskingSpotList.dart';
 import 'concertDetails.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
@@ -113,6 +114,57 @@ class _MyAppState extends State<MyApp> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Row(
+              children: [
+                TextButton(
+                    onPressed: (){
+                      if (_userId != null) {
+                        Get.to(
+                            Profile(
+                              userId: _userId,
+                            ),
+                            transition: Transition.noTransition
+                        );
+                      } else {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('로그인 필요'),
+                              content: SingleChildScrollView(
+                                child: ListBody(
+                                  children: <Widget>[
+                                    Text('로그인 후에 이용해주세요.'),
+                                  ],
+                                ),
+                              ),
+                              actions: <Widget>[
+                                TextButton(
+                                  child: Text('확인'),
+                                  onPressed: () {
+                                    Navigator.of(context).pop(); // 다이얼로그 닫기
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      }
+                    },
+                    child: Text("임시 마이페이지 "),
+                ),
+                TextButton(
+                  onPressed: (){
+                    Get.to(
+                        Join(),
+                        transition: Transition.noTransition
+                    );
+                  },
+                  child: Text("임시 회원가입"),
+                ),
+              ],
+            ),
+
             Padding(
               padding: const EdgeInsets.only(left: 25.0,bottom: 10),
               child: Text("많이찾는 서비스 👀",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
@@ -164,43 +216,15 @@ class _MyAppState extends State<MyApp> {
                         children: [
                           InkWell(
                             onTap: () {
-                              if (_userId != null) {
                                 Get.to(
-                                  Profile(
-                                    userId: _userId,
-                                  ),
+                                    BuskingZoneList(),
                                   transition: Transition.noTransition
                                 );
-                              } else {
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: Text('로그인 필요'),
-                                      content: SingleChildScrollView(
-                                        child: ListBody(
-                                          children: <Widget>[
-                                            Text('로그인 후에 이용해주세요.'),
-                                          ],
-                                        ),
-                                      ),
-                                      actions: <Widget>[
-                                        TextButton(
-                                          child: Text('확인'),
-                                          onPressed: () {
-                                            Navigator.of(context).pop(); // 다이얼로그 닫기
-                                          },
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              }
                             },
-                            child: Image.asset('assets/myPage.png',width: 40,height: 40,),
+                            child: Image.asset('assets/spot.png',width: 40,height: 40,),
                           ),
                           SizedBox(height: 10,),
-                          Text("마이페이지",style: TextStyle(fontSize: 12),),
+                          Text("스팟",style: TextStyle(fontSize: 12),),
                         ],
                       ),
                     ),
@@ -232,16 +256,15 @@ class _MyAppState extends State<MyApp> {
                         children: [
                           InkWell(
                               onTap: (){
-                                _commercialListWidget();
                                 Get.to(
-                                  Join(),
+                                    CommercialList(),
                                   transition: Transition.noTransition
                                 );
                               },
-                              child: Image.asset('assets/join.png',width: 40,height: 40,),
+                              child: Image.asset('assets/commer.png',width: 40,height: 40,),
                           ),
                           SizedBox(height: 10,),
-                          Text("회원가입",style: TextStyle(fontSize: 12)),
+                          Text("상업공간",style: TextStyle(fontSize: 12)),
                         ],
                       ),
                     ),
@@ -712,19 +735,18 @@ class _MyAppState extends State<MyApp> {
     }
 
     List<Widget> commerWidgets = [];
-    int count = 0;
+
     for (QueryDocumentSnapshot commerDoc in commerQuerySnapshot.docs) {
-      if(count == 3){
-        break;
-      }
       final spaceName = commerDoc['spaceName'];
       final _id = commerDoc.id;
-      final startTime = Timestamp.fromDate(selectedDay);
+      final nowTime = Timestamp.fromDate(selectedDay);
+
       QuerySnapshot commerRentalQuerySnapshot = await FirebaseFirestore.instance
           .collection("commercial_space")
           .doc(_id)
           .collection("rental")
-          .where('startTime', isGreaterThanOrEqualTo: startTime)
+          .where('startTime', isGreaterThanOrEqualTo: nowTime)
+          .orderBy('startTime', descending: false)
           .get();
 
       await Future.forEach(commerRentalQuerySnapshot.docs, (rentalDoc) async {
@@ -737,16 +759,13 @@ class _MyAppState extends State<MyApp> {
       });
 
       if (commerRentalQuerySnapshot.docs.isNotEmpty) {
-        final rentalDocs = commerRentalQuerySnapshot.docs;
-
-        for (QueryDocumentSnapshot rentalDoc in rentalDocs) {
+        for (QueryDocumentSnapshot rentalDoc in commerRentalQuerySnapshot.docs) {
           final date = DateFormat('MM-dd').format(rentalDoc['startTime'].toDate());
           final startTime = DateFormat('HH:mm').format(rentalDoc['startTime'].toDate());
           final endTime = DateFormat('HH:mm').format(rentalDoc['endTime'].toDate());
           final artistId = rentalDoc['artistId'];
 
           final artistDoc = await FirebaseFirestore.instance.collection('artist').doc(artistId).get();
-
 
           if (artistDoc.exists) {
             final artistName = artistDoc['artistName'];
@@ -835,8 +854,8 @@ class _MyAppState extends State<MyApp> {
                     ),
                     onTap: () {
                       Get.to(
-                        SpaceInfo(_id),
-                        transition: Transition.noTransition
+                          SpaceInfo(_id),
+                          transition: Transition.noTransition
                       );
                     },
                   ),
@@ -847,8 +866,9 @@ class _MyAppState extends State<MyApp> {
           }
         }
       }
-      count++;
     }
     return commerWidgets;
   }
+
+
 }
