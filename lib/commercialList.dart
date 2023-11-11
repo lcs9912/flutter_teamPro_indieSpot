@@ -6,6 +6,7 @@ import 'package:indie_spot/proprietorIdAdd.dart';
 import 'package:indie_spot/spaceInfo.dart';
 import 'package:indie_spot/spotDetailed.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class CommercialList extends StatefulWidget {
   const CommercialList({super.key});
@@ -126,7 +127,12 @@ class _CommercialListState extends State<CommercialList> {
                                   leading: Container(
                                     height: double.infinity,
                                     width: 100,
-                                    child: Image.network(images[0].data()['path'][0], fit: BoxFit.cover,),
+                                    child: CachedNetworkImage(
+                                      imageUrl: images[0].data()['path'][0], // 이미지 URL
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+                                      errorWidget: (context, url, error) => Icon(Icons.error),
+                                    ),
                                   ),
                                   trailing: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,

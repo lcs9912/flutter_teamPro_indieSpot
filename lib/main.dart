@@ -679,7 +679,8 @@ class _MyAppState extends State<MyApp> {
                                             onPressed: (){
                                               //_bestArtist();
                                               Get.to(
-                                                  () => CommercialList()
+                                                  () => CommercialList(),
+                                                transition: Transition.noTransition
                                               );
                                             },
                                             child: Text("더보기",style: TextStyle(color: Colors.black),)
