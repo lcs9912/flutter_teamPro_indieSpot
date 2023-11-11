@@ -88,7 +88,7 @@ class _ArtistListState extends State<ArtistList> {
       } else if (selectedRadio == "최신순") {
         _stream = fs
             .collection("artist")
-            .orderBy('recentShow', descending: true)
+            .orderBy('udatetime', descending: true)
             .snapshots();
       }
     } else {

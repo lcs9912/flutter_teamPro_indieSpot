@@ -35,24 +35,28 @@ class _ArtistInfoState extends State<ArtistInfo> {
   String? _artistId; // 리더
   String? _artistId2; // 맴버
   String? _userId;
-
+  bool _isButtonEnabled = true; // 팔로우 버튼 딜레이 주기
+  bool isExpanded = false; // 크기 확장
+  
   // 아티스트 정보
   String? artistName;
   String? artistImg;
+  String? url;
   DocumentSnapshot? documentSnapshotoc;
   Map<String,dynamic>? infoMap;
   //////////////세션 확인//////////
   bool isDataLoaded = false; // 데이터 로드 완료 여부를 확인하는 변수
   @override
   void initState() {
-    _followerCount();
+
     _infoTitle();
-    _followCheck();
 
     final userModel = Provider.of<UserModel>(context, listen: false);
     if (!userModel.isLogin) {
     } else {
       _userId = userModel.userId;
+      _followCheck();
+      _followerCount();
       artistCheck();
         // 데이터 로딩이 완료된 경우 artistCheck 함수 호출
 
@@ -93,7 +97,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
   // 팔로우COUNT 불러오기
   void _followerCount() async {
     final CollectionReference artistCollection =
-        FirebaseFirestore.instance.collection('artist');
+        fs.collection('artist');
     final DocumentReference artistDocument =
         artistCollection.doc(widget.docId);
 
@@ -119,11 +123,11 @@ class _ArtistInfoState extends State<ArtistInfo> {
         .get(); // 데이터를 검색하기 위해 get()를 사용합니다.
     setState(() {
       if (followYnSnapshot.docs.isNotEmpty) {
-        _followerFlg = true;
+          _followerFlg = true;
       } else {
-        _followerFlg = false;
+          _followerFlg = false;
       }
-      _followerCount(); // 팔로우count
+
     });
   }
 
@@ -133,9 +137,16 @@ class _ArtistInfoState extends State<ArtistInfo> {
       _alertDialogWidget();
     } else {
       CollectionReference followAdd =
-          fs.collection('artist').doc(widget.docId).collection('follower');
+        fs.collection('artist').doc(widget.docId).collection('follower');
 
+      QuerySnapshot followerQuery = await followAdd.where('userId', isEqualTo: _userId).get();
 
+      if (followerQuery.docs.isNotEmpty) {
+        print("이미 팔로우함 ");
+        return;
+      }
+
+      
       await followAdd.add({'userId': _userId});
       DocumentReference artistDoc = fs.collection('artist').doc(widget.docId);
       artistDoc.update({
@@ -189,6 +200,9 @@ class _ArtistInfoState extends State<ArtistInfo> {
         'followingCnt': FieldValue.increment(-1),
       });
       _followCheck();
+    } else {
+      print("팔로우 안되어있음");
+      return;
     }
   }
 
@@ -407,6 +421,8 @@ class _ArtistInfoState extends State<ArtistInfo> {
 ////////////////////////////////아이스트 소개/////////////////////////////////////////
   // 아티스트 소개 데이터호출 위젯
   Future<List<Widget>> _artistDetails() async {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
     final membersQuerySnapshot = await fs
         .collection('artist')
         .doc(widget.docId)
@@ -440,12 +456,43 @@ class _ArtistInfoState extends State<ArtistInfo> {
                 String userImage = userImg['PATH'];
 
                 // 예시: ListTile을 사용하여 팀 멤버 정보를 보여주는 위젯을 만듭니다.
-                Widget memberWidget = ListTile(
-                  leading: Image.network(userImage),
-                  title: Text(userName),
-                  subtitle: Text(memberPosition),
-                  // 다른 정보를 표시하려면 여기에 추가하세요.
+                Widget memberWidget = Card(
+                  child: Container(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Image.network(userImage,
+                            width: screenWidth * 0.2,
+                            height: screenHeight * 0.1,
+                            fit: BoxFit.cover),
+                        SizedBox(width: 10),
+                        Container(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  userName,
+                                  style: TextStyle(
+                                      fontSize: 15, fontWeight: FontWeight.bold),
+                                ),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                Text(
+                                  memberPosition,
+                                  style: TextStyle(fontSize: 13),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 );
+
 
                 memberWidgets.add(memberWidget);
               }
@@ -666,6 +713,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
 
   @override
   Widget build(BuildContext context) {
+    
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -675,13 +723,13 @@ class _ArtistInfoState extends State<ArtistInfo> {
           elevation: 1,
           flexibleSpace: Container(
             decoration: BoxDecoration(
-              color: Color(0xFFffffff), // 원하는 배경 색상으로 변경
+              color: Color(0xFF233067), // 원하는 배경 색상으로 변경
             ),
           ),
           leading: Builder(
             builder: (context) {
               return IconButton(
-                color: Color(0xFF233067),
+                color: Color(0xFFffffff),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -691,16 +739,16 @@ class _ArtistInfoState extends State<ArtistInfo> {
           ),
           title: Center(
             child: Text(
-              infoMap?['artistName'] ?? "",
+              "팀/솔로 정보",
               style:
-                  TextStyle(color: Color(0xFF233067), fontWeight: FontWeight.bold),
+                  TextStyle(color: Color(0xFFffffff), fontWeight: FontWeight.bold),
             ),
           ),
           actions: [
             Builder(
               builder: (context) {
                 return IconButton(
-                  color: Color(0xFF233067),
+                  color: Color(0xFFffffff),
                   onPressed: () {
                     Scaffold.of(context).openDrawer();
                   },
@@ -714,62 +762,110 @@ class _ArtistInfoState extends State<ArtistInfo> {
         body: Column(
           children: [
             SizedBox(
-              height: 250,
+              height: isExpanded ? 320 : 230,
               child: Column(
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
+
                     children: [
-                      ClipOval(
-                        child: artistImg != null ? Image.network(
-                          artistImg!,
-                          width: 100, // 원 모양 이미지의 너비
-                          height: 100, // 원 모양 이미지의 높이
-                          fit: BoxFit.cover, // 이미지를 화면에 맞게 조절
-                        ) : ClipOval(child: Container(width: 100,height: 100,color: Colors.grey,)),
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: ClipOval(
+                          child: artistImg != null ? Image.network(
+                            artistImg!,
+                            width: 100, // 원 모양 이미지의 너비
+                            height: 100, // 원 모양 이미지의 높이
+                            fit: BoxFit.cover, // 이미지를 화면에 맞게 조절
+                          ) : ClipOval(child: Container(width: 100,height: 100,color: Colors.grey,)),
+                        ),
                       ),
-                      artistName != null ? Text(
-                        artistName!, // artistName
-                        style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black),
-                      ) : Text(""),
-                      infoMap?['artistInfo'] != null ?Text(
-                        infoMap?['artistInfo'], // artistName
-                        style: TextStyle(
-                            fontSize: 15,
-                            color: Colors.black),
-                      ) : Text(""),
-                      infoMap?['genre'] != null ? Text(
-                        infoMap?['genre'],
-                        style: TextStyle(fontSize: 14, color: Colors.black),
-                      ) : Text(""),
-                      Row(
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Stack(
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              if (_followerFlg)
-                                IconButton(
-                                    onPressed: () {
-                                      _followDelete();
-                                      setState(() {});
+                              Container(
+                                width: 200,
+                                child:infoMap?['artistName'] != null ? Text(
+                                  infoMap?['artistName'],
+                                  style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black),
+                                  overflow: TextOverflow.ellipsis,
+                                ) : Container(),
+                              ),
+
+                              OutlinedButton(
+                                style: ButtonStyle(
+                                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(18.0),
+                                    ),
+                                  ),
+                                  backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                                        (Set<MaterialState> states) {
+                                      // _followerFlg 가 true 일 때 색상을 변경
+                                      if (_followerFlg) {
+                                        return Color(0xFF233067);
+                                      }
+                                      // _followerFlg 가 false 일 때 기본 색상을 반환
+                                      return Colors.transparent;
                                     },
-                                    icon: Icon(Icons.person_add)),
-                              if (!_followerFlg)
-                                IconButton(
-                                    onPressed: () {
-                                      _followAdd();
-                                      setState(() {});
-                                    },
-                                    icon: Icon(Icons.person_add_alt)),
-                              Positioned(
-                                  right: 1, top: 1, child: Text(folCnt.toString())),
+                                  ),
+                                  // 여기에 필요한 다른 속성들도 추가할 수 있습니다.
+                                ),
+                                onPressed: () {
+                                  if (_isButtonEnabled) {
+                                    _isButtonEnabled = false; // 클릭 비활성화
+
+                                    // _followerFlg 가 true 이면 _followDelete() 호출, 그렇지 않으면 _followAdd() 호출
+                                    _followerFlg ? _followDelete() : _followAdd();
+                                    print('유저아이디 = >$_userId');
+                                    // 2초 후에 클릭 활성화
+                                    Future.delayed(Duration(seconds: 1), () {
+                                      _isButtonEnabled = true;
+                                    });
+                                  }
+                                },
+                                child: _followerFlg ? Text("팔로잉",style: TextStyle(color: Colors.white),) : Text("팔로우"),
+                              ),
                             ],
                           ),
+                          SizedBox(height: 10,),
+                          folCnt != null ? Text("$folCnt 팔로워") : Container(),
+                          infoMap?['genre'] != null ? Text(
+                            infoMap?['genre'],
+                            style: TextStyle(fontSize: 14, color: Colors.black),
+                          ) : Text(""),
                         ],
                       ),
+
+
+
                     ],
+                  ),
+
+                  GestureDetector(
+                    onTap: (){
+                      setState(() {
+                        isExpanded = !isExpanded;
+                      });
+
+                    },
+                    child: Container(
+                      height: isExpanded ? 200 : 100,
+                      padding: EdgeInsets.all(10),
+                      child: infoMap?['artistInfo'] != null
+                          ? Text(
+                            infoMap?['artistInfo'],
+                            style: TextStyle(fontSize: 15, color: Colors.black),
+                            maxLines: isExpanded ? 8 : 5,
+                            overflow: TextOverflow.ellipsis,
+                          )
+                          : Text(""),
+                    ),
                   ),
                 ],
               ),
@@ -780,6 +876,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
                 Tab(text: '공연일정'),
                 Tab(text: '클립'),
               ],
+
               indicatorColor:Color(0xFF233067),
               unselectedLabelColor: Colors.black,
               labelColor: Color(0xFF233067),
@@ -808,12 +905,8 @@ class _ArtistInfoState extends State<ArtistInfo> {
                             } else {
                               return Column(
                                 children: [
-                                  Container(
-                                    padding: EdgeInsets.only(top: 10),
-                                    margin: EdgeInsets.all(20),
-                                    child: Column(
-                                      children: snapshot.data ?? [Container()],
-                                    ),
+                                  Column(
+                                    children: snapshot.data ?? [Container()],
                                   ),
                                 ],
                               );
@@ -827,68 +920,58 @@ class _ArtistInfoState extends State<ArtistInfo> {
                   ListView(
                     //////////////공연 일정 탭////////////
                     children: [
-                      Container(
-                        child: FutureBuilder(
-                          future:
-                          scheduleFlg ? _buskingSchedule() : _commerSchedule(),
-                          builder: (BuildContext context,
-                              AsyncSnapshot<dynamic> scheduleSnap) {
-                            if (scheduleSnap.connectionState ==
-                                ConnectionState.waiting) {
-                              return Container();
-                            } else if (scheduleSnap.hasError) {
-                              return Text('Error: ${scheduleSnap.error}');
-                            } else {
-                              return Column(
-                                children: [
-                                  Container(
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          child: Center(
-                                            child: TextButton(
-                                              onPressed: () {
-                                                setState(() {
-                                                  scheduleFlg = true;
-                                                });
-                                              },
-                                              child: Text(
-                                                "버스킹",
-                                                style: TextStyle(color: Color(0xFF233067)),
-                                              ),
-                                            ),
-                                          ),
+                      FutureBuilder(
+                        future:
+                        scheduleFlg ? _buskingSchedule() : _commerSchedule(),
+                        builder: (BuildContext context,
+                            AsyncSnapshot<dynamic> scheduleSnap) {
+                          if (scheduleSnap.connectionState ==
+                              ConnectionState.waiting) {
+                            return Container();
+                          } else if (scheduleSnap.hasError) {
+                            return Text('Error: ${scheduleSnap.error}');
+                          } else {
+                            return Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Center(
+                                      child: TextButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            scheduleFlg = true;
+                                          });
+                                        },
+                                        child: Text(
+                                          "버스킹",
+                                          style: TextStyle(color: Color(0xFF233067)),
                                         ),
-                                        Container(
-                                          child: Center(
-                                            child: TextButton(
-                                              onPressed: () {
-                                                setState(() {
-                                                  scheduleFlg = false;
-                                                });
-                                              },
-                                              child: Text(
-                                                "상업공간",
-                                                style: TextStyle(color: Colors.grey),
-                                              ),
-                                            ),
-                                          ),
+                                      ),
+                                    ),
+                                    Center(
+                                      child: TextButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            scheduleFlg = false;
+                                          });
+                                        },
+                                        child: Text(
+                                          "상업공간",
+                                          style: TextStyle(color: Colors.grey),
                                         ),
-                                      ],
+                                      ),
                                     ),
+                                  ],
+                                ),
+                                Container(
+                                  child: Column(
+                                    children: scheduleSnap.data ?? [Container()],
                                   ),
-                                  Container(
-                                    padding: EdgeInsets.only(top: 10),
-                                    margin: EdgeInsets.all(20),
-                                    child: Column(
-                                      children: scheduleSnap.data ?? [Container()],
-                                    ),
-                                  ),
-                                ],
-                              );
-                            }
-                          },
-                        ),
+                                ),
+                              ],
+                            );
+                          }
+                        },
                       )
                     ],
                   ),
@@ -915,7 +998,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
                               DocumentSnapshot doc = videoSnap.data!.docs[index];
                               Map<String, dynamic> data =
                                   doc.data() as Map<String, dynamic>;
-                              String url = data['url'];
+                              url = data['url'];
                               return GestureDetector(
                                   onTap: () {
                                     Get.to(
