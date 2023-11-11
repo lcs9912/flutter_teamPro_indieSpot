@@ -62,11 +62,9 @@ class _BuskingReservationState extends State<BuskingReservation> {
   }
 
   void _openBuskingZoneList() async {
-    final selectedZone = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => BuskingZoneListScreen(),
-      ),
+    final selectedZone = await Get.to(
+      () => BuskingZoneListScreen(),
+      transition: Transition.noTransition
     );
 
     if (selectedZone != null) {

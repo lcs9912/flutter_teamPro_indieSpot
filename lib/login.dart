@@ -237,7 +237,6 @@ class _LoginPageState extends State<LoginPage> {
             artistDoc.reference.collection('team_members');
 
             // 각 teamMembers 쿼리를 병렬로 처리하기 위해 Future.wait 사용
-            List<Future<QuerySnapshot>> teamMembersQueries = [];
 
             // userId를 사용하여 특정 문서 내에서 검색
             final teamMemberSnapshot = await teamMembersRef

@@ -26,7 +26,7 @@ class _UserEditState extends State<UserEdit> {
   TextEditingController _introductionController = TextEditingController();
   ImageProvider<Object>? imageProvider;
   File? _selectedImage; // _selectedImage 변수를 정의합니다.
-  bool _isNameChecked = false; // _isNameChecked 변수를 정의합니다.
+// _isNameChecked 변수를 정의합니다.
   String? _userId;
 
   @override
@@ -154,11 +154,6 @@ class _UserEditState extends State<UserEdit> {
   }
 
 
-  void _change() {
-    setState(() {
-      _isNameChecked = false;
-    });
-  }
   Future<String> _uploadImage(File imageFile) async {
     try {
       String fileName = path.basename(imageFile.path);
@@ -377,7 +372,7 @@ class _UserEditState extends State<UserEdit> {
                   onPressed: _changeProfileImage,
                   child: Text('프로필 이미지 변경'),
                   style: ElevatedButton.styleFrom(
-                    primary: Color(0xFF233067),
+                    backgroundColor: Color(0xFF233067),
                   ),
                 ),
               ],
@@ -453,7 +448,7 @@ class _UserEditState extends State<UserEdit> {
               },
               child: Text('프로필 페이지로 이동'),
               style: ElevatedButton.styleFrom(
-                primary: Color(0xFF233067),
+                backgroundColor: Color(0xFF233067),
               ),
             ),
 
@@ -484,8 +479,7 @@ class _UserEditState extends State<UserEdit> {
                     style: TextStyle(fontSize: 20), // Adjust the font size
                   ),
                   style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 16), // Adjust the vertical padding
-                    primary: Color(0xFF233067), // Set the button color here
+                    padding: EdgeInsets.symmetric(vertical: 16), backgroundColor: Color(0xFF233067), // Set the button color here
                   ),
                 ),
 

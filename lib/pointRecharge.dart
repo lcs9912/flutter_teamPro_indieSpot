@@ -5,6 +5,7 @@ import 'package:indie_spot/payment.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:get/get.dart';
 
 class PointRecharge extends StatefulWidget {
   const PointRecharge({super.key});
@@ -32,7 +33,7 @@ class _PointRechargeState extends State<PointRecharge> {
           String,
           dynamic>;
       setState(() {
-        _pointBalance = data!['pointBalance'];
+        _pointBalance = data['pointBalance'];
       });
     } else {}
   }
@@ -125,10 +126,13 @@ class _PointRechargeState extends State<PointRecharge> {
                   )
               ),
               onPressed: () {
-                if(_rechargeControl.text == '0' || _rechargeControl.text == '' || _rechargeControl.text == null) {
+                if(_rechargeControl.text == '0' || _rechargeControl.text == '') {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('충전할 포인트를 입력해주세요'), behavior: SnackBarBehavior.floating,));
                 } else {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => Payment(_rechargeControl.text),));
+                  Get.to(
+                    () => Payment(_rechargeControl.text),
+                    transition: Transition.noTransition
+                  );
                 }
               },
               child: Row(
@@ -174,7 +178,7 @@ class _PointRechargeState extends State<PointRecharge> {
                   onPressed: (){
                     if(_rechargeControl.text == '') _rechargeControl.text = '0';
                     setState(() {
-                      _rechargeControl.text = _numberFormat.format(price + int.parse(_rechargeControl.text.replaceAll(',', '') ?? '0'));
+                      _rechargeControl.text = _numberFormat.format(price + int.parse(_rechargeControl.text.replaceAll(',', '')));
                     });
                   },
                   style: ButtonStyle(

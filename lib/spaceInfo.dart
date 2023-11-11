@@ -11,13 +11,13 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
-
+import 'package:get/get.dart';
 import 'dialog.dart';
 
 
 class SpaceInfo extends StatefulWidget {
 
-  String spaceId;
+  final String spaceId;
   SpaceInfo(this.spaceId);
 
   @override
@@ -473,7 +473,10 @@ class _SpaceInfoState extends State<SpaceInfo> {
                       if(artistId == ""){
                         DialogHelper.showArtistRegistrationDialog(context);
                       }else{
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => SpaceRental(document : doc!),));
+                        Get.to(
+                          () => SpaceRental(document : doc!),
+                          transition: Transition.noTransition
+                        );
                       }
                     }
                   },
@@ -487,7 +490,6 @@ class _SpaceInfoState extends State<SpaceInfo> {
   }
 
   Widget calendar(){
-    final bool leftChevronVisible;
     return TableCalendar(
       locale: 'ko_KR',
       focusedDay: DateTime.now(),
@@ -517,12 +519,9 @@ class _SpaceInfoState extends State<SpaceInfo> {
         if (date.isBefore(DateTime.now())) {
           return false; // 오늘 이전의 날짜는 비활성화
         }
-        if (selectedDay == null) {
-          return false;
-        }
-        return date.year == selectedDay!.year &&
-            date.month == selectedDay!.month &&
-            date.day == selectedDay!.day;
+        return date.year == selectedDay.year &&
+            date.month == selectedDay.month &&
+            date.day == selectedDay.day;
       },
       calendarBuilders: CalendarBuilders(
         disabledBuilder: (context, date, _) {
@@ -542,13 +541,15 @@ class _SpaceInfoState extends State<SpaceInfo> {
     );
   }
   void openDirectionsInGoogleMaps(double destinationLatitude, double destinationLongitude) async {
-    String googleUrl = 'https://www.google.com/maps/dir/?api=1&destination=$destinationLatitude,$destinationLongitude';
-    if (await canLaunch(googleUrl)) {
-      await launch(googleUrl);
+    Uri googleUri = Uri.https('www.google.com', '/maps/dir/', {'api': '1', 'destination': '$destinationLatitude,$destinationLongitude'});
+
+    if (await canLaunchUrl(googleUri)) {
+      await launchUrl(googleUri);
     } else {
-      throw 'Could not launch $googleUrl';
+      throw 'Could not launch $googleUri';
     }
   }
+
   Future<void> spaceData() async{ //상업공간
     DocumentSnapshot spaceSnap = await fs.collection("commercial_space").doc(widget.spaceId).get();
     if(spaceSnap.exists){
@@ -562,8 +563,8 @@ class _SpaceInfoState extends State<SpaceInfo> {
     QuerySnapshot addrSnap = await fs.collection("commercial_space").doc(widget.spaceId).collection("addr").get();
     if(addrSnap.docs.isNotEmpty){
       Map<String, dynamic> addrMap = addrSnap.docs.first.data() as Map<String,dynamic>;
-      _getCoordinatesFromAddress('${addrMap?['addr']} ${addrMap?['addr2']}');
-      searchNearbyPlaces('${addrMap?['addr']} ${addrMap?['addr2']}');
+      _getCoordinatesFromAddress('${addrMap['addr']} ${addrMap['addr2']}');
+      searchNearbyPlaces('${addrMap['addr']} ${addrMap['addr2']}');
       setState(() {
         addrData = addrMap;
       });
@@ -608,7 +609,6 @@ class _SpaceInfoState extends State<SpaceInfo> {
     );
 
     if (response.statusCode == 200) {
-      final Map<String, dynamic> responseData = json.decode(response.body);
       // 여기에서 responseData를 처리하십시오.
     } else {
       throw Exception('Failed to fetch data');

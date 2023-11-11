@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'concertDetails.dart'; // concertDetails.dart 파일을 import합니다.
 
 void main() {
   runApp(MyApp());

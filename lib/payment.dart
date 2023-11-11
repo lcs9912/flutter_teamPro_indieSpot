@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:indie_spot/baseBar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:indie_spot/result.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:iamport_flutter/iamport_payment.dart';
 import 'package:iamport_flutter/model/payment_data.dart';
+import 'package:get/get.dart';
 
 class Payment extends StatefulWidget {
   final String payment;
@@ -45,7 +45,7 @@ class _PaymentState extends State<Payment> {
           String,
           dynamic>;
       setState(() {
-        _pointBalance = data!['pointBalance'];
+        _pointBalance = data['pointBalance'];
       });
     } else {}
   }
@@ -175,7 +175,10 @@ class _PaymentState extends State<Payment> {
                 ),
                 title: Text('신용카드'),
                 onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentText({'pg' : 'kicc', 'amountPayment' : _amountPayment, 'name' : _userName, 'email' : _userEmail, 'point' : widget.payment}),));
+                  Get.to(
+                    ()=> PaymentText({'pg' : 'kicc', 'amountPayment' : _amountPayment, 'name' : _userName, 'email' : _userEmail, 'point' : widget.payment}),
+                    transition: Transition.noTransition
+                  );
                 },
               ),
             ),
@@ -190,7 +193,10 @@ class _PaymentState extends State<Payment> {
                 ),
                 title: Text('카카오페이'),
                 onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentText({'pg' : 'kakaopay', 'amountPayment' : _amountPayment, 'name' : _userName, 'email' : _userEmail, 'point' : widget.payment}),));
+                  Get.to(
+                      () => PaymentText({'pg' : 'kakaopay', 'amountPayment' : _amountPayment, 'name' : _userName, 'email' : _userEmail, 'point' : widget.payment}),
+                    transition:  Transition.noTransition
+                  );
                 },
               ),
             ),
@@ -205,7 +211,10 @@ class _PaymentState extends State<Payment> {
                 ),
                 title: Text('토스페이'),
                 onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PaymentText({'pg' : 'tosspay', 'amountPayment' : _amountPayment, 'name' : _userName, 'email' : _userEmail, 'point' : widget.payment}),));
+                  Get.to(
+                          () => PaymentText({'pg' : 'tosspay', 'amountPayment' : _amountPayment, 'name' : _userName, 'email' : _userEmail, 'point' : widget.payment}),
+                      transition:  Transition.noTransition
+                  );
                 },
               ),
             ),
@@ -287,7 +296,7 @@ class _PaymentState extends State<Payment> {
 }
 
 class PaymentText extends StatelessWidget {
-  Map<String, dynamic> _info;
+  final Map<String, dynamic> _info;
   PaymentText(this._info);
 
   @override

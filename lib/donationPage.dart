@@ -5,7 +5,7 @@ import 'package:indie_spot/userModel.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'package:get/get.dart';
 
 class DonationPage extends StatefulWidget {
 
@@ -374,7 +374,10 @@ class _DonationPageState extends State<DonationPage> {
                       ),
                       ElevatedButton(onPressed: (){
                         _updataDonation();
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => DonationArtistList(),));
+                        Get.to(
+                          ()=>DonationArtistList(),
+                          transition: Transition.noTransition
+                        );
                       },style: ButtonStyle(backgroundColor: MaterialStatePropertyAll(Color(0xFF233067)))
                       , child: Text("확인"))
                     ],

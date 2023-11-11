@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/baseBar.dart';
-import 'package:indie_spot/lsjMain.dart';
 import 'artistInfo.dart';
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -12,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
 import 'package:image_cropper/image_cropper.dart';
+import 'package:get/get.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,7 +44,6 @@ class _ArtistRegiState extends State<ArtistRegi> {
   bool _isNameChecked = false;
   File? _selectedImage;
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
-  final TextEditingController _basicPrice = TextEditingController(); // 기본공연비(30분기준)
   final TextEditingController _artistName = TextEditingController();
   final TextEditingController _artistInfo = TextEditingController();
   final TextEditingController _mainPlace = TextEditingController();
@@ -211,9 +210,9 @@ class _ArtistRegiState extends State<ArtistRegi> {
       });
 
       //등록 완료후 페이지 이동
-      Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => ArtistInfo(artistID))
+      Get.off(
+        () => ArtistInfo(artistID),
+        transition: Transition.noTransition
       );
 
 

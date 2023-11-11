@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
-import 'package:indie_spot/commercialList.dart';
 import 'package:indie_spot/spaceInfo.dart';
 import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
@@ -12,7 +11,7 @@ import 'package:path/path.dart' as path;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 import 'loading.dart';
-import 'concertDetails.dart';
+import 'package:get/get.dart';
 
 class ProprietorAdd extends StatefulWidget {
   const ProprietorAdd({super.key});
@@ -315,9 +314,9 @@ class _ProprietorAddState extends State<ProprietorAdd> {
           )
       );
       Navigator.of(context).pop();
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (BuildContext context) => SpaceInfo(commerId!)),
+      Get.off(
+        ()=> SpaceInfo(commerId!),
+        transition: Transition.noTransition
       );
       // Navigator.of(context).push(MaterialPageRoute(
       //   builder: (context) => SpaceInfo(commerId!), // HomeScreen은 대상 화면의 위젯입니다.
@@ -388,7 +387,7 @@ class _ProprietorAddState extends State<ProprietorAdd> {
     final picker = ImagePicker();
     final pickedImages = await picker.pickMultiImage();
 
-    if (pickedImages != null && pickedImages.isNotEmpty) {
+    if (pickedImages.isNotEmpty) {
       for (var pickedImage in pickedImages) {
         if (_commerImageList.length < 5) {
           setState(() {
@@ -897,7 +896,7 @@ class _ProprietorAddState extends State<ProprietorAdd> {
                         ),
                       ),
                     ),
-                    _commerImageListWidget()!,
+                    _commerImageListWidget(),
                   ],
                 ),
                 SizedBox(height: 10,),

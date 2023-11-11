@@ -126,7 +126,7 @@ class _AdminUserListState extends State<AdminUserList> {
 
     for (var userDocument in userListQuerySnapshot.docs) {
       Map<String, dynamic> data = userDocument.data();
-      if (_search != null && _search.text.isNotEmpty) {
+      if (_search.text.isNotEmpty) {
         if (data['nick'].contains(_search.text) || data['email'].contains(_search.text)) {
           userItems.add(_addUser(data, userDocument.id));
         }

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/baseBar.dart';
-import 'package:indie_spot/concertDetails.dart';
 import 'package:indie_spot/pointDetailed.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:get/get.dart';
 
 class Result extends StatelessWidget {
   bool getIsSuccessed(Map<String, String> result) {
@@ -27,7 +27,7 @@ class Result extends StatelessWidget {
       // 첫 번째 문서 참조 가져오기
       DocumentSnapshot documentSnapshot = querySnapshot.docs.first;
       Map<String, dynamic> data = documentSnapshot.data() as Map<String, dynamic>;
-      int pointBalance = data!['pointBalance'];
+      int pointBalance = data['pointBalance'];
       // 업데이트할 데이터
       int point = int.parse(info['point']!.replaceAll(',', ''));
 
@@ -228,7 +228,10 @@ class Result extends StatelessWidget {
                ),
              ),
              onPressed: (){
-               Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => PointDetailed(),));
+               Get.off(
+                 ()=>PointDetailed(),
+                 transition: Transition.noTransition
+               );
              },
              child: Container( padding: EdgeInsets.all(15),child: Text('마이포인트 바로가기'))
            )

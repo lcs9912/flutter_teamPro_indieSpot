@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/baseBar.dart';
-import 'package:indie_spot/loading.dart';
 import 'package:indie_spot/videoAdd.dart';
 import 'package:indie_spot/videoDetailed.dart';
 import 'package:intl/intl.dart';
@@ -217,7 +216,7 @@ class _VideoListState extends State<VideoList> {
 
       for (var videoDetailDocument in videoDetailsQuerySnapshot.docs) {
         var videoDetailData = videoDetailDocument.data();
-        if (_searchControl != null && _searchControl.text.isNotEmpty) {
+        if (_searchControl.text == '') {
           // 검색어가 비어 있지 않고 title에 검색어가 포함되어 있으면 리스트에 아이템 추가
           if (videoDetailData['title'].contains(_searchControl.text)) {
             var artistName = await _getArtistName(videoDetailData['artistId']);

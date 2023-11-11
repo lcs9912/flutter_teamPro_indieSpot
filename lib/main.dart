@@ -68,7 +68,6 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   String? _userId; // 유저 세션
   String? _artistId;
-  String? _leader;
   FirebaseFirestore fs = FirebaseFirestore.instance;
 
   bool loginFlg = false;
@@ -88,14 +87,11 @@ class _MyAppState extends State<MyApp> {
       _artistId = userModel.artistId;
     }
     if (userModel.isLeader) {
-      _leader = userModel.artistId;
     }
   }
 
-  String? _artistDoc;
   void artistCheck(){
-    final artistCol = fs.collection('artist').get();
-    
+
 
 
   }
@@ -484,8 +480,6 @@ class _MyAppState extends State<MyApp> {
 
   Future<Widget> _buildBuskingWidget(QueryDocumentSnapshot buskingDoc) async {
     // 필요한 데이터를 비동기로 가져오는 함수
-    int reviewCnt = 0;
-    int busLikeCnt = 0;
 
     // 버스킹 리뷰 컬렉션
     final busReviewSnapshot = await fs
@@ -496,7 +490,6 @@ class _MyAppState extends State<MyApp> {
 
 
     if (busReviewSnapshot.docs.isNotEmpty) {
-      reviewCnt = busReviewSnapshot.docs.length;
     }
 
     // 버스킹 좋아요 컬렉션
@@ -507,7 +500,6 @@ class _MyAppState extends State<MyApp> {
         .get();
 
     if (busLikeSnapshot.docs.isNotEmpty) {
-      busLikeCnt = busLikeSnapshot.docs.length;
     }
 
     // 버스킹 이미지 호출
@@ -581,8 +573,6 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-    double screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: MyAppBar(),
       drawer: MyDrawer(),

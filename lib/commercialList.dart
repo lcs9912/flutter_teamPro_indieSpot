@@ -4,9 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:indie_spot/baseBar.dart';
 import 'package:indie_spot/proprietorIdAdd.dart';
 import 'package:indie_spot/spaceInfo.dart';
-import 'package:indie_spot/spotDetailed.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:get/get.dart';
 
 class CommercialList extends StatefulWidget {
   const CommercialList({super.key});
@@ -33,7 +33,10 @@ class _CommercialListState extends State<CommercialList> {
         floatingActionButton: FloatingActionButton(
           backgroundColor: Color(0xFF233067),
           onPressed: (){
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProprietorAdd(),)).then((value) => setState(() {}));
+            Get.to(
+              () => ProprietorAdd(),
+              transition: Transition.noTransition
+            )!.then((value) => setState(() {}));
           },
           child: Icon(Icons.edit),
         ),
@@ -142,7 +145,10 @@ class _CommercialListState extends State<CommercialList> {
                                     ],
                                   ),
                                   onTap: () {
-                                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => SpaceInfo(document.id),));
+                                    Get.to(
+                                      () => SpaceInfo(document.id),
+                                      transition: Transition.noTransition
+                                    );
                                   },
                                 ),
                               );

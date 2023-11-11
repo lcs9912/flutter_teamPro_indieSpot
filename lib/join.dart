@@ -14,14 +14,6 @@ class Join extends StatefulWidget {
 class _JoinState extends State<Join> {
   String _selectedGender = '남자';
 
-  bool _isNameEmpty = true;
-  bool _isPhoneEmpty = true;
-  bool _isBirthdayEmpty = true;
-  bool _isPwdEmpty = true;
-  bool _isPwd2Empty = true;
-  bool _isEmailEmpty = true;
-  bool _isNickEmpty = true;
-  bool _isGenderEmpty = true;
   bool _isAgreedToTerms = false;
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
 
@@ -215,8 +207,7 @@ class _JoinState extends State<Join> {
                 ),
               ),
               style: TextButton.styleFrom(
-                primary: Colors.white, // 텍스트 색상
-                backgroundColor: Color(0xFF392F31),
+                foregroundColor: Colors.white, backgroundColor: Color(0xFF392F31),
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8), // 패딩 설정
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10), // 버튼의 모서리를 둥글게 만듭니다.
@@ -371,7 +362,7 @@ class _JoinState extends State<Join> {
                     onPressed: _checkEmail,
 
                     style: ElevatedButton.styleFrom(
-                      primary:  Color(0xFF233067), // 색상 변경
+                      backgroundColor: Color(0xFF233067), // 색상 변경
                     ),
                     child: Text('중복 확인'),
                   ),
@@ -382,7 +373,6 @@ class _JoinState extends State<Join> {
                 controller: _email,
                 onChanged: (value) {
                   setState(() {
-                    _isEmailEmpty = value.isEmpty;
                   });
                 },
                 decoration: InputDecoration(
@@ -406,7 +396,6 @@ class _JoinState extends State<Join> {
                 controller: _pwd,
                 onChanged: (value) {
                   setState(() {
-                    _isPwdEmpty = value.isEmpty;
                   });
                 },
                 obscureText: true,
@@ -427,7 +416,6 @@ class _JoinState extends State<Join> {
                 controller: _pwd2,
                 onChanged: (value) {
                   setState(() {
-                    _isPwd2Empty = value.isEmpty;
                   });
                 },
                 obscureText: true,
@@ -448,7 +436,6 @@ class _JoinState extends State<Join> {
                 controller: _name,
                 onChanged: (value) {
                   setState(() {
-                    _isNameEmpty = value.isEmpty;
                   });
                 },
                 decoration: InputDecoration(
@@ -474,7 +461,7 @@ class _JoinState extends State<Join> {
                     onPressed: _checkNickname,
 
                     style: ElevatedButton.styleFrom(
-                      primary:  Color(0xFF233067), // 색상 변경
+                      backgroundColor: Color(0xFF233067), // 색상 변경
                     ),
                     child: Text('중복 확인'),
                   ),
@@ -485,7 +472,6 @@ class _JoinState extends State<Join> {
                 controller: _nick,
                 onChanged: (value) {
                   setState(() {
-                    _isNickEmpty = value.isEmpty;
                   });
                 },
                 decoration: InputDecoration(
@@ -505,7 +491,6 @@ class _JoinState extends State<Join> {
                 controller: _birthday,
                 onChanged: (value) {
                   setState(() {
-                    _isBirthdayEmpty = value.isEmpty;
                   });
                 },
                 decoration: InputDecoration(
@@ -528,7 +513,6 @@ class _JoinState extends State<Join> {
                 controller: _phone,
                 onChanged: (value) {
                   setState(() {
-                    _isPhoneEmpty = value.isEmpty;
                   });
                 },
                 decoration: InputDecoration(
@@ -571,7 +555,7 @@ class _JoinState extends State<Join> {
               Row(
                 children: [
                   Checkbox(
-                    value: _isAgreedToTerms ?? false, // null이면 기본값으로 false를 사용합니다.
+                    value: _isAgreedToTerms, // null이면 기본값으로 false를 사용합니다.
                     onChanged: (bool? value) {
                       setState(() {
                         _isAgreedToTerms = value ?? false; // null이면 기본값으로 false를 사용합니다.

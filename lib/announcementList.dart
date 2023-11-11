@@ -121,7 +121,6 @@ class _AnnouncementListState extends State<AnnouncementList> {
         announcementQuerySnapshot.docs.forEach((announcementDocument) {
           var announcementData = announcementDocument.data();
           String title = announcementData['title'];
-          String content = announcementData['content'];
           int cnt = announcementData['cnt'];
           var createDate = announcementData['createDate'];
 

@@ -185,6 +185,7 @@ class _ArtistListState extends State<ArtistList> {
                       }
                     });
               }
+              return null;
             },
           ),
         );

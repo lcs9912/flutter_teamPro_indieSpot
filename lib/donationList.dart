@@ -7,7 +7,7 @@ import 'baseBar.dart';
 
 class DonationList extends StatefulWidget {
 
-  String artistId;
+  final String artistId;
 
   DonationList({required this.artistId});
   @override
@@ -20,7 +20,6 @@ class _DonationListState extends State<DonationList> {
   Map<String,dynamic>? artistData;
   QueryDocumentSnapshot? artistImg;
   String? _selectedItem;
-  int _num = 30;
   List<String> _items = [];
   @override
   void initState() {
@@ -102,11 +101,9 @@ class _DonationListState extends State<DonationList> {
 
       // 병렬로 데이터 가져오기
       var userSnap = fs.collection("userList").doc(userId).get();
-      var imgSnap = fs.collection("userList").doc(userId).collection("image").get();
 
       // await을 사용하여 데이터를 가져올 때까지 기다립니다.
       Map<String, dynamic> userData = (await userSnap).data() as Map<String, dynamic>;
-      var imgData = (await imgSnap).docs.first;
 
       Timestamp timeStamp = _artistData['date'];
       DateTime date = timeStamp.toDate();
@@ -318,7 +315,6 @@ class _DonationListState extends State<DonationList> {
                               }).toList(),
                               onChanged: (value) {
                                 setState(() {
-                                  _num = 0;
                                   _selectedItem = value!;
                                 });
                               },

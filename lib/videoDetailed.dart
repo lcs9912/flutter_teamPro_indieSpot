@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:indie_spot/artistInfo.dart';
 import 'package:indie_spot/dialog.dart';
-import 'package:indie_spot/login.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/baseBar.dart';
@@ -74,7 +73,7 @@ class _VideoDetailedState extends State<VideoDetailed> {
       if (document.exists) {
 
         var data = document.data() as Map<String, dynamic>;
-        int currentCount = data?['cnt'] ?? 0;
+        int currentCount = data['cnt'] ?? 0;
 
         // 값을 1 증가시킴
         int newCount = currentCount + 1;
@@ -192,7 +191,7 @@ class _VideoDetailedState extends State<VideoDetailed> {
                     Container(
                       child: ClipOval(
                         child: CachedNetworkImage(
-                          imageUrl: img ?? '', // 이미지 URL
+                          imageUrl: img, // 이미지 URL
                           width: 35,
                           height: 35,
                           fit: BoxFit.cover,
@@ -301,7 +300,6 @@ class _VideoDetailedState extends State<VideoDetailed> {
           if (userSnapshot.exists) {
             var querySnapshot = await userDocRef.collection('image').limit(1).get();
             if (querySnapshot.docs.isNotEmpty) {
-              var userDate = userSnapshot.data();
               var firstImageDocument = querySnapshot.docs.first;
               String userPath = firstImageDocument.data()['PATH'];
 

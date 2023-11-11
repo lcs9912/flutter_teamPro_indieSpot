@@ -7,9 +7,8 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
-import 'artistList.dart';
-import 'buskingReservation.dart';
 import 'package:image_cropper/image_cropper.dart';
+import 'package:get/get.dart';
 
 class ArtistEdit extends StatefulWidget {
   final DocumentSnapshot doc;
@@ -230,8 +229,9 @@ class _ArtistEditState extends State<ArtistEdit> {
       });
       Navigator.pop(dialogContext);
       //등록 완료후 페이지 이동
-      Navigator.pushReplacement(
-          dialogContext, MaterialPageRoute(builder: (context) => ArtistInfo(widget.doc.id))
+      Get.off(
+        () => ArtistInfo(widget.doc.id),
+        transition: Transition.noTransition
       );
     } catch (e) {
       print('오류 발생: $e');

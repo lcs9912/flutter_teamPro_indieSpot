@@ -14,7 +14,6 @@ class FollowList extends StatefulWidget {
 
 class _FollowListState extends State<FollowList> {
   String? _userId;
-  String? _artistId;
   List<Map<String, dynamic>> _followingArtists = [];
   Map<String, String?> _imagePaths = {}; // 이미지 경로를 저장하는 맵
 
@@ -67,7 +66,6 @@ class _FollowListState extends State<FollowList> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _userId = Provider.of<UserModel>(context).userId;
-    _artistId = Provider.of<UserModel>(context).artistId;
 
     getFollowingArtistIds();
   }

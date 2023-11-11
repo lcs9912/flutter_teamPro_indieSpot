@@ -325,10 +325,10 @@ class _AdminUserInfoState extends State<AdminUserInfo> {
 
       if (userQuerySnapshot.exists) {
         var userdata = userQuerySnapshot.data();
-        String nick = userdata!['nick'];
-        String email = userdata!['email'];
-        String gender = userdata!['gender'];
-        String name = userdata!['name'];
+        String nick = userdata?['nick'];
+        String email = userdata?['email'];
+        String gender = userdata?['gender'];
+        String name = userdata?['name'];
         var userImageSnapshot = await userQuerySnapshot.reference.collection('image').limit(1).get();
 
         if (userImageSnapshot.docs.isNotEmpty) {

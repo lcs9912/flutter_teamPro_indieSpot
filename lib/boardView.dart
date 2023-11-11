@@ -5,6 +5,7 @@ import 'package:indie_spot/boardEdit.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 
 class BoardView extends StatefulWidget {
   final DocumentSnapshot document;
@@ -91,11 +92,9 @@ class _BoardViewState extends State<BoardView> {
           if (Provider.of<UserModel>(context, listen: false).userId == data['userId'])
             IconButton(
                 onPressed: (){
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => BoardEdit(document: widget.document),
-                    ),
+                  Get.to(
+                    () => BoardEdit(document: widget.document),
+                    transition: Transition.noTransition
                   );
                 },
                 icon: Icon(Icons.edit)

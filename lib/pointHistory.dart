@@ -14,10 +14,8 @@ class PointHistory extends StatefulWidget {
 
 class _PointHistoryState extends State<PointHistory> {
   String? _userId;
-  int? _pointBalance = 0;
   FirebaseFirestore fs = FirebaseFirestore.instance;
   int _totalRecharge = 0;
-  List<Widget> _pointsDetailsList = [];
   int _num = 30;
   String? _selectedItem;
   List<String> _items = [];
@@ -28,12 +26,7 @@ class _PointHistoryState extends State<PointHistory> {
         .get();
 
     if (pointSnapshot.docs.isNotEmpty) {
-      QueryDocumentSnapshot firstPointDocument = pointSnapshot.docs.first;
-      Map<String, dynamic> data = firstPointDocument.data() as Map<
-          String,
-          dynamic>;
       setState(() {
-        _pointBalance = data!['pointBalance'];
       });
     } else {}
   }

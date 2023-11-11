@@ -4,6 +4,7 @@ import 'package:indie_spot/baseBar.dart';
 import 'package:indie_spot/login.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
+import 'package:get/get.dart';
 
 class PwdEdit extends StatefulWidget {
   const PwdEdit({super.key});
@@ -136,9 +137,9 @@ class _PwdEditState extends State<PwdEdit> {
             SnackBar(content: Text("비밀번호가 변경되었습니다."))
         );
 
-        Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => LoginPage()),
+        Get.off(
+          ()=>LoginPage(),
+          transition: Transition.noTransition
         );
       }
 

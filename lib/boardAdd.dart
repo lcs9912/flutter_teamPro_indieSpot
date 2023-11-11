@@ -8,6 +8,7 @@ import 'package:indie_spot/userModel.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
+import 'package:get/get.dart';
 
 class BoardAdd extends StatefulWidget {
   const BoardAdd({super.key});
@@ -175,9 +176,9 @@ class _BoardAddState extends State<BoardAdd> {
         _content.clear();
         _selectedImage = null;
       });
-      Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => BoardList())
+      Get.to(
+        BoardList(),
+        transition: Transition.noTransition
       );
     }catch (e){
       ScaffoldMessenger.of(context).showSnackBar(

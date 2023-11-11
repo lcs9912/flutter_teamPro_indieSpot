@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -18,7 +16,7 @@ class _MembersEditState extends State<MembersEdit> {
   final TextEditingController _artistNick = TextEditingController(); // 아티스트 닉네임 변경
   bool _isNameChecked = false;
   String? _status; // 리더가 변경할 권한
-  String? _genreCheck; //
+//
 
   @override
   void initState() {

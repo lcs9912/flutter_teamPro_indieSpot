@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:indie_spot/baseBar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/exchangeInformation.dart';
-import 'package:indie_spot/payment.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:get/get.dart';
 
 class PointExchange extends StatefulWidget {
   const PointExchange({super.key});
@@ -33,7 +33,7 @@ class _PointExchangeState extends State<PointExchange> {
           String,
           dynamic>;
       setState(() {
-        _pointBalance = data!['pointBalance'];
+        _pointBalance = data['pointBalance'];
       });
     } else {}
   }
@@ -126,10 +126,13 @@ class _PointExchangeState extends State<PointExchange> {
                     )
                 ),
                 onPressed: () {
-                  if(_rechargeControl.text == '0' || _rechargeControl.text == '' || _rechargeControl.text == null) {
+                  if(_rechargeControl.text == '0' || _rechargeControl.text == '') {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('환전할 포인트를 입력해주세요'), behavior: SnackBarBehavior.floating,));
                   } else {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => ExchangeInformation(_rechargeControl.text),)).then((value) => Navigator.of(context).pop());
+                    Get.to(
+                      () => ExchangeInformation(_rechargeControl.text),
+                      transition: Transition.noTransition
+                    )!.then((value) => Navigator.of(context).pop());
                   }
                 },
                 child: Row(
@@ -176,10 +179,10 @@ class _PointExchangeState extends State<PointExchange> {
                   onPressed: (){
                     if(_rechargeControl.text == '') _rechargeControl.text = '0';
                     setState(() {
-                      if(price + int.parse(_rechargeControl.text.replaceAll(',', '') ?? '0') > _pointBalance!) {
+                      if(price + int.parse(_rechargeControl.text.replaceAll(',', '')) > _pointBalance!) {
                         _rechargeControl.text = _numberFormat.format(_pointBalance);
                       } else {
-                        _rechargeControl.text = _numberFormat.format(price + int.parse(_rechargeControl.text.replaceAll(',', '') ?? '0'));
+                        _rechargeControl.text = _numberFormat.format(price + int.parse(_rechargeControl.text.replaceAll(',', '')));
                       }
                     });
                   },
@@ -199,10 +202,10 @@ class _PointExchangeState extends State<PointExchange> {
               onPressed: (){
                 if(_rechargeControl.text == '') _rechargeControl.text = '0';
                 setState(() {
-                  if(50000 + int.parse(_rechargeControl.text.replaceAll(',', '') ?? '0') > _pointBalance!) {
+                  if(50000 + int.parse(_rechargeControl.text.replaceAll(',', '')) > _pointBalance!) {
                     _rechargeControl.text = _numberFormat.format(_pointBalance);
                   } else {
-                    _rechargeControl.text = _numberFormat.format(50000 + int.parse(_rechargeControl.text.replaceAll(',', '') ?? '0'));
+                    _rechargeControl.text = _numberFormat.format(50000 + int.parse(_rechargeControl.text.replaceAll(',', '')));
                   }
                 });
               },

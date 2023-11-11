@@ -5,7 +5,7 @@ import 'package:indie_spot/loading.dart';
 import 'package:indie_spot/pointDetailed.dart';
 import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
-import 'buskingReservation.dart';
+import 'package:get/get.dart';
 
 class ExchangeInformation extends StatefulWidget {
   final String point;
@@ -25,37 +25,37 @@ class _ExchangeInformationState extends State<ExchangeInformation> {
   final _accountNumber = TextEditingController(); //계좌번호
 
   bool _chackText() {
-    if (_name.text.isEmpty || _name.text == null) {
+    if (_name.text == '') {
       // 이름이 공백이거나 널인 경우에 대한 처리
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('이름을 입력해주세요')));
       return false;
     }
 
-    if (_juminbeonho.text.isEmpty || _juminbeonho.text == null) {
+    if (_juminbeonho.text == '') {
       // 주민번호가 공백이거나 널인 경우에 대한 처리
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('주민번호를 입력해주세요')));
       return false;
     }
 
-    if (_phone.text.isEmpty || _phone.text == null) {
+    if (_phone.text == '') {
       // 전화번호가 공백이거나 널인 경우에 대한 처리
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('전화번호를 입력해주세요')));
       return false;
     }
 
-    if (_bankName.text.isEmpty || _bankName.text == null) {
+    if (_bankName.text == '') {
       // 은행 이름이 공백이거나 널인 경우에 대한 처리
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('은행 이름을 입력해주세요')));
       return false;
     }
 
-    if (_accountHolder.text.isEmpty || _accountHolder.text == null) {
+    if (_accountHolder.text == '') {
       // 예금주 이름이 공백이거나 널인 경우에 대한 처리
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('예금주 이름을 입력해주세요')));
       return false;
     }
 
-    if (_accountNumber.text.isEmpty || _accountNumber.text == null) {
+    if (_accountNumber.text == '') {
       // 계좌번호가 공백이거나 널인 경우에 대한 처리
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('계좌번호를 입력해주세요')));
       return false;
@@ -111,7 +111,10 @@ class _ExchangeInformationState extends State<ExchangeInformation> {
           });
 
           if (!context.mounted) return;
-          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => PointDetailed(),));
+          Get.off(
+              () => PointDetailed(),
+              transition: Transition.noTransition
+          );
         } else {
           // 사용자가 교환을 위한 충분한 포인트를 가지고 있지 않을 때 처리
           print('교환을 위한 포인트가 부족합니다.');

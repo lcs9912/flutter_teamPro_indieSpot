@@ -399,11 +399,6 @@ class _ConcertDetailsState extends State<ConcertDetails> {
     setState(() {});
 
     // 각 이미지의 NAME 필드 값을 출력합니다.
-    if (buskingImages != null) {
-      for (var image in buskingImages!) {
-
-      }
-    }
   }
 
   Future<void> loadBuskingReview() async {
@@ -621,8 +616,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                               });
                             },
                             style: TextButton.styleFrom(
-                              primary: Colors.white, // 텍스트 버튼의 텍스트 색상 변경
-                              shape: RoundedRectangleBorder(
+                              foregroundColor: Colors.white, shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(18.0),
                               ),
                             ),
@@ -825,7 +819,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  primary: Color(0xFF233067), // 배경색을 392F31로 설정
+                                  backgroundColor: Color(0xFF233067), // 배경색을 392F31로 설정
                                 ),
                                 child: Text('댓글작성'),
                               ),

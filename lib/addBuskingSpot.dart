@@ -9,9 +9,6 @@ import 'baseBar.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:provider/provider.dart';
-import 'package:indie_spot/userModel.dart';
-import 'buskingReservation.dart';
 import 'package:image_cropper/image_cropper.dart';
 
 class AddBuskingSpot extends StatefulWidget {
@@ -35,7 +32,6 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
   GoogleMapController? mapController;
   LatLng? coordinates;
   FirebaseFirestore fs = FirebaseFirestore.instance;
-  String? _userId;
 
   Future<String> uploadImage(String name) async {
     // Firebase Storage에 저장할 파일의 참조 생성
@@ -185,10 +181,9 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
 
   @override
   void initState() {
-    // TODO: implement initState
+    super.initState();
     _getCoordinatesFromAddress('서울 시청');
 
-    _userId = Provider.of<UserModel>(context, listen: false).userId;
   }
 
   @override

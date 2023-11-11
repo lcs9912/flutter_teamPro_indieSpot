@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:indie_spot/adminInquiry.dart';
 import 'package:indie_spot/adminMain.dart';
 import 'package:indie_spot/announcementList.dart';
 import 'package:indie_spot/artistInfo.dart';
@@ -17,7 +16,6 @@ import 'package:indie_spot/rentalHistory.dart';
 import 'package:indie_spot/support.dart';
 import 'package:indie_spot/userDonationHistory.dart';
 import 'package:indie_spot/userModel.dart';
-import 'package:indie_spot/videoAdd.dart';
 import 'package:indie_spot/videoList.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -361,7 +359,10 @@ class _MyDrawerState extends State<MyDrawer> {
                 ListTile(
                   title: Text('아티스트 정보 수정'),
                   onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => ArtistEdit(_artistId as DocumentSnapshot<Object?>, artistImg!),)).then((value) => setState(() {}));
+                    Get.to(
+                      () => ArtistEdit(_artistId as DocumentSnapshot<Object?>, artistImg!),
+                      transition:  Transition.noTransition
+                    )!.then((value) => setState(() {}));
                   },
                 ),
             ],

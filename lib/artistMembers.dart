@@ -19,7 +19,6 @@ class ArtistMembers extends StatefulWidget {
 class _ArtistMembersStatus extends State<ArtistMembers> {
   FirebaseFirestore fs = FirebaseFirestore.instance;
 
-  String? _artistId;
   String? _userId;
   String? joinId;
   String? position;
@@ -39,7 +38,7 @@ class _ArtistMembersStatus extends State<ArtistMembers> {
   void teamAccept() async {
     try {
       // "team_members" 컬렉션에 새로운 문서 추가
-      final teamMembersRef = await fs.collection('artist')
+      await fs.collection('artist')
           .doc(widget.doc.id)
           .collection('team_members')
           .add({

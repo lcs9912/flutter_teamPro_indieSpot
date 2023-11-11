@@ -90,7 +90,6 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
     busKingList.clear();
     DateTime now = DateTime.now();
     DateTime today = DateTime(now.year, now.month, now.day);
-    List<Map<String,dynamic>> list = [];
     QuerySnapshot buskingSnap = await fs.collection("busking")
         .where('buskingStart', isGreaterThan: Timestamp.fromDate(today))
         .orderBy("buskingStart")

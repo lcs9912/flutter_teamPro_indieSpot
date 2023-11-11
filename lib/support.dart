@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'userModel.dart';
 import 'contactUs.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import 'package:get/get.dart';
 class Support extends StatefulWidget {
-  List<Map<String, dynamic>> inquiries = [];
-  List<bool> isExpandedList = List.generate(11, (index) => false);
-  bool isExpanded = false;
-  int expandedIndex = -1;
+  final List<Map<String, dynamic>> inquiries = [];
+  final List<bool> isExpandedList = List.generate(11, (index) => false);
+  final bool isExpanded = false;
+  final int expandedIndex = -1;
   @override
   State<Support> createState() => _SupportState();
 }
@@ -82,7 +79,7 @@ class _SupportState extends State<Support> {
                 labelColor: Colors.white,
                 unselectedLabelColor: Colors.white,
                 onTap: (index) {
-                  if (index == 1 && (_userId == null || _userId.isEmpty)) {
+                  if (index == 1 && (_userId.isEmpty)) {
                     showDialog(
                       context: context,
                       builder: (BuildContext context) {

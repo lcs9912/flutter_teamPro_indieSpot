@@ -7,6 +7,7 @@ import 'package:indie_spot/userModel.dart';
 import 'package:indie_spot/videoList.dart';
 import 'package:provider/provider.dart';
 import 'baseBar.dart';
+import 'package:get/get.dart';
 
 class YoutubeAdd extends StatefulWidget {
 
@@ -328,7 +329,10 @@ class _YoutubeTestState extends State<YoutubeAdd> {
                 }
                 if(states1==0&&states2==0&&states3==0){
                   videoUpload();
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => VideoList(),));
+                  Get.off(
+                    () => VideoList(),
+                    transition: Transition.noTransition
+                  );
                 }
               },
               child: Text("등록"),
@@ -368,8 +372,6 @@ class _YoutubeTestState extends State<YoutubeAdd> {
           'https://www.googleapis.com/youtube/v3/search?key=$apiKey&q=$query&part=snippet&maxResults=1&type=channel'));
       videoTitle.text = "";
       if (channelResponse.statusCode == 200) {
-        Map<String, dynamic> channelData = json.decode(channelResponse.body);
-        String channelId = channelData['items'][0]['id']['channelId'];
         // 해당 채널의 영상 검색
         final response = await http.get(Uri.parse(
             'https://www.googleapis.com/youtube/v3/search?key=$apiKey&q=$query&part=snippet&maxResults=10&type=video'));

@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:get/get.dart';
 
 class SpotDetailed extends StatefulWidget {
   final Map<String, dynamic> _data;
@@ -139,7 +140,10 @@ class _SpotDetailedState extends State<SpotDetailed> {
                 )
               ),
               onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => BuskingReservation.spot(widget._spotId, widget._data['spotName']),));
+                Get.to(
+                  () => BuskingReservation.spot(widget._spotId, widget._data['spotName']),
+                  transition: Transition.noTransition
+                );
               },
               child: Text('버스킹 등록', style: TextStyle(fontSize: 17),),
             ),)
@@ -148,7 +152,6 @@ class _SpotDetailedState extends State<SpotDetailed> {
       )
     );
   }
-  bool _ongoing = false;
   AppBar _appBar() {
     return AppBar(
       elevation: 1,

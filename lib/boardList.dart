@@ -5,6 +5,7 @@ import 'package:indie_spot/boardView.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:provider/provider.dart';
 import 'boardAdd.dart';
+import 'package:get/get.dart';
 
 class BoardList extends StatefulWidget {
   const BoardList();
@@ -295,11 +296,9 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
                                 ),
                             onTap: () {
                               _incrementViewCount(postDoc);
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => BoardView(document: doc),
-                                ),
+                              Get.to(
+                                ()=> BoardView(document: doc),
+                                transition: Transition.noTransition
                               );
                             },
                           ),
@@ -413,9 +412,9 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
             if (userId == null) {
               _showLoginAlert(context);
             } else {
-              Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => BoardAdd())
+              Get.to(
+                ()=> BoardAdd(),
+                transition: Transition.noTransition
               );
             }
           },

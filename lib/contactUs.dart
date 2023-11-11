@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
@@ -13,8 +12,6 @@ class ContactUs extends StatefulWidget {
 
 class _ContactUsState extends State<ContactUs> {
   late String _userId; // 수정: _userId를 late 변수로 변경
-
-  TextEditingController _userIdController = TextEditingController();
 
   @override
   void initState() {

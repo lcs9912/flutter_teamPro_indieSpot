@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:indie_spot/dialog.dart';
 import 'package:indie_spot/pointRecharge.dart';
 import 'package:indie_spot/rentalHistory.dart';
 import 'package:indie_spot/userModel.dart';
@@ -11,7 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:get/get.dart';
 
 class SpaceRental extends StatefulWidget {
-  DocumentSnapshot document;
+  final DocumentSnapshot document;
   SpaceRental({required this.document});
   @override
   State<SpaceRental> createState() => _SpaceRentalState();
@@ -200,7 +199,10 @@ class _SpaceRentalState extends State<SpaceRental> {
                                     transition: Transition.noTransition //이동애니메이션off
                                 )?.then((value) {
                                   if (value != null && value) {
-                                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SpaceRental(document: widget.document),));
+                                    Get.off(
+                                      ()=>SpaceRental(document: widget.document),
+                                      transition: Transition.noTransition
+                                    );
                                     Navigator.pop(context, true);
                                     return;
                                   }
@@ -276,7 +278,6 @@ class _SpaceRentalState extends State<SpaceRental> {
     );
   }
   Widget calendar(){
-    final bool leftChevronVisible;
     return TableCalendar(
       locale: 'ko_KR',
       focusedDay: DateTime.now(),
@@ -306,12 +307,9 @@ class _SpaceRentalState extends State<SpaceRental> {
         if (date.isBefore(DateTime.now())) {
           return false; // 오늘 이전의 날짜는 비활성화
         }
-        if (selectedDay == null) {
-          return false;
-        }
-        return date.year == selectedDay!.year &&
-            date.month == selectedDay!.month &&
-            date.day == selectedDay!.day;
+        return date.year == selectedDay.year &&
+            date.month == selectedDay.month &&
+            date.day == selectedDay.day;
       },
       calendarBuilders: CalendarBuilders(
         disabledBuilder: (context, date, _) {

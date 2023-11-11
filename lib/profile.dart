@@ -4,7 +4,6 @@ import 'package:indie_spot/pointDetailed.dart';
 import 'package:indie_spot/userEdit.dart';
 import 'package:get/get.dart';
 import 'boardList.dart';
-import 'donationArtistList.dart';
 import 'followList.dart';
 
 class Profile extends StatefulWidget {
@@ -31,11 +30,8 @@ class _ProfileState extends State<Profile> {
   List<String> imagePaths = []; // Define the list of image paths
   String? _nickFromFirestore; // Firestore에서 가져온 'nick' 값을 저장할 변수
   String? _introductionFromFirestore;
-  String? _followerCount = '0'; // 기본값으로 0 설정
-  String? _followerCntFromFirestore;
+// 기본값으로 0 설정
   String? _followingCntFromFirestore;
-  String? _followingCount;
-  String? _followingCnt;
   String? _path;
   FirebaseFirestore fs = FirebaseFirestore.instance;
   ImageProvider<Object>? imageProvider;
@@ -98,10 +94,10 @@ class _ProfileState extends State<Profile> {
           .where('userId', isEqualTo: userId)
           .get();
 
-      List<Map<String, dynamic>> concertBoardDataList = concertBoardSnapshot.docs.map((doc) => doc.data()!).toList();
-      List<Map<String, dynamic>> freeBoardDataList = freeBoardSnapshot.docs.map((doc) => doc.data()!).toList();
-      List<Map<String, dynamic>> teamBoardDataList = teamBoardSnapshot.docs.map((doc) => doc.data()!).toList();
-      List<Map<String, dynamic>> imageDataList = imageSnapshot.docs.map((doc) => doc.data()!).toList();
+      List<Map<String, dynamic>> concertBoardDataList = concertBoardSnapshot.docs.map((doc) => doc.data()).toList();
+      List<Map<String, dynamic>> freeBoardDataList = freeBoardSnapshot.docs.map((doc) => doc.data()).toList();
+      List<Map<String, dynamic>> teamBoardDataList = teamBoardSnapshot.docs.map((doc) => doc.data()).toList();
+      List<Map<String, dynamic>> imageDataList = imageSnapshot.docs.map((doc) => doc.data()).toList();
 
       setState(() {
         _postsData = [...concertBoardDataList, ...freeBoardDataList, ...teamBoardDataList, ...imageDataList];
@@ -128,13 +124,11 @@ class _ProfileState extends State<Profile> {
           var nick = snapshot.data()!['nick'];
           var introduction = snapshot.data()!['introduction'];
           var followingCnt = snapshot.data()!['followingCnt'];
-          var followerCnt = snapshot.data()!['followerCnt'];
           setState(() {
             _path = image.docs.first.data()['PATH'];
             _nickFromFirestore = nick;
             _introductionFromFirestore = introduction;
             _followingCntFromFirestore = followingCnt.toString();
-            _followerCntFromFirestore = followerCnt.toString();
           });
         }
       }
@@ -154,13 +148,10 @@ class _ProfileState extends State<Profile> {
       CollectionReference<Map<String, dynamic>> subcollectionsRef = postRef.collection(postId);
 
       // 해당 서브컬렉션 내의 문서들을 가져옵니다.
-      QuerySnapshot<Map<String, dynamic>> subcollectionDocumentsSnapshot = await subcollectionsRef
+      await subcollectionsRef
           .where('userId', isEqualTo: userId) // userId와 같은 값을 가진 문서들만 가져옵니다.
           .get();
 
-      List<Map<String, dynamic>> subcollectionDataList = subcollectionDocumentsSnapshot.docs
-          .map((doc) => doc.data()!)
-          .toList();
     } catch (e) {
       print('데이터를 가져오는 중 오류 발생: $e');
     }
@@ -183,7 +174,6 @@ class _ProfileState extends State<Profile> {
 
         if (followerSnapshot.exists) {
           setState(() {
-            _followerCount = followerSnapshot.data()!['count'].toString();
           });
         }
 
@@ -200,7 +190,6 @@ class _ProfileState extends State<Profile> {
 
         if (followingSnapshot.exists) {
           setState(() {
-            _followingCount = followingSnapshot.data()!['count'].toString();
           });
         }
       }
@@ -222,7 +211,6 @@ class _ProfileState extends State<Profile> {
 
           if (followingCnt != null) {
             setState(() {
-              _followingCnt = followingCnt.toString();
             });
           } else {
             print('followingCnt is null'); // 만약 null일 경우 출력됩니다.
@@ -237,13 +225,12 @@ class _ProfileState extends State<Profile> {
   Future<void> getBoardDocumentIds(String? userId) async {
     try {
       if (userId != null) {
-        QuerySnapshot<Map<String, dynamic>> boardSnapshot = await FirebaseFirestore.instance
+        await FirebaseFirestore.instance
             .collection('userList')
             .doc(userId)
             .collection('board')
             .get();
 
-        List<String> documentIds = boardSnapshot.docs.map((doc) => doc.id).toList();
 
         // 이제 'board' 서브컬렉션에서 문서의 아이디 목록을 얻었습니다.
       }
@@ -467,7 +454,7 @@ class _ProfileState extends State<Profile> {
                         style: TextStyle(color: Colors.white),
                       ),
                       style: ElevatedButton.styleFrom(
-                        primary: Color(0xFF233067),
+                        backgroundColor: Color(0xFF233067),
                       ),
                     ),
                   ),
@@ -485,7 +472,7 @@ class _ProfileState extends State<Profile> {
                 style: TextStyle(color: Colors.white),
               ),
               style: ElevatedButton.styleFrom(
-                primary: Color(0xFF233067), // 버튼 배경색
+                backgroundColor: Color(0xFF233067), // 버튼 배경색
                 fixedSize: Size.fromWidth(500), // 가로로 꽉 차도록 설정
               ),
             ),

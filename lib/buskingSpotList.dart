@@ -113,7 +113,10 @@ class _BuskingZoneListState extends State<BuskingZoneList> {
                                     ),
                                     trailing: Icon(Icons.chevron_right),
                                     onTap: () {
-                                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => SpotDetailed(data, addr, images, document.id),));
+                                      Get.to(
+                                        ()=> SpotDetailed(data, addr, images, document.id),
+                                        transition: Transition.noTransition
+                                      );
                                     },
                                   ),
                                 );

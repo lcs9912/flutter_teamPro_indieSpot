@@ -6,9 +6,7 @@ import 'package:indie_spot/boardList.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
-import 'package:indie_spot/userModel.dart';
-import 'package:provider/provider.dart';
-import 'package:indie_spot/userModel.dart';
+import 'package:get/get.dart';
 
 class BoardEdit extends StatefulWidget {
   final DocumentSnapshot document;
@@ -61,7 +59,6 @@ class _BoardEditState extends State<BoardEdit> {
 
 
   void _editBoard() async {
-    String? _userId = Provider.of<UserModel>(context, listen: false).userId;
 
     if (_title.text.length > 20) {
       showDialog(
@@ -139,10 +136,9 @@ class _BoardEditState extends State<BoardEdit> {
         SnackBar(content: Text("수정되었습니다")),
       );
 
-      Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => BoardList()
-          )
+      Get.off(
+        ()=> BoardList(),
+        transition: Transition.noTransition
       );
 
     }catch (e){
