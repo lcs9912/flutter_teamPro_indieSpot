@@ -1,20 +1,18 @@
+import 'package:indie_spot/loading.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:provider/provider.dart';
-import 'package:indie_spot/login.dart';
 import 'package:intl/intl.dart';
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:flutter/material.dart';
 import 'donationPage.dart';
 import 'dart:async';
 import 'package:get/get.dart';
+
 class ConcertDetails extends StatefulWidget {
   final DocumentSnapshot document;
-  final String spotName;
 
-  ConcertDetails({required this.document, required this.spotName});
+  ConcertDetails({required this.document});
 
   @override
   _ConcertDetailsState createState() => _ConcertDetailsState();
@@ -46,6 +44,8 @@ class _ConcertDetailsState extends State<ConcertDetails> {
   String currentContent = ""; // 현재 댓글 내용
   String buskingId = ""; // 버스킹 ID
   String reviewId = "";
+  String _spotName = '';
+  
   Future<void> loadBuskingData() async {
     buskingData = null;
     DocumentSnapshot<Map<String, dynamic>> buskingSnapshot = await getBuskingDetails(widget.document.id);
@@ -56,51 +56,30 @@ class _ConcertDetailsState extends State<ConcertDetails> {
       buskingData = buskingSnapshot.data();
       // 추가(뿌리는 부분에서 artistData => artistData2로 변경)
       artistData2 = artistSnapshot.data();
-      print(artistData2);
       _artistId = buskingSnapshot.data()?['artistId'];
       getArtistImages(buskingSnapshot.data()?['artistId']);
     });
   }
-  Future<void> updateReviewContent(String buskingID, String reviewID, String updatedContent) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('busking')
-          .doc(buskingID) // 기존 문서를 참조합니다.
-          .collection('review')
-          .doc(reviewID) // 업데이트할 리뷰의 ID
-          .update({'content': updatedContent});
-    } catch (e) {
-      print('Error updating review content: $e');
-      // 에러 핸들링을 여기에 추가하세요.
-    }
+  
+  Future<void> _searchSpotName() async{
+    var spotDocument = await fs.collection('busking_spot').doc(widget.document.get('spotId')).get();
+    var data = spotDocument.data();
+    setState(() {
+      _spotName = data!['spotName'];
+    });
   }
 
-  Future<void> main() async {
-
-    List<Map<String, dynamic>> reviewList = await getBuskingReviewNick(widget.document.id);
-
-    print('Busking Reviews:');
-    for (var review in reviewList) {
-      print('Nick: ${review['nick']}');
-    }
+  Future<void> loadAllData() async {
+    await Future.wait([
+      loadBuskingData(),
+      loadBuskingImages(),
+      loadBuskingReview(),
+      getNickFromFirestore(),
+      fetchData(),
+      _searchSpotName(),
+    ]);
   }
-  @override
-  void initState() {
-    super.initState();
-    if (buskingReview2 != null) {
-      buskingReview2!.sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
-    }
 
-    _userId = Provider
-        .of<UserModel>(context, listen: false)
-        .userId;
-    loadBuskingData();
-    loadBuskingImages();
-    loadBuskingReview();
-    getNickFromFirestore();
-    fetchData();
-
-  }
   Future<void> fetchData() async {
     try {
       // 여기서 데이터를 불러오는 비동기 작업을 수행합니다.
@@ -126,7 +105,6 @@ class _ConcertDetailsState extends State<ConcertDetails> {
 
       if (documentSnapshot.exists) {
         String nick = documentSnapshot.data()!['nick'];
-        print('nick: $nick');
         setState(() {
           _nick = nick;
         });
@@ -137,6 +115,20 @@ class _ConcertDetailsState extends State<ConcertDetails> {
       print('Error fetching email: $e');
     }
   }
+
+  @override
+  void initState() {
+    super.initState();
+    if (buskingReview2 != null) {
+      buskingReview2!.sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
+    }
+
+    _userId = Provider
+        .of<UserModel>(context, listen: false)
+        .userId;
+    loadAllData();
+  }
+
   _alertDialogWidget(String buskingId, String reviewId, String currentContent) {
     showDialog(
       context: context,
@@ -159,7 +151,6 @@ class _ConcertDetailsState extends State<ConcertDetails> {
               onPressed: () async {
                 // 수정 내용을 저장하는 로직 추가
                 if (updatedContent.isNotEmpty) {
-                  print('d');
                   try {
                     await FirebaseFirestore.instance
                         .collection('busking')
@@ -283,11 +274,6 @@ class _ConcertDetailsState extends State<ConcertDetails> {
   //----------------------------------------------------두번째 탭 영역--------------------------------------------------------------------
   // 필요한 경우 초기값 설정
 
-  void onRatingChanged(double newRating) {
-    setState(() {
-      rating = newRating;
-    });
-  }
   Future<void> addReview(String buskingID, String review, double rating) async {
     try {
       Map<String, dynamic> reviewData = {
@@ -353,8 +339,6 @@ class _ConcertDetailsState extends State<ConcertDetails> {
     if(snapshot.docs.isNotEmpty){
       var firstImageDocument = snapshot.docs.first;
       var data = firstImageDocument.data();
-      print('111111111');
-      print('${data['path']}');
       path = data['path'];
     }
     setState(() {
@@ -380,7 +364,6 @@ class _ConcertDetailsState extends State<ConcertDetails> {
 
             ),
           );
-          print(artistImages![index]['path']);
         } else {
           // 잘못된 URL이면 에러 핸들링 또는 대체 이미지를 사용할 수 있습니다.
           imageWidgets.add(
@@ -389,7 +372,6 @@ class _ConcertDetailsState extends State<ConcertDetails> {
               fallbackWidth: double.infinity,
             ),
           );
-          print(artistImages![index]['path']);
         }
       }
     }
@@ -481,7 +463,6 @@ class _ConcertDetailsState extends State<ConcertDetails> {
       artistId = buskingData?['artistId'];
       if (artistDoc.exists) {
         artistData = artistDoc; // 데이터를 artistData에 할당합니다.
-        print(artistDoc.data());
       } else {
         print('해당하는 아티스트를 찾을 수 없습니다.');
       }
@@ -490,41 +471,69 @@ class _ConcertDetailsState extends State<ConcertDetails> {
     }
   }
 
-  Future<void> getArtistData(String artistId) async {
-    print("아티스트 아이디 ===> $artistId");
+  Future<void> editConcert() async{
 
-    try {
-      QuerySnapshot artistDocs = await FirebaseFirestore.instance
-          .collection('artist')
-          .where('artistId', isEqualTo: artistId)
-          .get();
-
-      if (artistDocs.docs.isNotEmpty) {
-        DocumentSnapshot artistDoc = artistDocs.docs[0];
-        Map<String, dynamic>? artistData = artistDoc.data() as Map<String, dynamic>;
-
-        if (artistData != null) {
-          print(artistData);
-        } else {
-          print('해당하는 아티스트를 찾을 수 없습니다.');
-        }
-      } else {
-        print('해당하는 아티스트를 찾을 수 없습니다.');
-      }
-    } catch (e) {
-      print('에러 발생: $e');
-    }
   }
 
+  Future<void> deleteConcert() async{
+    showDialog(context: context, builder: (context) => AlertDialog(
+      title: Text('버스킹 삭제'),
+      content: Text('정말 삭제하시겠습니까?'),
+      actions: [
+        TextButton(onPressed: () => Get.back(), child: Text('취소')),
+        TextButton(onPressed: () async{
+          var buskingDocument = fs.collection('busking').doc(widget.document.reference.id);
+          var imageSnapshot = buskingDocument.collection('image').limit(1).get();
+          var reviewSnapshot = buskingDocument.collection('review').get();
+
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return LoadingWidget();
+            },
+            barrierDismissible: false,
+          );
+
+          // 이미지와 리뷰 데이터를 병렬로 가져오기 위해 Future.wait 사용
+          List<QuerySnapshot> snapshots = await Future.wait([imageSnapshot, reviewSnapshot]);
+
+          var imageDocs = snapshots[0].docs; // 이미지 스냅샷
+          var reviewDocs = snapshots[1].docs; // 리뷰 스냅샷
+
+          // 이미지가 있는 경우 첫 번째 이미지 문서 삭제
+          if (imageDocs.isNotEmpty) {
+            await imageDocs.first.reference.delete();
+          }
+
+            // 리뷰 문서들을 병렬로 삭제
+          await Future.wait(reviewDocs.map((review) => review.reference.delete()));
+
+          // 마지막으로 버스킹 문서 삭제
+          await buskingDocument.delete();
+
+          Get.back();
+          Get.back();
+          Get.back();
+        }, child: Text('삭제'))
+      ],
+    ),);
+  }
+  
   @override
   Widget build(BuildContext context) {
-
+    String? loginArtistId = Provider.of<UserModel>(context, listen: false).artistId;
 
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: AppBar(
           backgroundColor:Color(0xFF233067), // 앱바 배경색
+          actions: [
+            if(_artistId == loginArtistId)
+              IconButton(onPressed: () => editConcert(), icon: Icon(Icons.edit)),
+            if(_artistId == loginArtistId || Provider.of<UserModel>(context, listen: false).isAdmin)
+              IconButton(onPressed: () => deleteConcert(), icon: Icon(Icons.delete)),
+          ],
           title: Text(
             '공연 상세 페이지',
             style: TextStyle(
@@ -593,12 +602,12 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                       color: Color(0xFF3E2007),
                       padding: EdgeInsets.all(8.0),
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             ' ${buskingData?['title']}',
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
-                          SizedBox(width: 230),
                           TextButton(
                             onPressed: () {
                               setState(() {
@@ -691,7 +700,7 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                 ),
                                 SizedBox(height: 20),
                                 Text(
-                                  '장소:               ${widget.spotName}', // widget을 사용하여 spotName에 접근합니다.
+                                  '장소:               $_spotName', // widget을 사용하여 spotName에 접근합니다.
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
                                 SizedBox(height: 20),

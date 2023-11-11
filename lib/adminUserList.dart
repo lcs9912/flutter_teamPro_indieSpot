@@ -154,6 +154,7 @@ class _AdminUserListState extends State<AdminUserList> {
         ),
         title: Text(data['nick']),
         subtitle: Text(data['email']),
+        trailing: Icon(Icons.arrow_forward_ios),
       ),
     );
   }

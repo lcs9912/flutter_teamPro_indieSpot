@@ -16,7 +16,7 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:get/get.dart';
 
 class BuskingReservation extends StatefulWidget {
-  BuskingReservation();
+  BuskingReservation({super.key});
   String? _receivingSpotId;
   String? _receivingSpotName;
   BuskingReservation.spot(this._receivingSpotId, this._receivingSpotName, {super.key});
@@ -36,7 +36,6 @@ class _BuskingReservationState extends State<BuskingReservation> {
   String? _spotName = '';
   String? _path;
   String? _artisName;
-  String? _userId;
   String? _artisId;
 
   Future<String> uploadImage(String name) async {
@@ -84,10 +83,10 @@ class _BuskingReservationState extends State<BuskingReservation> {
     if (_image == null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('사진을 등록해주세요')));
       return; // 이미지가 없으면 업로드하지 않음
-    } else if(_titleControl.text == null || _titleControl.text == ''){
+    } else if(_titleControl.text == ''){
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('공연명을 입력해주세요')));
       return;
-    } else if(_descriptionControl.text == null || _descriptionControl.text == ''){
+    } else if(_descriptionControl.text == ''){
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('공연소개를 입력해주세요')));
       return;
     } else if (_selectedDate == null || _selectedTime == null){
@@ -176,7 +175,6 @@ class _BuskingReservationState extends State<BuskingReservation> {
 
     _spotId = widget._receivingSpotId;
     _spotName = widget._receivingSpotName;
-    _userId = Provider.of<UserModel>(context, listen: false).userId;
     _artisId = Provider.of<UserModel>(context, listen: false).artistId;
     _artisNameSearch();
   }
@@ -566,19 +564,6 @@ class _BuskingZoneListScreenState extends State<BuskingZoneListScreen> {
           ),
           body: _spotList()
       )
-    );
-  }
-}
-
-
-class LoadingScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white.withOpacity(0.7), // 배경을 반투명하게 하고 하얀색으로 설정
-      body: Center(
-        child: CircularProgressIndicator(), // 로딩 표시 방법을 원하는 대로 수정 가능
-      ),
     );
   }
 }

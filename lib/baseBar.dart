@@ -119,7 +119,7 @@ class _MyDrawerState extends State<MyDrawer> {
                     Icon(Icons.lock_outline,size: 20),
                     TextButton(
                         onPressed: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage(),));
+                          Get.to(LoginPage(), transition: Transition.noTransition);
                         },
                         child: Text("로그인")
                     )
@@ -156,7 +156,8 @@ class _MyDrawerState extends State<MyDrawer> {
                       onPressed: (){
                         setState(() {
                           Provider.of<UserModel>(context, listen: false).logout();
-                          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => MyApp(),));
+                          Get.back();
+                          Get.off(MyApp(), transition: Transition.noTransition);
                         });
                       },
                       style: TextButton.styleFrom(
@@ -293,16 +294,17 @@ class _MyDrawerState extends State<MyDrawer> {
           ExpansionTile(
             title: Text('ARTIST MENU',style: TextStyle(fontWeight: FontWeight.bold,)),
             children: <Widget>[
-              ListTile(
-                title: Text('공지사항'),
-                onTap: () {
-                  Get.to(
-                    AdminMain(),
-                    preventDuplicates: true,
-                    transition: Transition.noTransition
-                  );
-                },
-              ),
+              if(Provider.of<UserModel>(context, listen: false).isAdmin)
+                ListTile(
+                  title: Text('관리자'),
+                  onTap: () {
+                    Get.to(
+                      AdminMain(),
+                      preventDuplicates: true,
+                      transition: Transition.noTransition
+                    );
+                  },
+                ),
               ListTile(
                 title: Text('팀·솔로 관리'),
                 onTap: () {

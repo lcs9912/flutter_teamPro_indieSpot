@@ -6,6 +6,7 @@ import 'package:indie_spot/loading.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'concertDetails.dart';
+import 'package:get/get.dart';
 
 class BuskingList extends StatefulWidget{
   const BuskingList({super.key});
@@ -173,9 +174,10 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
                       ],
                     ) ,
                     onTap: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(
-                            builder: (context) =>ConcertDetails(document: snapshot.data?[index]["doc"], spotName : snapshot.data?[index]['spotName']),));
+                      Get.to(
+                        ConcertDetails(document: snapshot.data?[index]["doc"]),
+                        transition: Transition.noTransition
+                      )!.then((value) => setState((){}));
                     },
                   );
                 },

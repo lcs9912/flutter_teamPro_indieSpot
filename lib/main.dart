@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:indie_spot/boardList.dart';
+import 'package:indie_spot/commercialList.dart';
 import 'package:indie_spot/donationArtistList.dart';
 import 'package:indie_spot/login.dart';
 import 'package:indie_spot/pointDetailed.dart';
@@ -526,9 +527,9 @@ class _MyAppState extends State<MyApp> {
       return GestureDetector(
         onTap: () {
           Get.to(
-            ConcertDetails(document: buskingDoc, spotName: ''),
+            ConcertDetails(document: buskingDoc),
             transition: Transition.noTransition
-          );
+          )!.then((value) => setState((){}));
         },
         child: Container(
           width: 200,
@@ -676,11 +677,10 @@ class _MyAppState extends State<MyApp> {
                                         Text("상업공간 일정",style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
                                         TextButton(
                                             onPressed: (){
-                                              _bestArtist();
-                                              // Navigator.push(
-                                              //     context,
-                                              //     MaterialPageRoute(builder: (_) => CommercialList()) // 상세페이지로 넘어갈것
-                                              // );
+                                              //_bestArtist();
+                                              Get.to(
+                                                  () => CommercialList()
+                                              );
                                             },
                                             child: Text("더보기",style: TextStyle(color: Colors.black),)
                                         )

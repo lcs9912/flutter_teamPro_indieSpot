@@ -12,6 +12,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:provider/provider.dart';
 import 'package:indie_spot/userModel.dart';
 import 'buskingReservation.dart';
+import 'package:image_cropper/image_cropper.dart';
 
 class AddBuskingSpot extends StatefulWidget {
   const AddBuskingSpot({super.key});
@@ -428,12 +429,17 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
               var picker = ImagePicker();
               var image = await picker.pickImage(source: ImageSource.gallery);
               if(image != null){
-                dynamic sendData = image.path;
+                final croppedImage = await ImageCropper().cropImage(
+                  sourcePath: image.path,
+                  aspectRatio: CropAspectRatio(ratioX: 1.5, ratioY: 1), // 원하는 가로세로 비율 설정
+                );
 
-                setState(() {
-                  _image = File(image.path);
-                  _imageName = image.name;
-                });
+                if (croppedImage != null) {
+                  setState(() {
+                    _image = File(croppedImage.path);
+                    _imageName = image.name;
+                  });
+                }
               }
             },
             child: _imageBox(),
@@ -444,7 +450,7 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
 
   Widget _imageBox(){
     return _image != null ?
-    Image.file(_image!, width: 180, height: 180,) :
+    Image.file(_image!, height: 200, width: double.infinity, fit: BoxFit.cover,) :
     Container(
       margin: EdgeInsets.all(10),
       color: Colors.black12,
