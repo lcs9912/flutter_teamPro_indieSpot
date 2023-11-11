@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:indie_spot/boardList.dart';
-import 'package:indie_spot/commercialList.dart';
 import 'package:indie_spot/donationArtistList.dart';
-import 'package:indie_spot/donationList.dart';
 import 'package:indie_spot/login.dart';
 import 'package:indie_spot/pointDetailed.dart';
 import 'package:indie_spot/profile.dart';
@@ -11,7 +9,6 @@ import 'package:indie_spot/result.dart';
 import 'package:indie_spot/spaceInfo.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:indie_spot/videoList.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'artistInfo.dart';
 import 'artistRegi.dart';
 import 'buskingList.dart';
@@ -25,7 +22,6 @@ import 'package:intl/intl.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'join.dart';
-import 'lcsTest.dart';
 import 'dart:async';
 import 'package:get/get.dart';
 
@@ -143,17 +139,17 @@ class _MyAppState extends State<MyApp> {
                             onTap: (){
                               if(_artistId == null || _artistId == ""){
                                 if(_userId != null){
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => ArtistRegi()),
+                                  Get.to(
+                                    ArtistRegi(),
+                                    transition: Transition.noTransition
                                   );
                                 } else {
                                   _alertDialogWidget();
                                 }
                               } else {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => ArtistInfo(_artistId!)),
+                                Get.to(
+                                  ArtistInfo(_artistId!),
+                                  transition: Transition.noTransition
                                 );
                               }
 
@@ -175,13 +171,11 @@ class _MyAppState extends State<MyApp> {
                           InkWell(
                             onTap: () {
                               if (_userId != null) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => Profile(
-                                      userId: _userId,
-                                    ),
+                                Get.to(
+                                  Profile(
+                                    userId: _userId,
                                   ),
+                                  transition: Transition.noTransition
                                 );
                               } else {
                                 showDialog(
@@ -224,9 +218,9 @@ class _MyAppState extends State<MyApp> {
                         children: [
                           InkWell(
                               onTap: () async {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (_) => BuskingReservation()) // 상세페이지로 넘어갈것
+                                Get.to(
+                                  BuskingReservation(),
+                                  transition: Transition.noTransition
                                 );
                               },
                               child: Image.asset('assets/busking.png',width: 40,height: 40,),
@@ -245,9 +239,9 @@ class _MyAppState extends State<MyApp> {
                           InkWell(
                               onTap: (){
                                 _commercialListWidget();
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (_) => Join())
+                                Get.to(
+                                  Join(),
+                                  transition: Transition.noTransition
                                 );
                               },
                               child: Image.asset('assets/join.png',width: 40,height: 40,),
@@ -271,9 +265,9 @@ class _MyAppState extends State<MyApp> {
                         children: [
                           InkWell(
                             onTap: (){
-                              Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => BoardList())
+                              Get.to(
+                                BoardList(),
+                                transition: Transition.noTransition
                               );
                             },
                             child: Image.asset('assets/community2.png',width: 40,height: 40,),
@@ -292,9 +286,9 @@ class _MyAppState extends State<MyApp> {
                         children: [
                           InkWell(
                               onTap: (){
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (_) => VideoList()) // 상세페이지로 넘어갈것
+                                Get.to(
+                                  VideoList(),
+                                  transition: Transition.noTransition
                                 );
                               },
                               child: Image.asset('assets/start.png',width: 40,height: 40,),
@@ -312,9 +306,9 @@ class _MyAppState extends State<MyApp> {
                         children: [
                           InkWell(
                               onTap: (){
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (_) => DonationArtistList())
+                                Get.to(
+                                  DonationArtistList(),
+                                  transition: Transition.noTransition
                                 );
                               },
                               child: Image.asset('assets/donation.png',width: 40,height: 40,),
@@ -332,7 +326,10 @@ class _MyAppState extends State<MyApp> {
                         children: [
                           InkWell(
                               onTap: (){
-                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => PointDetailed(),));
+                                Get.to(
+                                  PointDetailed(),
+                                  transition: Transition.noTransition
+                                );
                               },
                               child: Image.asset('assets/coin.png',width: 40,height: 40,),
                           ),
@@ -369,12 +366,10 @@ class _MyAppState extends State<MyApp> {
                   child: Text("취소")),
               ElevatedButton(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => LoginPage(),
-                      ),
-                    ).then((value) => Navigator.of(context).pop());
+                    Get.to(
+                      LoginPage(),
+                      transition: Transition.noTransition
+                    )!.then((value) => Navigator.of(context).pop());
                   }, // 기능
                   child: Text("로그인")),
             ],
@@ -408,9 +403,9 @@ class _MyAppState extends State<MyApp> {
       margin: EdgeInsets.only(right: 15),
       child: GestureDetector(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ArtistInfo(artistId)),
+          Get.to(
+            ArtistInfo(artistId),
+            transition: Transition.noTransition
           );
         },
         child: Column(
@@ -530,11 +525,9 @@ class _MyAppState extends State<MyApp> {
 
       return GestureDetector(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ConcertDetails(document: buskingDoc, spotName: ''),
-            ),
+          Get.to(
+            ConcertDetails(document: buskingDoc, spotName: ''),
+            transition: Transition.noTransition
           );
         },
         child: Container(
@@ -621,9 +614,9 @@ class _MyAppState extends State<MyApp> {
                             Text("공연일정",style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
                             TextButton(
                                 onPressed: (){
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (_) => BuskingList()) // 상세페이지로 넘어갈것
+                                  Get.to(
+                                    BuskingList(),
+                                    transition: Transition.noTransition
                                   );
                                 }, // 버스킹 공연 일정 리스트 페이지로 넘어갈것
                                 child: Text("더보기",style: TextStyle(color: Colors.black),))
@@ -854,9 +847,9 @@ class _MyAppState extends State<MyApp> {
                       ],
                     ),
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => SpaceInfo(_id)),
+                      Get.to(
+                        SpaceInfo(_id),
+                        transition: Transition.noTransition
                       );
                     },
                   ),
