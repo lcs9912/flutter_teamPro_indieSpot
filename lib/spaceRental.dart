@@ -44,8 +44,6 @@ class _SpaceRentalState extends State<SpaceRental> {
   }
   @override
   Widget build(BuildContext context) {
-    print(selectedDay);
-
     return Scaffold(
       drawer: MyDrawer(),
       appBar: AppBar(
@@ -361,8 +359,6 @@ class _SpaceRentalState extends State<SpaceRental> {
         String endFormattedTime = DateFormat.Hm().format(endDateTime);
         int startHour = int.parse(startFormattedTime.split(':')[0]);
         int endHour = int.parse(endFormattedTime.split(':')[0]);
-        print(startHour);
-        print(endHour);
         for(int i= startHour; i<=endHour; i++){
           checkTime.add(i);
         }
@@ -402,28 +398,24 @@ class _SpaceRentalState extends State<SpaceRental> {
                 // 이미 선택된 시간을 다시 눌렀을 때, 선택을 취소하고 리스트를 비웁니다.
                 setState(() {
                   selectedHours.clear();
-                  print(selectedHours);
                 });
               } else {
                 if (selectedHours.isEmpty) {
                   // 아무것도 선택되어 있지 않으면 선택한 시간을 추가합니다.
                   setState(() {
                     selectedHours.add(hour);
-                    print(selectedHours);
                   });
                 } else if (selectedHours.length == 1) {
                   // 이미 선택된 시간이 있을 경우 선택한 시간들 사이의 시간들을 선택합니다.
                   setState(() {
                     selectedHours.add(hour);
                     selectedHours.sort();
-                    print(selectedHours);
                   });
                 } else if (selectedHours.length == 2) {
                   // 이미 두 개의 시간이 선택된 경우, 선택된 시간을 초기화하고 다시 선택합니다.
                   setState(() {
                     selectedHours.clear();
                     selectedHours.add(hour);
-                    print(selectedHours);
                   });
                 }
               }

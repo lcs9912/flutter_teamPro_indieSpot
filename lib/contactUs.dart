@@ -20,7 +20,6 @@ class _ContactUsState extends State<ContactUs> {
   void initState() {
     super.initState();
     _userId = Provider.of<UserModel>(context, listen: false).userId ?? "";
-    print('dddd$_userId');
   }
 
 
@@ -30,7 +29,6 @@ class _ContactUsState extends State<ContactUs> {
 
   @override
   Widget build(BuildContext context) {
-    print(_userId);
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(

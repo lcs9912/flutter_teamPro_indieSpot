@@ -44,8 +44,6 @@ class _DonationPageState extends State<DonationPage> {
     } else {
       _userId = userModel.userId;
       pointBalanceSearch().then((value) => _donationUser.text = userData?['nick']);
-      print(widget.artistId);
-      print(_userId);
       artistInfo();
     }
   }
@@ -80,9 +78,7 @@ class _DonationPageState extends State<DonationPage> {
   }
   void _updataDonation() async{
     String amount1 = _donationAmount.text.replaceAll(',', '');
-    print(artistData);
     await Future.delayed(Duration(seconds: 1));
-    print(artistData['donationAmount']);
     int amount = artistData['donationAmount']+int.parse(amount1);
     FirebaseFirestore.instance.collection("artist").doc(widget.artistId).update({'donationAmount' : amount});
     int userPoint1 = userPoint?['pointBalance'] - int.parse(amount1);

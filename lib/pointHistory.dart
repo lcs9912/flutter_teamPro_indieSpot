@@ -272,7 +272,6 @@ class _PointHistoryState extends State<PointHistory> {
         _totalRecharge = 0;
         final DateTime now = DateTime.now();
         final DateTime oneMonthAgo = now.subtract(Duration(days: day));
-        print(oneMonthAgo);
 
         // 날짜 범위를 포함하여 쿼리
         pointsDetailsQuerySnapshot = await pointsDetailsRef.orderBy('date', descending: true)

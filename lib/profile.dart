@@ -61,8 +61,6 @@ class _ProfileState extends State<Profile> {
     if(snapshot.docs.isNotEmpty){
       var firstImageDocument = snapshot.docs.first;
       var data = firstImageDocument.data();
-      print('111111111');
-      print('${data['path']}');
       path = data['path'];
     }
     setState(() {
@@ -108,9 +106,6 @@ class _ProfileState extends State<Profile> {
       setState(() {
         _postsData = [...concertBoardDataList, ...freeBoardDataList, ...teamBoardDataList, ...imageDataList];
       });
-
-      // 포스트 데이터를 콘솔에 출력합니다.
-      print('포스트 데이터: $_postsData');
 
     } catch (e) {
       print('포스트 데이터를 가져오는 중 오류 발생: $e');
@@ -166,8 +161,6 @@ class _ProfileState extends State<Profile> {
       List<Map<String, dynamic>> subcollectionDataList = subcollectionDocumentsSnapshot.docs
           .map((doc) => doc.data()!)
           .toList();
-
-      print('해당 사용자의 데이터: $subcollectionDataList');
     } catch (e) {
       print('데이터를 가져오는 중 오류 발생: $e');
     }
@@ -228,7 +221,6 @@ class _ProfileState extends State<Profile> {
           var followingCnt = userSnapshot.data()!['followingCnt'];
 
           if (followingCnt != null) {
-            print('Following count is: $followingCnt'); // 올바른 값이 출력될 것입니다.
             setState(() {
               _followingCnt = followingCnt.toString();
             });
@@ -254,7 +246,6 @@ class _ProfileState extends State<Profile> {
         List<String> documentIds = boardSnapshot.docs.map((doc) => doc.id).toList();
 
         // 이제 'board' 서브컬렉션에서 문서의 아이디 목록을 얻었습니다.
-        print('board 서브컬렉션에서의 문서 아이디들: $documentIds');
       }
     } catch (e) {
       print('board 서브컬렉션에서 문서 아이디를 가져오는 중 오류 발생: $e');
@@ -341,7 +332,6 @@ class _ProfileState extends State<Profile> {
 
           ),
         );
-        print(_path);
       } else {
         // 잘못된 URL이면 에러 핸들링 또는 대체 이미지를 사용할 수 있습니다.
         imageWidgets.add(
@@ -372,7 +362,6 @@ class _ProfileState extends State<Profile> {
   }
   @override
   Widget build(BuildContext context) {
-    print('asdas$imgData');
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFF233067), // AppBar 배경색을 흰색으로 설정

@@ -315,14 +315,12 @@ class _YoutubeTestState extends State<YoutubeAdd> {
                   });
                 }
                 if(videoTitle.text.isEmpty){
-                  print(2);
 
                   setState(() {
                     states2 = 1;
                   });
                 }
                 if(_videoContent.text.isEmpty){
-                  print(3);
 
                   setState(() {
                     states3 = 1;
@@ -405,7 +403,6 @@ class _YoutubeTestState extends State<YoutubeAdd> {
     }else if(videoUrl.text.isNotEmpty){
       final response = await http.get(Uri.parse('https://www.googleapis.com/youtube/v3/videos?key=$apiKey&id=$videoId&part=snippet'));
       if (response.statusCode == 200) {
-        print(1);
         Map<String, dynamic> videoData1 = json.decode(response.body);
 
         final snippet = videoData1['items'][0]['snippet'];

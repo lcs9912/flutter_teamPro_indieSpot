@@ -187,7 +187,6 @@ class _ProprietorAddState extends State<ProprietorAdd> {
     String inputProprietorNum = _proprietorNum.text; // 사업자 번호 입력
     String formattedProprietorNum = ''; // 사업자 번호 가공
     formattedProprietorNum = '${inputProprietorNum.substring(0, 3)}-${inputProprietorNum.substring(3, 5)}-${inputProprietorNum.substring(5)}';
-    print('가공한 사업자 번호$formattedProprietorNum');
     final collectionReference = fs.collection('userList').doc(_userId).collection('proprietor');
     final querySnapshot = await collectionReference.where('proprietorNum', isEqualTo: formattedProprietorNum).get();
     if (querySnapshot.docs.isEmpty) {

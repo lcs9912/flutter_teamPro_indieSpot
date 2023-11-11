@@ -83,15 +83,12 @@ class _MyAppState extends State<MyApp> {
     final userModel = Provider.of<UserModel>(context, listen: false);
     if (userModel.isLogin) {
       _userId = userModel.userId;
-      print('일반유저 => $_userId');
     }
     if (userModel.isArtist) {
       _artistId = userModel.artistId;
-      print('아티스트유저 => $_artistId');
     }
     if (userModel.isLeader) {
       _leader = userModel.artistId;
-      print('리더유저 => $_leader');
     }
   }
 
@@ -745,7 +742,6 @@ class _MyAppState extends State<MyApp> {
         DateTime threeMonthsAgo = selectedDay1.subtract(const Duration(days: 3 * 30));
 
         if (endTime.isBefore(threeMonthsAgo)) {
-          print('시간이 지나 삭제됨 => ${rentalDoc.id}');
           await rentalDoc.reference.delete();
         }
       });

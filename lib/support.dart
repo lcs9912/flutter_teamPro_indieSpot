@@ -24,7 +24,6 @@ class _SupportState extends State<Support> {
   void initState() {
     super.initState();
     _userId = Provider.of<UserModel>(context, listen: false).userId ?? "";
-    print('dddd$_userId');
   }
 
   List<bool> showAdditionalText = List.generate(11, (index) => false);
@@ -197,7 +196,6 @@ class _SupportState extends State<Support> {
                                         List<Map<String,
                                             dynamic>> inquiries = snapshot
                                             .data ?? [];
-                                        print('Inquiries: $inquiries');
                                         return Column(
                                           children: inquiries
                                               .asMap()

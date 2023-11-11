@@ -252,16 +252,13 @@ class _LoginPageState extends State<LoginPage> {
           }
 
           if (context.mounted) {
-            print(admin);
             if (artistId != null) {
               // 아티스트 로그인
               Provider.of<UserModel>(context, listen: false)
                   .loginArtist(userId, artistId, status!, admin);
-              print('아티스트');
             } else {
               // 일반 사용자 로그인
               Provider.of<UserModel>(context, listen: false).login(userId, admin);
-              print('일반');
             }
 
             Get.off(

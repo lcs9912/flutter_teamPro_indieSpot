@@ -52,7 +52,6 @@ class Result extends StatelessWidget {
   Widget build(BuildContext context) {
     List<Map<String, String>> results = ModalRoute.of(context)?.settings.arguments as List<Map<String, String>>;
     Map<String, String> result = results[0];
-    print(result);
     Map<String, String> info = results[1];
     bool isSuccessed = getIsSuccessed(result);
 

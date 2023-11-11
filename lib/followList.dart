@@ -69,13 +69,11 @@ class _FollowListState extends State<FollowList> {
     _userId = Provider.of<UserModel>(context).userId;
     _artistId = Provider.of<UserModel>(context).artistId;
 
-    print('_userId: $_userId');
     getFollowingArtistIds();
   }
 
   @override
   Widget build(BuildContext context) {
-    print(_artistId);
     return DefaultTabController(
       length: 2,
       child: Scaffold(

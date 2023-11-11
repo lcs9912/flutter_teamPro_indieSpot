@@ -87,7 +87,6 @@ class _AddBuskingSpotState extends State<AddBuskingSpot> {
       List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
       if (placemarks.isNotEmpty) {
         Placemark firstPlacemark = placemarks.first;
-        print(firstPlacemark);
         _zip = int.parse(firstPlacemark.postalCode == '' ? '0' : firstPlacemark.postalCode as String);
         _regions = firstPlacemark.administrativeArea as String;
         String address = "${firstPlacemark.street}";

@@ -5,6 +5,8 @@ import 'package:indie_spot/baseBar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
+import 'package:indie_spot/userModel.dart';
 
 class AnnouncementList extends StatefulWidget {
   const AnnouncementList({super.key});
@@ -89,17 +91,19 @@ class _AnnouncementListState extends State<AnnouncementList> {
         ],
       ),
       bottomNavigationBar: MyBottomBar(),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: Provider.of<UserModel>(context, listen: false).isAdmin
+          ? FloatingActionButton(
         backgroundColor: Color(0xFF233067),
-        onPressed: (){
+        onPressed: () {
           Get.to(
-              AddAnnouncement(), //이동하려는 페이지
-              preventDuplicates: true, //중복 페이지 이동 방지
-              transition: Transition.noTransition //이동애니메이션off
+            AddAnnouncement(), // 이동하려는 페이지
+            preventDuplicates: true, // 중복 페이지 이동 방지
+            transition: Transition.noTransition, // 이동 애니메이션 off
           )?.then((value) => setState(() {}));
         },
         child: Icon(Icons.edit),
-      ),
+      )
+          : Container(), // 혹은 원하는 다른 위젯을 반환해도 됩니다.
     );
   }
 

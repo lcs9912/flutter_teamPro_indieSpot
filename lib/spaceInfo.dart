@@ -610,7 +610,6 @@ class _SpaceInfoState extends State<SpaceInfo> {
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = json.decode(response.body);
       // 여기에서 responseData를 처리하십시오.
-      print(responseData);
     } else {
       throw Exception('Failed to fetch data');
     }

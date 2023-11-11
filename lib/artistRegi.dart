@@ -133,7 +133,6 @@ class _ArtistRegiState extends State<ArtistRegi> {
   }
 
   void _register() async {
-    print('기본 공연비${_basicPrice.text}');
     if(!_isNameChecked){
       showDialog(
         context: context,

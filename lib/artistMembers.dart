@@ -37,7 +37,6 @@ class _ArtistMembersStatus extends State<ArtistMembers> {
   
   ////////// 가입 수락 /////////
   void teamAccept() async {
-    print("수락");
     try {
       // "team_members" 컬렉션에 새로운 문서 추가
       final teamMembersRef = await fs.collection('artist')
