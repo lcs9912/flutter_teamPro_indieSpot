@@ -22,6 +22,13 @@ class _ArtistTeamJoinState extends State<ArtistTeamJoin> {
   final TextEditingController _position = TextEditingController(); // 포지션
   final TextEditingController _career = TextEditingController(); // 경력
 
+  bool yn = false; // 이미 등록했는지
+
+  String? title;
+  String? content;
+  String? position;
+  String? career;
+  String? joinId;
   @override
   void initState() {
     // TODO: implement initState
@@ -30,49 +37,114 @@ class _ArtistTeamJoinState extends State<ArtistTeamJoin> {
     if (!userModel.isLogin) {
     } else {
       _userId = userModel.userId;
+      joinCheck();
     }
   }
+
+
+  // 이미 등록 했는지
+  void joinCheck() async {
+    var artistDoc = await fs.collection('artist').doc(widget.doc.id).get();
+
+    if (artistDoc.exists) {
+      var teamJoinSnapshot = await artistDoc.reference.collection('team_join').get();
+
+      teamJoinSnapshot.docs.forEach((teamJoinDoc) {
+        // 'userId' 필드가 '_userId'와 같은 경우 이미 등록된 상태임
+        if (teamJoinDoc['userId'] == _userId) {
+          setState(() {
+            yn = true; // 이미 등록된 경우 yn을 true로 변경
+            joinId = teamJoinDoc.id;
+            _aboutMeTitle.text = teamJoinDoc['title'];
+            _aboutMe.text = teamJoinDoc['content'];
+            _position.text = teamJoinDoc['position'];
+            _career.text = teamJoinDoc['career'];
+          });
+        }
+      });
+    }
+  }
+
 
   void teamJoin() async {
 
     if (_anyFieldIsEmpty()) {
-      inputDuplicateAlert("모든 정보를 입력하시오");
+      inputDuplicateAlert("모든 정보를 입력하시오 ");
       return;
     }
+    if (yn) {
 
-    final teamJoinData = {
-      "title": _aboutMeTitle.text,
-      "content": _aboutMe.text,
-      "position": _position.text,
-      "career": _career.text,
-      "userId": _userId,
-    };
+      // 이미 등록된 상태인 경우 업데이트 수행
+      var artistDoc = fs.collection('artist').doc(widget.doc.id);
+      var teamJoinDoc = artistDoc.collection('team_join').doc(joinId);
 
-    // 'userId' 필드가 중복되는지 확인
-    final isDuplicateUserId = await _checkDuplicateUserId(teamJoinData["userId"]!);
+      await teamJoinDoc.update({
+        'title': _aboutMeTitle.text,
+        'content': _aboutMe.text,
+        'position': _position.text,
+        'career': _career.text,
+      });
 
-    if (isDuplicateUserId) {
-      // 중복되는 경우 알림 표시
-      showDuplicateUserIdAlert();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('수정이 완료 되었습니다.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      _clearTextFields();
+      Navigator.of(context).pop();
+
     } else {
-      // 중복이 없으면 데이터를 Firestore에 추가
-      await fs.collection('artist').doc(widget.doc.id).collection('team_join').add(teamJoinData);
 
+      // 등록되지 않은 상태인 경우 새로운 문서 추가 수행
+      var artistDoc = fs.collection('artist').doc(widget.doc.id);
+      var teamJoinCollection = artistDoc.collection('team_join');
+
+      await teamJoinCollection.add({
+        'userId': _userId,
+        'title': _aboutMeTitle.text,
+        'content': _aboutMe.text,
+        'position': _position.text,
+        'career': _career.text,
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('신청이 완료되었습니다.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
       _clearTextFields();
       Navigator.of(context).pop();
     }
   }
 
-  Future<bool> _checkDuplicateUserId(String userId) async {
-    // 'team_join' 컬렉션에서 중복 userId 확인
-    final teamJoinQuery = await fs.collection('artist').doc(widget.doc.id).collection('team_join').where('userId', isEqualTo: userId).get();
+  void joinDelete() async {
+    var artistDoc = fs.collection('artist').doc(widget.doc.id);
+    var teamJoinDoc = artistDoc.collection('team_join').doc(joinId);
 
-    return teamJoinQuery.docs.isNotEmpty;
+    try {
+      await teamJoinDoc.delete();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('삭제가 완료되었습니다.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      Navigator.of(context).pop();
+      Navigator.of(context).pop();
+    } catch (e) {
+      print('삭제 중 오류 발생: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('삭제 중 오류가 발생했습니다.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
-  void showDuplicateUserIdAlert() {
-    inputDuplicateAlert("이미 가입신청을 완료했습니다.");
-  }
+
 
   bool _anyFieldIsEmpty() {
     return _aboutMeTitle.text.isEmpty ||
@@ -108,10 +180,63 @@ class _ArtistTeamJoinState extends State<ArtistTeamJoin> {
     );
   }
 
+
+  void textOverAlertWidget() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Text('글자수를 확인하시오'),
+          actions: <Widget>[
+            TextButton(
+              child: Text("확인"),
+              onPressed: () {
+                Navigator.of(context).pop(); // 알림 창 닫기
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void deleteAlertWidget() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Text('취소 하시겠습니까?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text("확인"),
+              onPressed: () {
+                joinDelete();
+              },
+            ),
+            TextButton(
+              child: Text("취소"),
+              onPressed: () {
+                Navigator.of(context).pop(); // 알림 창 닫기
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.transparent, // AppBar 배경을 투명하게 설정
+        elevation: 1,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            color: Color(0xFF233067), // 원하는 배경 색상으로 변경
+          ),
+        ),
         title: Text("가입신청"),
       ),
       body: Padding(
@@ -119,94 +244,167 @@ class _ArtistTeamJoinState extends State<ArtistTeamJoin> {
         child: Column(
           children: [
             _TextField("제목", "10글자 이내", _aboutMeTitle),
-            _TextField2("자기소개", "100글자 이내", _aboutMe),
+            _TextField2("자기소개", "50글자 이내", _aboutMe),
             _TextField("포지션", "ex) 보컬, 악기", _position),
-            _TextField2("경력", "무대 경험", _career),
+            _TextField2("경력", "악기경력, 무대경험", _career),
           ],
         ),
       ),
       bottomNavigationBar: BottomAppBar(
-        child: ElevatedButton(
+        child: !yn
+            ? ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Color(0xFF392F31), // 버튼의 배경색
+            backgroundColor: Color(0xFF233067),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(20.0),  // 좌측 상단 모서리만 둥글게
-                topRight: Radius.circular(20.0), // 우측 상단 모서리만 둥글게
+                topLeft: Radius.circular(20.0),
+                topRight: Radius.circular(20.0),
               ),
             ),
           ),
-          onPressed:  (){
+          onPressed: () {
             teamJoin();
           },
           child: Container(
-          height: 60,
-          child: Center(
+            height: 60,
+            child: Center(
               child: Text(
                 "등록완료",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,color: Colors.white),
-              )
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+            ),
           ),
-        ),
+        )
+            : Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF233067),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(20.0),
+                    ),
+                  ),
+                ),
+                onPressed: () {
+                  teamJoin();
+                },
+                child: Container(
+                  height: 60,
+                  child: Center(
+                    child: Text(
+                      "등록완료",
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Container(
+              width: 1, // 세로 선의 너비
+              height: 60, // 세로 선의 높이 (여기서는 버튼의 높이와 같게 설정)
+              color: Colors.black, // 세로 선의 색상
+            ),
+            Expanded(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF233067),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(20.0),
+                    ),
+                  ),
+                ),
+                onPressed: () {
+                  deleteAlertWidget();
+                  //Navigator.of(context).pop(); // 알림 창 닫기
+                },
+                child: Container(
+                  height: 60,
+                  child: Center(
+                    child: Text(
+                      "가입취소",
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
+
     );
   }
 
   // TextField 위젯
   Container _TextField(String title, String hint, TextEditingController control) {
     return Container(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start, // 수직 가운데 정렬 설정
-        children: [
-          Text(title),
-          SizedBox(height: 10),
-          SizedBox(
-            height: 35,
-            child: TextField(
-              autofocus: true,
-              style: TextStyle(
-                  fontWeight: FontWeight.w500
-              ),
-              controller: control,
-              decoration: InputDecoration(
-                contentPadding: EdgeInsets.only(left: 10),
-                hintText: hint,
-                hintStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
-                border: OutlineInputBorder(),
+      child: SingleChildScrollView (
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start, // 수직 가운데 정렬 설정
+          children: [
+            Text(title),
+            SizedBox(height: 10),
+            SizedBox(
+              height: 50,
+              child: TextField(
+                autofocus: true,
+                style: TextStyle(
+                    fontWeight: FontWeight.w500
+                ),
+                maxLines: 2,
+                controller: control,
+                maxLength: 20, // 최대 글자수 설정
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(20), // 최대 글자수를 제한하는 포매터 추가
+                ],
+                decoration: InputDecoration(
+                  contentPadding: EdgeInsets.only(left: 10),
+                  hintText: hint,
+                  hintStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
+                  border: OutlineInputBorder(),
+                ),
               ),
             ),
-          ),
-          SizedBox(height: 10),
-        ],
+            SizedBox(height: 5),
+          ],
+        ),
       ),
     );
   }
 
   Container _TextField2(String title, String hint, TextEditingController control) {
-    return Container(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start, // 수직 가운데 정렬 설정
-        children: [
-          Text('$title'),
-          SizedBox(height: 10),
-          Container(
-            child: TextField(
-              style: TextStyle(
-                  fontWeight: FontWeight.w500
-              ),
-              maxLines: 3,
-              controller: control,
-              decoration: InputDecoration(
-                contentPadding: EdgeInsets.only(left: 10),
-                hintText: '$hint',
-                hintStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
-                border: OutlineInputBorder(),
+    return Container( 
+      child: SingleChildScrollView (
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start, // 수직 가운데 정렬 설정
+          children: [
+            Text('$title'),
+
+            Container(
+              child: TextField(
+                style: TextStyle(
+                    fontWeight: FontWeight.w500
+                ),
+                maxLines: 3,
+                controller: control,
+                maxLength: 50, // 최대 글자수 설정
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(50), // 최대 글자수를 제한하는 포매터 추가
+                ],
+                decoration: InputDecoration(
+                  contentPadding: EdgeInsets.only(left: 10),
+                  hintText: '$hint',
+                  hintStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
+                  border: OutlineInputBorder(),
+                ),
               ),
             ),
-          ),
-          SizedBox(height: 20),
-        ],
+
+          ],
+        ),
       ),
     );
   }

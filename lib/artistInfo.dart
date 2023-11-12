@@ -9,6 +9,7 @@ import 'artistMembers.dart';
 import 'artistTeamJoin.dart';
 import 'baseBar.dart';
 import 'package:intl/intl.dart';
+import 'concertDetails.dart';
 import 'donationList.dart';
 import 'donationPage.dart';
 import 'spotDetailed.dart';
@@ -45,8 +46,10 @@ class _ArtistInfoState extends State<ArtistInfo> {
   String? url;
   DocumentSnapshot? documentSnapshotoc;
   Map<String,dynamic>? infoMap;
+  String? genreText; // 장르
   //////////////세션 확인//////////
   bool isDataLoaded = false; // 데이터 로드 완료 여부를 확인하는 변수
+  bool spyCheck = false;
   @override
   void initState()  {
     _infoTitle();
@@ -60,10 +63,13 @@ class _ArtistInfoState extends State<ArtistInfo> {
     } else {
       _userId = userModel.userId;
       _followCheck();
-      print('팔로우 했음? => $_followerFlg');
       // 데이터 로딩이 완료된 경우 artistCheck 함수 호출
       isDataLoaded = true; // 데이터 로드 완료 표시
       setState(() {}); // 상태 업데이트
+    }
+    if (userModel.isArtist){
+      spyCheck = true;
+      print("스파이냐? $spyCheck");
     }
     super.initState();
   }
@@ -87,9 +93,8 @@ class _ArtistInfoState extends State<ArtistInfo> {
     if (artistCheckSnap.docs.isNotEmpty) {
       if(artistCheckSnap.docs.first['userId'] == _userId){
         setState(() {
+          // 리더일때
           _artistId = _userId;
-          print('내 문서 아이디 => $_userId');
-          print('팀에 리더 => ${artistCheckSnap.docs.first['userId']}');
         });
         return; // 리더일 경우 함수 종료
       }
@@ -97,12 +102,13 @@ class _ArtistInfoState extends State<ArtistInfo> {
     }
     if (artistMemberCheck.docs.isNotEmpty) {
       setState(() {
+        // 일반 멤버일때 
         _artistId2 = _userId;
-        print("리더는 아님 => $_artistId2");
       });
       return; // 리더일 경우 함수 종료
     }
   }
+
 
   // 팔로우COUNT 불러오기
   // 팔로우COUNT 불러오기
@@ -234,6 +240,12 @@ class _ArtistInfoState extends State<ArtistInfo> {
       setState(() {
         infoMap = artistDoc.data() as Map<String, dynamic>;
         documentSnapshotoc = artistDoc;
+
+        if(infoMap?['detailedGenre'] == null || infoMap?['detailedGenre'] == ""){
+          genreText =  infoMap?['genre'];
+        } else {
+          genreText = '${infoMap?['genre']} / ${infoMap?['detailedGenre']}';
+        }
       });
 
       final imageCollection = await fs.collection('artist')
@@ -319,14 +331,14 @@ class _ArtistInfoState extends State<ArtistInfo> {
               onTap: () {
 
                 if(_artistId != null){ // 리더가 맞다면
-                  if (Navigator.of(context).canPop()) {
-                    Navigator.of(context).pop(); // 현재 페이지를 제거
-                  }
+                  // if (Navigator.of(context).canPop()) {
+                  //   Navigator.of(context).pop(); // 현재 페이지를 제거
+                  // }
                   Navigator.of(context).push(MaterialPageRoute(
                     builder: (context) {
                       return ArtistEdit(documentSnapshotoc!, artistImg!); // 새 페이지로 이동
                     },
-                  ));
+                  )).then((value) => setState(() {}));
                 } else{
                   inputDuplicateAlert("리더만 수정이 가능합니다");
                 }
@@ -418,11 +430,13 @@ class _ArtistInfoState extends State<ArtistInfo> {
                   color: Colors.white,
                   fontSize: 13.0),
               onTap: () {
-                if(_userId != null){
+                if(_userId != null && !spyCheck){
                   Navigator.of(context)
                       .push(MaterialPageRoute(
                     builder: (context) => ArtistTeamJoin(documentSnapshotoc!),
                   )).then((value) => setState(() {}));
+                } else if(spyCheck){
+                  inputDuplicateAlert("이미 팀에 가입되어있습니다.");
                 } else{
                   _alertDialogWidget();
                 }
@@ -565,43 +579,51 @@ class _ArtistInfoState extends State<ArtistInfo> {
                 in buskingSpotSnapshot.docs) {
               String addr = buskingSpot['spotName'];
 
-              Widget buskingScheduleWidget = Card(
-                child: Container(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Image.network(img,
-                          width: screenWidth * 0.2,
-                          height: screenHeight * 0.1,
-                          fit: BoxFit.cover),
-                      SizedBox(width: 10),
-                      Container(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                title,
-                                style: TextStyle(
-                                    fontSize: 15, fontWeight: FontWeight.bold),
-                              ),
-                              SizedBox(
-                                height: 10,
-                              ),
-                              Text(
-                                addr,
-                                style: TextStyle(fontSize: 13),
-                              ),
-                              Text(
-                                date,
-                                style: TextStyle(fontSize: 11),
-                              ),
-                            ],
+              Widget buskingScheduleWidget = InkWell(
+                onTap: () {
+                  Get.to(
+                      ConcertDetails(document: buskingSchedule),
+                      transition: Transition.noTransition
+                  );
+                },
+                child: Card(
+                  child: Container(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Image.network(img,
+                            width: screenWidth * 0.2,
+                            height: screenHeight * 0.1,
+                            fit: BoxFit.cover),
+                        SizedBox(width: 10),
+                        Container(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  title,
+                                  style: TextStyle(
+                                      fontSize: 15, fontWeight: FontWeight.bold),
+                                ),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                Text(
+                                  addr,
+                                  style: TextStyle(fontSize: 13),
+                                ),
+                                Text(
+                                  date,
+                                  style: TextStyle(fontSize: 11),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -737,9 +759,15 @@ class _ArtistInfoState extends State<ArtistInfo> {
         }
       }
       return buskingScheduleWidgets;
+    } else {
+      return [
+        Container(
+          child: Text("공연일정이 없습니다."),
+        )
+      ];
     }
 
-    return [Container()];
+
   }
 
   @override
@@ -794,7 +822,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
 
           children: [
             SizedBox(
-              height: isExpanded ? 320 : 230,
+              height: isExpanded ? 360 : 260,
               child: Column(
                 children: [
                   Row(
@@ -854,21 +882,23 @@ class _ArtistInfoState extends State<ArtistInfo> {
 
                                     // _followerFlg 가 true 이면 _followDelete() 호출, 그렇지 않으면 _followAdd() 호출
                                     _followerFlg ? _followDelete() : _followAdd();
-                                    print('유저아이디 = >$_userId');
+
                                     // 2초 후에 클릭 활성화
                                     Future.delayed(Duration(seconds: 2), () {
                                         _isButtonEnabled = true;
                                     });
                                   }
                                 },
-                                child: _followerFlg ? Text("팔로잉",style: TextStyle(color: Colors.white),) : Text("팔로우"),
+                                child: _followerFlg ?
+                                Text("팔로잉",style: TextStyle(color: Colors.white),) :
+                                Text("팔로우",style: TextStyle(color: Color(0xFF233067))),
                               ),
                             ],
                           ),
                           SizedBox(height: 10,),
                           folCnt != null ? Text("$folCnt 팔로워") : Container(),
-                          infoMap?['genre'] != null ? Text(
-                            infoMap?['genre'],
+                          genreText != null ? Text(
+                            genreText!,
                             style: TextStyle(fontSize: 14, color: Colors.black),
                           ) : Text(""),
                         ],
@@ -887,8 +917,9 @@ class _ArtistInfoState extends State<ArtistInfo> {
 
                     },
                     child: Container(
+                      margin: EdgeInsets.only(top: 20),
                       width: double.infinity,
-                      height: isExpanded ? 200 : 100,
+                      height: isExpanded ? 200 : 120,
                       padding: EdgeInsets.all(10),
                       child: infoMap?['artistInfo'] != null
                           ? Text(
@@ -977,7 +1008,8 @@ class _ArtistInfoState extends State<ArtistInfo> {
                                         },
                                         child: Text(
                                           "버스킹",
-                                          style: TextStyle(color: Color(0xFF233067)),
+                                          style: TextStyle(color: scheduleFlg ? Color(0xFF233067) : Colors.grey,
+                                            decoration: scheduleFlg ? TextDecoration.underline : TextDecoration.none,),
                                         ),
                                       ),
                                     ),
@@ -990,7 +1022,8 @@ class _ArtistInfoState extends State<ArtistInfo> {
                                         },
                                         child: Text(
                                           "상업공간",
-                                          style: TextStyle(color: Colors.grey),
+                                          style: TextStyle(color: !scheduleFlg ? Color(0xFF233067) : Colors.grey,
+                                            decoration: !scheduleFlg ? TextDecoration.underline : TextDecoration.none,),
                                         ),
                                       ),
                                     ),
@@ -998,7 +1031,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
                                 ),
                                 Container(
                                   child: Column(
-                                    children: scheduleSnap.data ?? [Container()],
+                                    children: scheduleSnap.data ?? [Text("공연일정이 없습니다.")],
                                   ),
                                 ),
                               ],

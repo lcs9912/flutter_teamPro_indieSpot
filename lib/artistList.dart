@@ -58,18 +58,23 @@ class _ArtistListState extends State<ArtistList> {
   }
 
   Future<Widget> _followImg() async {
-    final followYnSnapshot = await fs
-        .collection('artist')
-        .doc(artistId)
-        .collection('follower')
-        .where('userId', isEqualTo: _userId)
-        .get(); // 데이터를 검색하기 위해 get()를 사용합니다.
+    if(_userId != null){
+      final followYnSnapshot = await fs
+          .collection('artist')
+          .doc(artistId)
+          .collection('follower')
+          .where('userId', isEqualTo: _userId)
+          .get(); // 데이터를 검색하기 위해 get()를 사용합니다.
 
-    if (followYnSnapshot.docs.isEmpty || _userId == null) {
-      return Image.asset('assets/commer.png',width: 20,height: 20,);
-    } else {
-      return Image.asset('assets/following.png',width: 5,height: 5,);
+      if (followYnSnapshot.docs.isEmpty || _userId == null) {
+        return Icon(Icons.person_add_alt);
+      } else {
+        return Icon(Icons.person);
+      }
+    } else{
+      return Icon(Icons.person_add_alt);
     }
+
   }
 
   // 아티스트 리스트 출력
@@ -111,86 +116,92 @@ class _ArtistListState extends State<ArtistList> {
             itemBuilder: (context, index) {
               DocumentSnapshot doc = snap.data!.docs[index];
               Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
               if (data['artistName'].contains(_search.text)) {
                 return FutureBuilder(
-                    future: FirebaseFirestore.instance
-                        .collection("artist")
-                        .doc(doc.id)
-                        .collection("image")
-                        .get(),
-                    builder: (BuildContext context,
-                        AsyncSnapshot<QuerySnapshot> imgSnap) {
-                      if (imgSnap.hasData) {
-                        String genreText;
-                        if(data['detailedGenre'] == null || data['detailedGenre'] == ""){
-                          genreText =  data['genre'];
-                        } else{
-                          genreText = '${data['genre']} / ${data['detailedGenre']}';
-                        }
-
-                        artistId = doc.id;
-                        var img = imgSnap.data!.docs.first;
-                        if (data['followerCnt'] != null) {
-
-                          cnt = data['followerCnt'];
-                        } else {
-                          cnt = 0;
-                        }
-                        return ListTile(
-                          leading: Image.network(
-                            img['path'],
-                            width: 100,
-                            height: 100,
-                            fit: BoxFit.cover,
-                          ),
-                          title: Text('${data['artistName']}'),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(genreText),
-
-                              Row(
-                                children: [
-                                  FutureBuilder(
-                                    future: _followImg(),
-                                    builder: (BuildContext context,
-                                        AsyncSnapshot<dynamic> snapshot) {
-                                      if (snapshot.connectionState ==
-                                          ConnectionState.waiting) {
-                                        return Container();
-                                      } else if (snapshot.hasError) {
-                                        return Text('Error: ${snapshot.error}');
-                                      } else {
-                                        return snapshot.data ?? Container();
-                                      }
-                                    },
-                                  ),
-                                  Text('  $cnt')
-                                ],
-                              )
-                            ],
-                          ),
-                          isThreeLine: true,
-                          trailing: Icon(Icons.chevron_right),
-                          onTap: () {
-                            Get.to(
-                                ArtistInfo(doc.id), //이동하려는 페이지
-                                preventDuplicates: true, //중복 페이지 이동 방지
-                                transition: Transition.noTransition //이동애니메이션off
-                            )?.then((value) => setState(() {}));
-                          },
-                        );
+                  future: FirebaseFirestore.instance
+                      .collection("artist")
+                      .doc(doc.id)
+                      .collection("image")
+                      .get(),
+                  builder: (BuildContext context,
+                      AsyncSnapshot<QuerySnapshot> imgSnap) {
+                    if (imgSnap.connectionState == ConnectionState.waiting) {
+                      return Container();
+                    } else if (imgSnap.hasError) {
+                      return Text('Error: ${imgSnap.error}');
+                    } else if (imgSnap.hasData && imgSnap.data!.docs.isNotEmpty) {
+                      String genreText;
+                      if(data['detailedGenre'] == null || data['detailedGenre'] == ""){
+                        genreText =  data['genre'];
                       } else {
-                        return Container();
+                        genreText = '${data['genre']} / ${data['detailedGenre']}';
                       }
-                    });
+
+                      artistId = doc.id;
+                      var img = imgSnap.data!.docs.first;
+                      if (data['followerCnt'] != null) {
+                        cnt = data['followerCnt'];
+                      } else {
+                        cnt = 0;
+                      }
+
+                      return ListTile(
+                        leading: Image.network(
+                          img['path'],
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                        ),
+                        title: Text('${data['artistName']}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(genreText),
+                            Row(
+                              children: [
+                                FutureBuilder(
+                                  future: _followImg(),
+                                  builder: (BuildContext context,
+                                      AsyncSnapshot<dynamic> snapshot) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return Container();
+                                    } else if (snapshot.hasError) {
+                                      return Text('Error: ${snapshot.error}');
+                                    } else {
+                                      return snapshot.data ?? Container();
+                                    }
+                                  },
+                                ),
+                                Text('  $cnt'),
+                              ],
+                            )
+                          ],
+                        ),
+                        isThreeLine: true,
+                        trailing: Icon(Icons.chevron_right),
+                        onTap: () {
+                          Get.to(
+                            ArtistInfo(doc.id),
+                            preventDuplicates: true,
+                            transition: Transition.noTransition,
+                          )?.then((value) => setState(() {}));
+                        },
+                      );
+                    } else {
+                      return Container();
+                    }
+                  },
+                );
               }
-              return null;
+              return Container(); // 불필요한 코드인 경우 Container 대신 null을 반환해도 됨
             },
           ),
         );
       },
     );
+
   }
 
   // 장르 탭바
@@ -221,8 +232,11 @@ class _ArtistListState extends State<ArtistList> {
                             genre,
                             style: TextStyle(
                                 color: selectGenre == genre
-                                    ? Colors.lightBlue
-                                    : Colors.black),
+                                    ? Color(0xFF233067)
+                                    : Colors.black,
+                            fontWeight: selectGenre == genre
+                                    ? FontWeight.bold
+                                    : FontWeight.normal),
                           ),
                         ),
                       ),

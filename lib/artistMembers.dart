@@ -23,6 +23,7 @@ class _ArtistMembersStatus extends State<ArtistMembers> {
   String? joinId;
   String? position;
   String? joinDocId;
+  bool spyYn = false; // 스파이냐?
   @override
   void initState() {
     // TODO: implement initState
@@ -33,10 +34,43 @@ class _ArtistMembersStatus extends State<ArtistMembers> {
       _userId = userModel.userId;
     }
   }
-  
+
+  void spyCheck(String spyId) async {
+    final CollectionReference artistDoc = fs.collection('artist');
+
+
+    var artistSnapshot = await artistDoc.get();
+    if (artistSnapshot.docs.isNotEmpty) {
+      for (QueryDocumentSnapshot artistDoc in artistSnapshot.docs) {
+        var teamMembersSnapshot = await artistDoc.reference.collection('team_members').get();
+
+        teamMembersSnapshot.docs.forEach((teamMemberDoc) {
+          // 'userId' 필드가 'spyId'와 같은 경우 spyYn을 true로 설정
+          if (teamMemberDoc['userId'] == spyId) {
+            setState(() {
+              print("스파이 아이디 ${teamMemberDoc['userId']}");
+              spyYn = true;
+            });
+          }
+        });
+      }
+    }
+
+
+    print('Is Spy: $spyYn');
+  }
+
+
   ////////// 가입 수락 /////////
   void teamAccept() async {
+
+    print("가입수락 클릭! $joinId");
+    if(spyYn){
+      queryDuplicateAlert("이미 다른 팀에 가입되어있습니다.");
+      print("가입이 안됨! $joinId");
+    }
     try {
+
       // "team_members" 컬렉션에 새로운 문서 추가
       await fs.collection('artist')
           .doc(widget.doc.id)
@@ -48,20 +82,20 @@ class _ArtistMembersStatus extends State<ArtistMembers> {
         "createtime" : Timestamp.now()
       });
 
-      // "team_join" 컬렉션에서 문서 삭제
-      await fs.collection('artist')
-          .doc(widget.doc.id)
-          .collection('team_join')
-          .doc(joinDocId)
-          .delete();
+      deleteTeamMembers(joinId!);
 
-      // 두 작업이 성공한 경우
-      queryDuplicateAlert("완료되었습니다.");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('완료되었습니다.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
       setState(() {
         _artistDetails();
         teamJoinList();
       });
-
+      Navigator.of(context).pop();
     } catch (e) {
       // 에러가 발생한 경우 예외 처리
       queryDuplicateAlert("오류발생 잠시후 다시시도해주세요.");
@@ -69,17 +103,46 @@ class _ArtistMembersStatus extends State<ArtistMembers> {
     }
 
   }
+  // 가입 승인한 유저의 가입신청내역 삭제
+  void deleteTeamMembers(String joinId) async {
+    // artist 컬렉션에서 team_members 서브컬렉션 참조
+    CollectionReference artistsRef = fs.collection('artist');
+
+    // artist 컬렉션의 모든 문서에 접근
+    QuerySnapshot artistsQuery = await artistsRef.get();
+
+    // 각 문서의 team_members 컬렉션에서 userId와 joinId가 일치하는 문서 삭제
+    for (QueryDocumentSnapshot artistDoc in artistsQuery.docs) {
+      // team_members 서브컬렉션 참조
+      CollectionReference teamMembersRef = artistDoc.reference.collection('team_join');
+
+      // team_members 컬렉션에서 userId와 joinId가 일치하는 문서 삭제
+      QuerySnapshot teamMembersQuery = await teamMembersRef.where('userId', isEqualTo: joinId).get();
+
+      for (QueryDocumentSnapshot teamMemberDoc in teamMembersQuery.docs) {
+        await teamMemberDoc.reference.delete();
+      }
+    }
+    print("삭제완");
+  }
 
 
   ////////// 가입 거절 /////////
   void teamRefuse() async{
+    print("여긴 삭제하는 부분인데 머지");
     // "team_join" 컬렉션에서 문서 삭제
     await fs.collection('artist')
         .doc(widget.doc.id)
         .collection('team_join')
         .doc(joinDocId)
         .delete().then((value) {
-          queryDuplicateAlert("완료되었습니다.");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('완료되었습니다.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      Navigator.of(context).pop();
           setState(() {
             _artistDetails();
             teamJoinList();
@@ -94,11 +157,17 @@ class _ArtistMembersStatus extends State<ArtistMembers> {
         .collection('team_members')
         .doc(memberId)
         .delete().then((value) {
-      queryDuplicateAlert("완료되었습니다.");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('완료되었습니다.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
       setState(() {
         _artistDetails();
         teamJoinList();
       });
+      Navigator.of(context).pop();
     },);
   }
 
@@ -363,44 +432,110 @@ class _ArtistMembersStatus extends State<ArtistMembers> {
               context: context,
               builder: (context) {
                 return AlertDialog(
-                  title: Text(title),
-                  content: Column(
-                    children: [
-                      Image.network(path), // 이미지 추가
-                      Text("제목: $title"),
-                      Text("내용: $content"),
-                      Text("포지션: $position"),
-                      Text("경력: $career"),
-                      Text("이름: $name"),
-                      Text("닉네임: $nick"),
-                      Text("성별: $gender"),
-                    ],
+                  content: Container(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: Image.network(
+                            path,
+                            width: 150,
+                            height: 150,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        Center(
+                          child: Text(
+                            "$title",
+                            style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                            maxLines: 1, // 최대 1줄로 제한
+                            overflow: TextOverflow.ellipsis, // 넘치는 경우 ...으로 표시
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        Text("내용"),
+                        SizedBox(height: 8),
+                        Container(
+                          margin: EdgeInsets.only(left: 10),
+                          child: Text('$content',
+                            style: TextStyle(fontSize: 16),
+                            maxLines: 5, // 최대 2줄로 제한
+                            overflow: TextOverflow.ellipsis,),
+                        ),
+                        SizedBox(height: 12),
+                        Text("포지션"),
+                        SizedBox(height: 8),
+                        Container(
+                          margin: EdgeInsets.only(left: 10),
+                          child: Text(
+                            "$position",
+                            style: TextStyle(fontSize: 16),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        Text("경력"),
+                        SizedBox(height: 8),
+                        Container(
+                          margin: EdgeInsets.only(left: 10),
+                          child: Text(
+                            career,
+                            style: TextStyle(fontSize: 16),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        Text(
+                          "이름: $name",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          "닉네임: $nick",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          "성별: $gender",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ],
+                    ),
                   ),
                   actions: [
-                    if(widget._artistIdCheck != null)
-                    ElevatedButton(
-                      onPressed: () {
-                          inputDuplicateAlert("수락하시겟습니까?");
-                      },
-                      child: Text("수락"),
-                    ),
-                    if(widget._artistIdCheck != null)
-                    ElevatedButton(
-                      onPressed: () {
-                          inputDuplicateAlert("삭제하시겟습니까?");
-                      },
-                      child: Text("삭제"),
-                    ),
+                    if (widget._artistIdCheck != null)
+                      ElevatedButton(
+                        onPressed: () {
+                          inputDuplicateAlert("수락하시겠습니까?");
+                        },
+                        style: ElevatedButton.styleFrom(primary: Colors.green),
+                        child: Text("수락"),
+                      ),
+                    if (widget._artistIdCheck != null)
+                      ElevatedButton(
+                        onPressed: () {
+                          inputDuplicateAlert("거절하시겠습니까?");
+                        },
+                        style: ElevatedButton.styleFrom(primary: Colors.red),
+                        child: Text("거절"),
+                      ),
                     ElevatedButton(
                       onPressed: () {
                         Navigator.pop(context);
                       },
+                      style: ElevatedButton.styleFrom(primary: Colors.blue),
                       child: Text("취소"),
                     ),
                   ],
                 );
               },
             );
+
+
+
           },
         );
 
@@ -430,7 +565,8 @@ class _ArtistMembersStatus extends State<ArtistMembers> {
             TextButton(
               child: Text("확인"),
               onPressed: () {
-                text == "수락하시겟습니까?" ? teamAccept() : teamRefuse();
+                spyCheck(joinId!);
+                text == "수락하시겠습니까?" ? teamAccept() : teamRefuse();
                 Navigator.pop(context);
               },
             ),
@@ -474,7 +610,7 @@ class _ArtistMembersStatus extends State<ArtistMembers> {
           leading: Builder(
             builder: (context) {
               return IconButton(
-                color: Colors.black54,
+                color: Color(0xFFffffff),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -486,14 +622,14 @@ class _ArtistMembersStatus extends State<ArtistMembers> {
             child: Text(
               "팀 관리",
               style:
-              TextStyle(color: Colors.black54, fontWeight: FontWeight.bold),
+              TextStyle(color: Color(0xFFffffff), fontWeight: FontWeight.bold),
             ),
           ),
           actions: [
             Builder(
               builder: (context) {
                 return IconButton(
-                  color: Colors.black54,
+                  color: Color(0xFFffffff),
                   onPressed: () {
                     Scaffold.of(context).openDrawer();
                   },
@@ -502,14 +638,15 @@ class _ArtistMembersStatus extends State<ArtistMembers> {
               },
             )
           ],
-          backgroundColor: Colors.white,
+          backgroundColor: Color(0xFF233067),
           bottom: TabBar(
             tabs: [
               Tab(text: '멤버'),
               Tab(text: '신청내역'),
             ],
-            unselectedLabelColor: Colors.black,
-            labelColor: Colors.blue,
+            indicatorColor:Color(0xFF233067),
+            unselectedLabelColor: Color(0xFFffffff),
+            labelColor: Color(0xFFffffff),
             labelStyle: TextStyle(
               fontWeight: FontWeight.bold,
             ),

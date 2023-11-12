@@ -79,22 +79,32 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     // TODO: implement initState
+    _refreshPage();
     super.initState();
     final userModel = Provider.of<UserModel>(context, listen: false);
     if (userModel.isLogin) {
-      _userId = userModel.userId;
+      setState(() {
+        _userId = userModel.userId;
+      });
+
     }
     if (userModel.isArtist) {
-      _artistId = userModel.artistId;
+      setState(() {
+        _artistId = userModel.artistId;
+      });
+
     }
     if (userModel.isLeader) {
+      setState(() {
+        _artistId = userModel.artistId;
+      });
     }
   }
 
-  void artistCheck(){
-
-
-
+  void _refreshPage() {
+    setState(() {
+      // 상태를 업데이트하는 코드
+    });
   }
 
   Widget _iconAni() {

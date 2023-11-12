@@ -284,7 +284,7 @@ class _ArtistEditState extends State<ArtistEdit> {
           style: ButtonStyle(
             backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
               if (_genre == '음악') {
-                return Color(0xFF392F31); // 선택된 경우의 색상
+                return Color(0xFF233067); // 선택된 경우의 색상
               }
               return Colors.white; // 선택되지 않은 경우의 색상
             }),
@@ -292,7 +292,7 @@ class _ArtistEditState extends State<ArtistEdit> {
           child: Text(
             '음악',
             style: TextStyle(
-              color: _genre == '음악' ? Colors.white : Color(0xFF392F31),
+              color: _genre == '음악' ? Colors.white : Color(0xFF233067),
             ),
           ),
         ),
@@ -307,7 +307,7 @@ class _ArtistEditState extends State<ArtistEdit> {
           style: ButtonStyle(
             backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
               if (_genre == '댄스') {
-                return Color(0xFF392F31);
+                return Color(0xFF233067);
               }
               return Colors.white;
             }),
@@ -315,7 +315,7 @@ class _ArtistEditState extends State<ArtistEdit> {
           child: Text(
             '댄스',
             style: TextStyle(
-              color: _genre == '댄스' ? Colors.white : Color(0xFF392F31),
+              color: _genre == '댄스' ? Colors.white : Color(0xFF233067),
             ),
           ),
         ),
@@ -330,7 +330,7 @@ class _ArtistEditState extends State<ArtistEdit> {
           style: ButtonStyle(
             backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
               if (_genre == '퍼포먼스') {
-                return Color(0xFF392F31);
+                return Color(0xFF233067);
               }
               return Colors.white;
             }),
@@ -338,7 +338,7 @@ class _ArtistEditState extends State<ArtistEdit> {
           child: Text(
             '퍼포먼스',
             style: TextStyle(
-              color: _genre == '퍼포먼스' ? Colors.white : Color(0xFF392F31),
+              color: _genre == '퍼포먼스' ? Colors.white : Color(0xFF233067),
             ),
           ),
         ),
@@ -354,7 +354,7 @@ class _ArtistEditState extends State<ArtistEdit> {
             backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
               if (_genre == '마술') {
                 selfCon = false;
-                return Color(0xFF392F31);
+                return Color(0xFF233067);
               }
               return Colors.white;
             }),
@@ -362,7 +362,7 @@ class _ArtistEditState extends State<ArtistEdit> {
           child: Text(
             '마술',
             style: TextStyle(
-              color: _genre == '마술' ? Colors.white : Color(0xFF392F31),
+              color: _genre == '마술' ? Colors.white : Color(0xFF233067),
             ),
           ),
         ),
@@ -395,6 +395,7 @@ class _ArtistEditState extends State<ArtistEdit> {
                   _genreCheck = label;
                   selfCon = true;
                 } else {
+                  selfCon = false;
                   _genreCheck = label;
                 }
               });
@@ -411,7 +412,7 @@ class _ArtistEditState extends State<ArtistEdit> {
               side: MaterialStateProperty.all<BorderSide>(
                 BorderSide(
                   color: label == _genreCheck
-                      ? Color(0xFF392F31)
+                      ? Color(0xFF233067)
                       : Colors.white, // 선택된 버튼인지 여부에 따라 테두리 색 변경
                   width: 2.0, // 테두리 두께 설정
                 ),
@@ -419,7 +420,7 @@ class _ArtistEditState extends State<ArtistEdit> {
             ),
             child: Text(
               label,
-              style: TextStyle(color: Color(0xFF392F31)),
+              style: TextStyle(color: Color(0xFF233067)),
             ),
           );
         }).toList(),
@@ -433,17 +434,18 @@ class _ArtistEditState extends State<ArtistEdit> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+
+        backgroundColor: Color(0xFF233067),
         title: Center(
           child: Text(
             '수정',
             style: TextStyle(
-              color: Colors.black,
+              color: Colors.white,
               fontSize: 20,
             ),
           ),
         ),
-        iconTheme: IconThemeData(color: Colors.black),
+        iconTheme: IconThemeData(color: Color(0xFFffffff)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -469,7 +471,7 @@ class _ArtistEditState extends State<ArtistEdit> {
                 SizedBox(width: 10),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
+                    backgroundColor: Color(0xFF233067),
                   ),
                   onPressed: _pickImage,
                   child: Text('이미지 선택'),
@@ -497,13 +499,13 @@ class _ArtistEditState extends State<ArtistEdit> {
                 if (_isNameChecked)
                   ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black),
+                          backgroundColor: Color(0xFF233067)),
                       onPressed: _change,
                       child: Text('수정'))
                 else if (!_isNameChecked)
                   ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black),
+                          backgroundColor: Color(0xFF233067)),
                       onPressed: _checkArtistName,
                       child: Text('중복 확인')),
                 SizedBox(width: 10),
@@ -529,19 +531,6 @@ class _ArtistEditState extends State<ArtistEdit> {
               controller: _artistInfo,
               decoration: InputDecoration(
                   hintText: widget.doc['artistInfo'],
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6))),
-            ),
-            SizedBox(height: 40),
-            Text(
-              '주활동 지역',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            SizedBox(height: 14),
-            TextField(
-              controller: _mainPlace,
-              decoration: InputDecoration(
-                  hintText: widget.doc['mainPlace'],
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(6))),
             ),
@@ -579,7 +568,7 @@ class _ArtistEditState extends State<ArtistEdit> {
                 child: ElevatedButton(
                   onPressed: _artistEdit,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF392F31), // 392F31 색상
+                    backgroundColor: Color(0xFF233067), // 392F31 색상
                     minimumSize: Size(
                         double.infinity, 48), // Set button width and height
                   ),

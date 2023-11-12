@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/baseBar.dart';
+import 'package:indie_spot/main.dart';
 import 'artistInfo.dart';
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -155,11 +156,15 @@ class _ArtistRegiState extends State<ArtistRegi> {
 
     if(_artistName.text.isEmpty ||
         _artistInfo.text.isEmpty ||
-        _mainPlace.text.isEmpty ||
+        _position.text.isEmpty ||
         _selectedImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("모든 정보를 입력해주세요."))
       );
+      print(_artistName.text);
+      print(_artistInfo.text);
+      print(_position.text);
+      print(_selectedImage);
       return;
     }
     _genreCheck ??= "";
@@ -171,7 +176,6 @@ class _ArtistRegiState extends State<ArtistRegi> {
         {
           'artistName' : _artistName.text,
           'artistInfo' : _artistInfo.text,
-          'mainPlace' : _mainPlace.text,
           'createdate' : Timestamp.now(),
           'donationAmount' : 0,
           'udatetime' : Timestamp.now(),
@@ -211,7 +215,7 @@ class _ArtistRegiState extends State<ArtistRegi> {
 
       //등록 완료후 페이지 이동
       Get.off(
-        () => ArtistInfo(artistID),
+        () => MyApp(),
         transition: Transition.noTransition
       );
 
@@ -495,7 +499,7 @@ class _ArtistRegiState extends State<ArtistRegi> {
                 if(_isNameChecked)
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black
+                      backgroundColor: Color(0xFF233067)
                     ),
                       onPressed: _change,
                       child: Text('수정')
@@ -546,7 +550,7 @@ class _ArtistRegiState extends State<ArtistRegi> {
             ),
             SizedBox(height: 40),
             Text(
-              '주활동 지역',
+              '특기',
               style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600
@@ -554,9 +558,9 @@ class _ArtistRegiState extends State<ArtistRegi> {
             ),
             SizedBox(height: 14),
             TextField(
-              controller: _mainPlace,
+              controller: _position,
               decoration: InputDecoration(
-                  hintText: '주로 활동하는 지역을 입력해주세요.(ex. 서울 홍대)',
+                  hintText: '본인의 특기를 입력해주세요 ex)보컬,기타',
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(6)
                   )
