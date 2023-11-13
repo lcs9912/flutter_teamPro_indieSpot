@@ -7,6 +7,8 @@ import 'package:provider/provider.dart';
 import 'boardAdd.dart';
 import 'package:get/get.dart';
 
+import 'dialog.dart';
+
 class BoardList extends StatefulWidget {
   const BoardList();
 
@@ -120,7 +122,15 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
 
         // 스냅샷이 데이터를 가지고 있지 않다면 특정 메시지를 반환
         if (!snap.hasData || snap.data!.docs.isEmpty) {
-          return Text("게시글이 없습니다.");
+          return Center(
+              child: Text(
+                  "게시글이 없습니다.",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w500
+              ),
+              )
+          );
         }
 
         String keyword = _searchController.text;
@@ -400,35 +410,39 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
                 children: _tabViews,
               ),
             ),
+            SizedBox(height: 40)
           ],
         ),
 
       bottomNavigationBar: MyBottomBar(),
-      floatingActionButton: Container(
-        width: 380,
-        height: 50,
-        child: FloatingActionButton(
-          onPressed: () {
-            if (userId == null) {
-              _showLoginAlert(context);
-            } else {
-              Get.to(
-                ()=> BoardAdd(),
-                transition: Transition.noTransition
-              );
-            }
-          },
-          backgroundColor: Color(0xFF233067),
-          child: Text(
-            '글쓰기',
-            style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold
+      floatingActionButton: Transform.translate(
+        offset: Offset(0, 14),
+        child: Container(
+          width: 380,
+          height: 50,
+          child: FloatingActionButton(
+            onPressed: () {
+              if (userId == null) {
+                DialogHelper.showUserRegistrationDialog(context);
+              } else {
+                Get.to(
+                  ()=> BoardAdd(),
+                  transition: Transition.noTransition
+                );
+              }
+            },
+            backgroundColor: Color(0xFF233067),
+            child: Text(
+              '글쓰기',
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold
+              ),
             ),
-          ),
-          elevation: 3,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            elevation: 1,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
         ),
       ),
@@ -488,25 +502,6 @@ class _BoardListState extends State<BoardList> with SingleTickerProviderStateMix
     });
   }
 
-  void _showLoginAlert(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("로그인 필요"),
-          content: Text("게시글을 작성하려면 로그인이 필요합니다"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text("확인"),
-            )
-          ],
-        );
-      },
-    );
-  }
 
   Widget customRadio(String label, bool isSelected) {
     return OutlinedButton(

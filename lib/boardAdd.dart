@@ -26,11 +26,13 @@ class _BoardAddState extends State<BoardAdd> {
   final TextEditingController _title = TextEditingController();
   final TextEditingController _content = TextEditingController();
   bool showError = false;
+  bool isButtonDisabled = false;
 
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedImage = await picker.pickImage(source: ImageSource.gallery);
+
 
     if(pickedImage != null){
       setState(() {
@@ -49,6 +51,7 @@ class _BoardAddState extends State<BoardAdd> {
 
       String downloadUrl = await taskSnapshot.ref.getDownloadURL();
       return downloadUrl;
+
     } catch (e) {
       print('Error uploading image: $e');
       return '';
@@ -57,6 +60,13 @@ class _BoardAddState extends State<BoardAdd> {
 
   void _addBoard() async {
     String? _userId = Provider.of<UserModel>(context, listen: false).userId;
+
+    if (isButtonDisabled) {
+      return; // 버튼이 비활성화된 상태에서는 함수를 실행하지 않음
+    }
+    setState(() {
+      isButtonDisabled = true; // 버튼 비활성화
+    });
 
     // if (_selectedCategory == null) {
     //   showDialog(
@@ -167,10 +177,6 @@ class _BoardAddState extends State<BoardAdd> {
         );
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("등록되었습니다")),
-      );
-
       setState(() {
         _title.clear();
         _content.clear();
@@ -180,10 +186,16 @@ class _BoardAddState extends State<BoardAdd> {
         BoardList(),
         transition: Transition.noTransition
       );
+      setState(() {
+        isButtonDisabled = false;
+      });
     }catch (e){
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e')),
       );
+      setState(() {
+        isButtonDisabled = false;
+      });
     }
   }
 

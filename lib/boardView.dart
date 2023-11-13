@@ -7,6 +7,9 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:get/get.dart';
 
+import 'boardList.dart';
+import 'dialog.dart';
+
 class BoardView extends StatefulWidget {
   final DocumentSnapshot document;
 
@@ -31,7 +34,7 @@ class _BoardViewState extends State<BoardView> {
         .of<UserModel>(context, listen: false)
         .userId;
     if (userId == null) {
-      _showLoginAlert(context);
+      DialogHelper.showUserRegistrationDialog(context);
     } else{
 
     if (_comment.text.isNotEmpty) {
@@ -258,6 +261,8 @@ class _BoardViewState extends State<BoardView> {
                           SizedBox(height: 20),
                         ],
                       ),
+                    _listComments(),
+                    SizedBox(height: 16),
                     TextField(
                       maxLines: 1,
                       controller: _comment,
@@ -272,8 +277,6 @@ class _BoardViewState extends State<BoardView> {
                           )
                       ),
                     ),
-                    SizedBox(height: 16),
-                    _listComments(),
                   ],
                 ),
           ),
@@ -292,7 +295,7 @@ class _BoardViewState extends State<BoardView> {
             .collection(widget.document.reference.parent.id)
             .doc(widget.document.id)
             .collection("comments")
-            .orderBy("createDate", descending: true)
+            .orderBy("createDate", descending: false)
             .snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
           if (!snap.hasData) {
@@ -329,21 +332,32 @@ class _BoardViewState extends State<BoardView> {
                           return Center(child: CircularProgressIndicator());
                         }
                         DocumentSnapshot<Map<String, dynamic>> querySnapshot = userSnap.data as DocumentSnapshot<Map<String, dynamic>>;
+                        Map<String, dynamic> data = widget.document.data() as Map<String, dynamic>;
 
-                        return Text(
+
+                        return
+                          data['userId'] == commentData['userId'] ?
+                          Text(
                           '${querySnapshot.get('nick') as String}',
                           style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.black54,
+                            fontSize: 15,
+                            color: Colors.blue[900],
                           ),
-                        );
+                        ) :
+                          Text(
+                            '${querySnapshot.get('nick') as String}',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Colors.black54,
+                            ),
+                          );
                       },
                     ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          commentData['comment'],
+                          " " + commentData['comment'],
                           style: TextStyle(
                             fontWeight: FontWeight.w400,
                             fontSize: 16,
@@ -442,7 +456,7 @@ class _BoardViewState extends State<BoardView> {
               child: Text('삭제'),
               onPressed: () {
                 doc.reference.delete();
-                Navigator.of(context).pop();
+                Get.to(() => BoardList());
               },
             ),
           ],
@@ -476,25 +490,6 @@ class _BoardViewState extends State<BoardView> {
               child: Text('수정하기'),
               onPressed: () => _updateComment(doc),
             ),
-          ],
-        );
-      },
-    );
-  }
-  void _showLoginAlert(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("로그인 필요"),
-          content: Text("댓글을 작성하려면 로그인이 필요합니다"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text("확인"),
-            )
           ],
         );
       },
