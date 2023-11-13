@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:lottie/lottie.dart';
+import 'package:material_dialogs/dialogs.dart';
+import 'package:material_dialogs/widgets/buttons/icon_button.dart';
+import 'dialog.dart';
+import 'login.dart';
 import 'userModel.dart';
 import 'contactUs.dart';
 import 'package:provider/provider.dart';
@@ -60,6 +65,84 @@ class _SupportState extends State<Support> {
     });
   }
 
+  Widget _buildEditIconButton(BuildContext context) {
+    return IconButton(
+      icon: Icon(
+        Icons.edit,
+        color: Colors.white,
+      ),
+      onPressed: () {
+        if (_userId.isNotEmpty) {
+          // 로그인 상태라면 페이지 이동
+          Get.to(
+            ContactUs(), // 이동하려는 페이지
+            preventDuplicates: true, // 중복 페이지 이동 방지
+            transition: Transition.noTransition, // 이동 애니메이션 off
+          );
+        } else {
+          // 로그인 상태가 아니라면 다이얼로그 표시
+          _showEditDialog(context);
+        }
+      },
+    );
+  }
+  void _showEditDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('오류'),
+          content: Text('로그인 후 이용가능합니다'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('닫기'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  // 로그인 해라
+  static void showUserRegistrationDialog(BuildContext context) {
+    Dialogs.materialDialog(
+        color: Colors.white,
+        msg: '로그인 후 이용해주세요.',
+        title: '로그인 후 이용가능',
+        lottieBuilder: Lottie.asset(
+          'assets/Animation - 1699599464228.json',
+          fit: BoxFit.contain,
+        ),
+        context: context,
+        actions: [
+          IconsButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            text: '취소',
+            iconData: Icons.done,
+            color: Color(0xFF233067),
+            textStyle: TextStyle(color: Colors.white),
+            iconColor: Colors.white,
+          ),
+          IconsButton(
+            onPressed: () {
+              Get.to(
+                  LoginPage(), //이동하려는 페이지
+                  preventDuplicates: true, //중복 페이지 이동 방지
+                  transition: Transition.noTransition //이동애니메이션off
+              );
+            },
+            text: '로그인',
+            iconData: Icons.done,
+            color: Color(0xFF233067),
+            textStyle: TextStyle(color: Colors.white),
+            iconColor: Colors.white,
+          ),
+        ]);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,37 +150,23 @@ class _SupportState extends State<Support> {
         length: 2,
         child: Scaffold(
             appBar: AppBar(
-              backgroundColor: Color(0xFF233067), // 앱바 배경색
+              backgroundColor: Color(0xFF233067),
               title: Text(
                 '고객센터',
                 style: TextStyle(
-                  color: Colors.white, // 앱바 글자색
+                  color: Colors.white,
                 ),
               ),
               iconTheme: IconThemeData(color: Colors.white),
+              actions: [
+                _buildEditIconButton(context),
+              ],
               bottom: TabBar(
                 labelColor: Colors.white,
                 unselectedLabelColor: Colors.white,
                 onTap: (index) {
                   if (index == 1 && (_userId.isEmpty)) {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: Text('로그인 후 이용 가능합니다'),
-                          actions: <Widget>[
-                            TextButton(
-                              child: Text('확인'),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                          ],
-                        );
-                      },
-                    );
-
-                    // 로그인하지 않은 상태에서는 탭으로 이동하지 않도록 return 처리
+                    DialogHelper.showUserRegistrationDialog(context);
                     return;
                   }
                 },
@@ -106,7 +175,6 @@ class _SupportState extends State<Support> {
                   Tab(text: '문의하기'),
                 ],
               ),
-
             ),
             body: TabBarView(
               children: [
@@ -188,7 +256,7 @@ class _SupportState extends State<Support> {
                                           ConnectionState.waiting) {
                                         return CircularProgressIndicator();
                                       } else if (snapshot.hasError) {
-                                        return Text('Error: ${snapshot.error}');
+                                        return Text( '');
                                       } else {
                                         List<Map<String,
                                             dynamic>> inquiries = snapshot
@@ -442,7 +510,16 @@ class _SupportState extends State<Support> {
                     bottom: 20,
                     child: GestureDetector(
                       onTap: () {
-                        Get.to(ContactUs());
+                        if (_userId.isNotEmpty) {
+                          // 로그인 상태라면 페이지 이동
+                          Get.to(
+                            ContactUs(),
+                            transition: Transition.noTransition, // 이동 애니메이션 off
+                          );
+                        } else {
+                          // 로그인 상태가 아니라면 다이얼로그 표시
+                          _showEditDialog(context);
+                        }
                       },
                       child: Container(
                         width: 50,
@@ -459,8 +536,8 @@ class _SupportState extends State<Support> {
                         ),
                       ),
                     ),
-
                   ),
+
                 )
               ],
             )
