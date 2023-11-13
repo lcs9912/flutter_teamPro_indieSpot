@@ -10,6 +10,7 @@ import 'artistTeamJoin.dart';
 import 'baseBar.dart';
 import 'package:intl/intl.dart';
 import 'concertDetails.dart';
+import 'dialog.dart';
 import 'donationList.dart';
 import 'donationPage.dart';
 import 'spotDetailed.dart';
@@ -158,7 +159,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
   ///// 팔로우 하기
   void _followAdd() async {
     if (_userId == null) {
-      _alertDialogWidget();
+      DialogHelper.showUserRegistrationDialog(context);
     } else {
       CollectionReference followAdd =
         fs.collection('artist').doc(widget.docId).collection('follower');
@@ -331,16 +332,16 @@ class _ArtistInfoState extends State<ArtistInfo> {
               onTap: () {
 
                 if(_artistId != null){ // 리더가 맞다면
-                  // if (Navigator.of(context).canPop()) {
-                  //   Navigator.of(context).pop(); // 현재 페이지를 제거
-                  // }
+                  if (Navigator.of(context).canPop()) {
+                    Navigator.of(context).pop(); // 현재 페이지를 제거
+                  }
                   Navigator.of(context).push(MaterialPageRoute(
                     builder: (context) {
                       return ArtistEdit(documentSnapshotoc!, artistImg!); // 새 페이지로 이동
                     },
                   )).then((value) => setState(() {}));
                 } else{
-                  inputDuplicateAlert("리더만 수정이 가능합니다");
+                  DialogHelper.showArtistLeaderRegistrationDialog(context);
                 }
 
 
@@ -365,7 +366,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
                 ))
                     .then((value) => setState(() {}));
               } else {
-                inputDuplicateAlert("리더만 확인이 가능합니다");
+                DialogHelper.showArtistLeaderRegistrationDialog(context);
               }
               
             }),
@@ -413,7 +414,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
                         DonationPage(artistId: widget.docId),
                   ));
                 } else {
-                  _alertDialogWidget();
+                  DialogHelper.showUserRegistrationDialog(context);
                 }
               },
               ),
@@ -438,7 +439,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
                 } else if(spyCheck){
                   inputDuplicateAlert("이미 팀에 가입되어있습니다.");
                 } else{
-                  _alertDialogWidget();
+                  DialogHelper.showUserRegistrationDialog(context);
                 }
 
 
@@ -772,7 +773,8 @@ class _ArtistInfoState extends State<ArtistInfo> {
 
   @override
   Widget build(BuildContext context) {
-    
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -846,7 +848,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Container(
-                                width: 200,
+                                width: screenWidth * 0.5,
                                 child:infoMap?['artistName'] != null ? Text(
                                   infoMap?['artistName'],
                                   style: TextStyle(

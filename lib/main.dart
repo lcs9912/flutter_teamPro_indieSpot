@@ -16,6 +16,7 @@ import 'buskingList.dart';
 import 'buskingReservation.dart';
 import 'buskingSpotList.dart';
 import 'concertDetails.dart';
+import 'dialog.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'baseBar.dart';
@@ -124,57 +125,6 @@ class _MyAppState extends State<MyApp> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                TextButton(
-                    onPressed: (){
-                      if (_userId != null) {
-                        Get.to(
-                            Profile(
-                              userId: _userId,
-                            ),
-                            transition: Transition.noTransition
-                        );
-                      } else {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: Text('로그인 필요'),
-                              content: SingleChildScrollView(
-                                child: ListBody(
-                                  children: <Widget>[
-                                    Text('로그인 후에 이용해주세요.'),
-                                  ],
-                                ),
-                              ),
-                              actions: <Widget>[
-                                TextButton(
-                                  child: Text('확인'),
-                                  onPressed: () {
-                                    Navigator.of(context).pop(); // 다이얼로그 닫기
-                                  },
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      }
-                    },
-                    child: Text("임시 마이페이지 "),
-                ),
-                TextButton(
-                  onPressed: (){
-                    Get.to(
-                        Join(),
-                        transition: Transition.noTransition
-                    );
-                  },
-                  child: Text("임시 회원가입"),
-                ),
-              ],
-            ),
-
             Padding(
               padding: const EdgeInsets.only(left: 25.0,bottom: 10),
               child: Text("많이찾는 서비스 👀",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
@@ -200,7 +150,7 @@ class _MyAppState extends State<MyApp> {
                                     transition: Transition.noTransition
                                   );
                                 } else {
-                                  _alertDialogWidget();
+                                  DialogHelper.showUserRegistrationDialog(context);
                                 }
                               } else {
                                 Get.to(
@@ -246,10 +196,15 @@ class _MyAppState extends State<MyApp> {
                         children: [
                           InkWell(
                               onTap: () async {
-                                Get.to(
-                                  BuskingReservation(),
-                                  transition: Transition.noTransition
-                                );
+                                if(_artistId != null){
+                                  Get.to(
+                                      BuskingReservation(),
+                                      transition: Transition.noTransition
+                                  );
+                                } else {
+                                  DialogHelper.showArtistRegistrationDialog(context);
+                                }
+
                               },
                               child: Image.asset('assets/busking.png',width: 40,height: 40,),
 
@@ -333,10 +288,15 @@ class _MyAppState extends State<MyApp> {
                         children: [
                           InkWell(
                               onTap: (){
-                                Get.to(
-                                  DonationArtistList(),
-                                  transition: Transition.noTransition
-                                );
+                                if(_userId != null){
+                                  Get.to(
+                                      DonationArtistList(),
+                                      transition: Transition.noTransition
+                                  );
+                                } else {
+                                  DialogHelper.showUserRegistrationDialog(context);
+                                }
+
                               },
                               child: Image.asset('assets/donation.png',width: 40,height: 40,),
                           ),
@@ -353,10 +313,14 @@ class _MyAppState extends State<MyApp> {
                         children: [
                           InkWell(
                               onTap: (){
-                                Get.to(
-                                  PointDetailed(),
-                                  transition: Transition.noTransition
-                                );
+                                if(_userId != null){
+                                  Get.to(
+                                      PointDetailed(),
+                                      transition: Transition.noTransition
+                                  );
+                                } else {
+                                  DialogHelper.showUserRegistrationDialog(context);
+                                }
                               },
                               child: Image.asset('assets/coin.png',width: 40,height: 40,),
                           ),

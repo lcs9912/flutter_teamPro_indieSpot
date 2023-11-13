@@ -81,4 +81,27 @@ class DialogHelper {
           ),
         ]);
   }
+
+  static void showArtistLeaderRegistrationDialog(BuildContext context) {
+    Dialogs.materialDialog(
+        color: Colors.white,
+        title: '리더만 이용이 가능합니다.',
+        lottieBuilder: Lottie.asset(
+          'assets/Animation - 1699599464228.json',
+          fit: BoxFit.contain,
+        ),
+        context: context,
+        actions: [
+          IconsButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            text: '확인',
+            iconData: Icons.done,
+            color: Color(0xFF233067),
+            textStyle: TextStyle(color: Colors.white),
+            iconColor: Colors.white,
+          ),
+        ]);
+  }
 }

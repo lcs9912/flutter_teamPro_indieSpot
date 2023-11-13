@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/baseBar.dart';
+import 'package:indie_spot/login.dart';
 import 'package:indie_spot/main.dart';
 import 'artistInfo.dart';
 import 'firebase_options.dart';
@@ -13,25 +14,6 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
 import 'package:image_cropper/image_cropper.dart';
 import 'package:get/get.dart';
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => UserModel())
-        ],
-        child: MaterialApp(
-            theme: ThemeData(fontFamily: 'Pretendard'),
-            themeMode: ThemeMode.system,
-            home: ArtistRegi()
-        ),
-      )
-  );
-}
 
 
 class ArtistRegi extends StatefulWidget {
@@ -202,7 +184,7 @@ class _ArtistRegiState extends State<ArtistRegi> {
             'createtime' : Timestamp.now()
           });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('등록되었습니다.')),
+        SnackBar(content: Text('등록완료 되었습니다. 다시 로그인해주세요')),
       );
 
       setState(() {
@@ -213,11 +195,9 @@ class _ArtistRegiState extends State<ArtistRegi> {
         _selectedImage = null;
       });
 
-      //등록 완료후 페이지 이동
-      Get.off(
-        () => MyApp(),
-        transition: Transition.noTransition
-      );
+      Provider.of<UserModel>(context, listen: false).logout();
+      Get.back();
+      Get.off(LoginPage(), transition: Transition.noTransition);
 
 
     }catch (e){
