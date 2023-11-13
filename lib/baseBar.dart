@@ -62,6 +62,10 @@ class _MyDrawerState extends State<MyDrawer> {
   DocumentSnapshot? doc;
   DocumentSnapshot? artistDoc;
   String? artistImg;
+  String? artistName;
+  bool _firstExpansion = true;
+  bool _secondExpansion = false;
+  bool _thirdExpansion = false;
   @override
   void initState(){
     super.initState();
@@ -73,6 +77,7 @@ class _MyDrawerState extends State<MyDrawer> {
       userInfo();
       if(userModel.isArtist){
         _artistId = userModel.artistId;
+        artistInfo();
       }
     }
   }
@@ -91,11 +96,19 @@ class _MyDrawerState extends State<MyDrawer> {
       }else{imageProvider = NetworkImage(imgData?['PATH']);}
     }
   }
+  void artistInfo() async{
+    DocumentSnapshot artist = await fs.collection("artist").doc(_artistId).get();
+    if(artist.exists){
+      setState(() {
+        artistName = artist.get("artistName");
+      });
+    }
+  }
 
   Widget _userInfo(){
     if(_userId==null){
       return DrawerHeader(
-        decoration: BoxDecoration(color: Colors.black12),
+        decoration: BoxDecoration(color: Colors.grey[200]),
         child: Row(
           children: [
             Padding(
@@ -130,7 +143,7 @@ class _MyDrawerState extends State<MyDrawer> {
       );
     }
     return DrawerHeader(
-      decoration: BoxDecoration(color: Colors.black12),
+      decoration: BoxDecoration(color: Colors.grey[200]),
       child: Row(
         children: [
           Padding(
@@ -146,10 +159,20 @@ class _MyDrawerState extends State<MyDrawer> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("${userData?['nick']}", style: TextStyle(color: Colors.black54, fontSize: 18,fontWeight: FontWeight.bold),),
+              GestureDetector(
+                  onTap: (){
+                    Get.to(
+                        ArtistInfo(_artistId!), //이동하려는 페이지
+                        preventDuplicates: true, //중복 페이지 이동 방지
+                        transition: Transition.noTransition //이동애니메이션off
+                    );
+                  },
+                  child:Provider.of<UserModel>(context, listen: false).isArtist? Text("${artistName}",style: TextStyle(color: Color(0xFF6779C6)),):Container()
+              ),
+              Text("${userData?['nick']}", style: TextStyle(color: Colors.black, fontSize: 18,fontWeight: FontWeight.bold),),
               Row(
                 children: [
-                  Icon(Icons.logout,size: 20),
+                  Icon(Icons.logout,size: 14),
                   TextButton(
                       onPressed: (){
                         setState(() {
@@ -162,7 +185,23 @@ class _MyDrawerState extends State<MyDrawer> {
                         padding: EdgeInsets.zero, // 패딩 조정
                         // 다른 스타일 속성들도 추가할 수 있습니다.
                       ),
-                      child: Text("로그아웃")),
+                      child: Text("로그아웃",style: TextStyle(fontSize: 13, color: Color(0xFF6779C6)),)),
+                  Icon(Icons.person_4_outlined,size: 16),
+                  TextButton(
+                      onPressed: (){
+                        Get.to(
+                            Profile(
+                              userId: _userId,
+                            ),
+                            preventDuplicates: true,
+                            transition: Transition.noTransition
+                        );
+                      },
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero, // 패딩 조정
+                        // 다른 스타일 속성들도 추가할 수 있습니다.
+                      ),
+                      child: Text("마이페이지",style: TextStyle(fontSize: 14, color: Color(0xFF6779C6)),)),
                 ],
               )
             ],
@@ -174,13 +213,28 @@ class _MyDrawerState extends State<MyDrawer> {
 
   @override
   Widget build(BuildContext context) {
+
     return Drawer(
       child: ListView(
         children: <Widget>[
           _userInfo(),
-
           ExpansionTile(
-            title: Text('MENU',style: TextStyle(fontWeight: FontWeight.bold),),
+            key: UniqueKey(),
+            title: Text('MENU',style: TextStyle(fontWeight: FontWeight.bold, color: _firstExpansion? Color(0xFF6779C6):Colors.black),),
+            onExpansionChanged:(value){
+              setState(() {
+                _firstExpansion = value;
+              });
+              if (_secondExpansion || _thirdExpansion) {
+                _secondExpansion = false;
+                _thirdExpansion = false;
+              }
+            },
+            trailing: Icon(
+              _firstExpansion ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down, // 화살표 아이콘
+              color: _firstExpansion ? Color(0xFF6779C6) : Colors.black, // 아이콘 색상 변경
+            ),
+            initiallyExpanded: _firstExpansion,
             children: <Widget>[
               ListTile(
                 title: Text('공지사항'),
@@ -230,53 +284,31 @@ class _MyDrawerState extends State<MyDrawer> {
                   }
                 },
               ),
-              ListTile(
-                title: Text('받은 후원 내역'),
-                onTap: () {
-                  if(_artistId != ""){
-                    Get.to(
-                      DonationList(artistId: _artistId!,),
-                      preventDuplicates: true,
-                      transition: Transition.noTransition
-                    );
-                  }else{
-                    DialogHelper.showArtistRegistrationDialog(context);
-                  }
-                },
-              ),
+
               ListTile(
                 title: Text('아티스트 등록'),
                 onTap: () {
                   var user = Provider.of<UserModel>(context, listen: false);
-                  if(user.isArtist){
-                    Get.to(
-                      ArtistInfo(user.artistId!),
-                      preventDuplicates: true,
-                      transition: Transition.noTransition
-                    );
-                  } else {
-                    Get.to(
-                      ArtistRegi(),
-                      preventDuplicates: true,
-                      transition: Transition.noTransition
-                    );
-                  }
-                },
-              ),
-              ListTile(
-                title: Text('사업자 등록'),
-                onTap: () {
-                  if(_userId != null) {
-                     Get.to(
-                       ProprietorAdd(),
-                       preventDuplicates: true,
-                       transition: Transition.noTransition
-                     );
+                  if(user.isLogin){
+                    if(user.isArtist){
+                      Get.to(
+                          ArtistInfo(user.artistId!),
+                          preventDuplicates: true,
+                          transition: Transition.noTransition
+                      );
+                    } else {
+                      Get.to(
+                          ArtistRegi(),
+                          preventDuplicates: true,
+                          transition: Transition.noTransition
+                      );
+                    }
                   }else{
                     DialogHelper.showUserRegistrationDialog(context);
                   }
                 },
               ),
+
               ListTile(
                 title: Text('고객센터'),
                 onTap: () {
@@ -290,16 +322,31 @@ class _MyDrawerState extends State<MyDrawer> {
             ],
           ),
           ExpansionTile(
-            title: Text('ARTIST MENU',style: TextStyle(fontWeight: FontWeight.bold,)),
+            key: UniqueKey(),
+            title: Text('ARTIST MENU',style: TextStyle(fontWeight: FontWeight.bold,color: _secondExpansion? Color(0xFF6779C6):Colors.black)),
+            onExpansionChanged: (value){
+              setState(() {
+                _secondExpansion= value;
+                if (_firstExpansion||_thirdExpansion) {
+                  _firstExpansion = false;
+                  _thirdExpansion = false;
+                }
+              });
+            },
+            trailing: Icon(
+              _secondExpansion ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down, // 화살표 아이콘
+              color: _secondExpansion ? Color(0xFF6779C6) : Colors.black, // 아이콘 색상 변경
+            ),
+            initiallyExpanded: _secondExpansion,
             children: <Widget>[
               if(Provider.of<UserModel>(context, listen: false).isAdmin)
                 ListTile(
                   title: Text('관리자'),
                   onTap: () {
                     Get.to(
-                      AdminMain(),
-                      preventDuplicates: true,
-                      transition: Transition.noTransition
+                        AdminMain(),
+                        preventDuplicates: true,
+                        transition: Transition.noTransition
                     );
                   },
                 ),
@@ -312,12 +359,30 @@ class _MyDrawerState extends State<MyDrawer> {
                 },
               ),
               ListTile(
+                title: Text('받은 후원 내역'),
+                onTap: () {
+                  if(Provider.of<UserModel>(context, listen: false).isLogin){
+                    if(_artistId != ""){
+                      Get.to(
+                          DonationList(artistId: _artistId!,),
+                          preventDuplicates: true,
+                          transition: Transition.noTransition
+                      );
+                    }else{
+                      DialogHelper.showArtistRegistrationDialog(context);
+                    }
+                  }else{
+                    DialogHelper.showUserRegistrationDialog(context);
+                  }
+                },
+              ),
+              ListTile(
                 title: Text('버스킹존'),
                 onTap: () {
                   Get.to(
-                    BuskingZoneList(),
-                    preventDuplicates: true,
-                    transition: Transition.noTransition
+                      BuskingZoneList(),
+                      preventDuplicates: true,
+                      transition: Transition.noTransition
                   );
                 },
               ),
@@ -325,9 +390,9 @@ class _MyDrawerState extends State<MyDrawer> {
                 title: Text('상업 공간'),
                 onTap: () {
                   Get.to(
-                    CommercialList(),
-                    preventDuplicates: true,
-                    transition: Transition.noTransition
+                      CommercialList(),
+                      preventDuplicates: true,
+                      transition: Transition.noTransition
                   );
                 },
               ),
@@ -347,9 +412,9 @@ class _MyDrawerState extends State<MyDrawer> {
                       DialogHelper.showArtistRegistrationDialog(context);
                     }else{
                       Get.to(
-                        RenTalHistory(),
-                        preventDuplicates: true,
-                        transition: Transition.noTransition
+                          RenTalHistory(),
+                          preventDuplicates: true,
+                          transition: Transition.noTransition
                       );
                     }
                   }
@@ -360,11 +425,55 @@ class _MyDrawerState extends State<MyDrawer> {
                   title: Text('아티스트 정보 수정'),
                   onTap: () {
                     Get.to(
-                      () => ArtistEdit(_artistId as DocumentSnapshot<Object?>, artistImg!),
-                      transition:  Transition.noTransition
+                            () => ArtistEdit(_artistId as DocumentSnapshot<Object?>, artistImg!),
+                        transition:  Transition.noTransition
                     )!.then((value) => setState(() {}));
                   },
                 ),
+            ],
+          ),
+          ExpansionTile(
+            key: UniqueKey(),
+            title: Text('BUSSINESS MENU',style: TextStyle(fontWeight: FontWeight.bold,color: _thirdExpansion? Color(0xFF6779C6):Colors.black)),
+            onExpansionChanged: (value){
+              setState(() {
+                _thirdExpansion= value;
+                if (_firstExpansion||_secondExpansion) {
+                  _firstExpansion = false;
+                  _secondExpansion = false;
+                }
+              });
+            },
+            trailing: Icon(
+              _thirdExpansion ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down, // 화살표 아이콘
+              color: _thirdExpansion ? Color(0xFF6779C6) : Colors.black, // 아이콘 색상 변경
+            ),
+            initiallyExpanded: _thirdExpansion,
+            children: <Widget>[
+              ListTile(
+                title: Text('공지사항'),
+                onTap: () {
+                  Get.to(
+                      AnnouncementList(),
+                      preventDuplicates: true,
+                      transition: Transition.noTransition
+                  );
+                },
+              ),
+              ListTile(
+                title: Text('사업자 등록'),
+                onTap: () {
+                  if(_userId != null) {
+                    Get.to(
+                        ProprietorAdd(),
+                        preventDuplicates: true,
+                        transition: Transition.noTransition
+                    );
+                  }else{
+                    DialogHelper.showUserRegistrationDialog(context);
+                  }
+                },
+              ),
             ],
           ),
         ],
@@ -395,7 +504,7 @@ class _MyBottomBarState extends State<MyBottomBar> {
                         ArtistList(),
                         preventDuplicates: true,
                         transition: Transition.noTransition
-                      );
+                      )?.then((value) => setState((){}));
                     },
                     child: Image.asset('assets/mic.png',width: 23,),
                   ),
@@ -405,7 +514,7 @@ class _MyBottomBarState extends State<MyBottomBar> {
                         BuskingList(),
                         preventDuplicates: true,
                         transition: Transition.noTransition
-                      );
+                      )?.then((value) => setState((){}));
                     },
                     child: Icon(Icons.calendar_month_outlined,color: Colors.black54,),
                   ),
@@ -415,7 +524,7 @@ class _MyBottomBarState extends State<MyBottomBar> {
                           MyApp(),
                           preventDuplicates: true,
                           transition: Transition.noTransition
-                      );
+                      )?.then((value) => setState((){}));
                     },
                     child: Icon(Icons.home_outlined,color: Colors.black54,),
                   ),
@@ -425,7 +534,7 @@ class _MyBottomBarState extends State<MyBottomBar> {
                         VideoList(),
                         preventDuplicates: true,
                         transition: Transition.noTransition
-                      );
+                      )?.then((value) => setState((){}));
                     },
                     child: Icon(Icons.play_circle_outline,color: Colors.black54,),
                   ),
@@ -439,7 +548,7 @@ class _MyBottomBarState extends State<MyBottomBar> {
                           ),
                           preventDuplicates: true,
                           transition: Transition.noTransition
-                        );
+                        )?.then((value) => setState((){}));
                       } else{
                         DialogHelper.showUserRegistrationDialog(context);
                       }

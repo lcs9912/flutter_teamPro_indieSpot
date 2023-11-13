@@ -374,7 +374,7 @@ class _DonationPageState extends State<DonationPage> {
                       ),
                       ElevatedButton(onPressed: (){
                         _updataDonation();
-                        Get.to(
+                        Get.off(
                           ()=>DonationArtistList(),
                           transition: Transition.noTransition
                         );

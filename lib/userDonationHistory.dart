@@ -329,7 +329,7 @@ class _UserDonationHistoryState extends State<UserDonationHistory> {
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return SizedBox(
-                    height: 400,
+                    height: 300,
                     child: LoadingWidget()
                 );
               } else if (snapshot.hasError) {
@@ -450,6 +450,7 @@ class _UserDonationHistoryState extends State<UserDonationHistory> {
           ),
         ],
       ),
+      bottomNavigationBar: MyBottomBar(),
     );
   }
 }

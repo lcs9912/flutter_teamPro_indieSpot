@@ -3,6 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:indie_spot/pointRecharge.dart';
 import 'package:indie_spot/rentalHistory.dart';
 import 'package:indie_spot/userModel.dart';
+import 'package:lottie/lottie.dart';
+import 'package:material_dialogs/dialogs.dart';
+import 'package:material_dialogs/widgets/buttons/icon_button.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'baseBar.dart';
 import 'package:intl/intl.dart';
@@ -217,12 +220,7 @@ class _SpaceRentalState extends State<SpaceRental> {
                       return;
                     }
                   }
-                  rentalAdd();
-                  Get.to(
-                      RenTalHistory(), //이동하려는 페이지
-                      preventDuplicates: true, //중복 페이지 이동 방지
-                      transition: Transition.noTransition //이동애니메이션off
-                  );
+                  showUserRegistrationDialog(context);
                 },
                 child: Text('예약', style: TextStyle(fontSize: 17),),
               ),)
@@ -231,6 +229,48 @@ class _SpaceRentalState extends State<SpaceRental> {
         )
     );
   }
+  void showUserRegistrationDialog(BuildContext context) {
+    Dialogs.materialDialog(
+        color: Colors.white,
+        msg: "예약 장소 : ${widget.document.get("spaceName")}\n"
+            "예약 날짜 : ${DateFormat('yyyy-MM-dd(E)','ko_KR').format(selectedDay)}\n"
+            "예약 시간 : ${(selectedHours.first).toString()+':00'}~${(selectedHours.last).toString()+':00('+(selectedHours.last-selectedHours.first).toString()+"시간)"}\n"
+            "예약 후 포인트 : ${(pointBalance-(selectedHours.last-selectedHours.first)*widget.document.get("rentalfee"))}",
+        title: '예약 하시겠습니까?',
+        lottieBuilder: Lottie.asset(
+          'assets/celendar.json',
+          fit: BoxFit.contain,
+        ),
+        context: context,
+        actions: [
+          IconsButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            text: '취소',
+            iconData: Icons.done,
+            color: Color(0xFF233067),
+            textStyle: TextStyle(color: Colors.white),
+            iconColor: Colors.white,
+          ),
+          IconsButton(
+            onPressed: () {
+              rentalAdd();
+              Get.off(
+                  RenTalHistory(), //이동하려는 페이지
+                  preventDuplicates: true, //중복 페이지 이동 방지
+                  transition: Transition.noTransition //이동애니메이션off
+              );
+            },
+            text: '예약',
+            iconData: Icons.done,
+            color: Color(0xFF233067),
+            textStyle: TextStyle(color: Colors.white),
+            iconColor: Colors.white,
+          ),
+        ]);
+  }
+
   Future<void> userPoint() async{
     QuerySnapshot userSnap = await fs.collection("userList").doc(userId).collection("point").get();
     setState(() {

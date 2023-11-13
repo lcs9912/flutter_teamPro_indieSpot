@@ -46,13 +46,6 @@ class _YoutubeTestState extends State<YoutubeAdd> {
         drawer: MyDrawer(),
         appBar: AppBar(
           actions: [
-            IconButton(
-              onPressed: () {
-                // 아이콘 클릭 시 수행할 작업 추가
-              },
-              icon: Icon(Icons.person),
-              color: Colors.black54,
-            ),
             Builder(
               builder: (context) {
                 return IconButton(
@@ -60,7 +53,7 @@ class _YoutubeTestState extends State<YoutubeAdd> {
                     Scaffold.of(context).openDrawer();
                   },
                   icon: Icon(Icons.menu),
-                  color: Colors.black54,
+                  color: Colors.white,
                 );
               },
             ),
@@ -70,18 +63,18 @@ class _YoutubeTestState extends State<YoutubeAdd> {
           leading: IconButton(
             icon: Icon(
               Icons.arrow_back,
-              color: Colors.black54,
+              color: Colors.white,
             ),
             onPressed: () {
               // 뒤로가기 버튼을 눌렀을 때 수행할 작업
               Navigator.of(context).pop();
             },
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: Color(0xFF233067),
           centerTitle: true,
           title: Text(
             '영상 등록',
-            style: TextStyle(color: Colors.black,),
+            style: TextStyle(color: Colors.white,),
           ),
         ),
       body: ListView(
@@ -337,6 +330,7 @@ class _YoutubeTestState extends State<YoutubeAdd> {
               },
               child: Text("등록"),
               style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF233067),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.zero, // 모든 모서리를 직각으로 설정
                 ),
