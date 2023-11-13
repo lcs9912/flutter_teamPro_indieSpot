@@ -1,3 +1,4 @@
+import 'package:indie_spot/artistInfo.dart';
 import 'package:indie_spot/loading.dart';
 import 'package:indie_spot/userModel.dart';
 import 'package:provider/provider.dart';
@@ -581,27 +582,95 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                             ),
                           ),
                         ),
-
-
-
                       ],
                     ),
 
-
-
-
-                    SizedBox(height: 30), // 간격 추가
                     Container(
-                      width: 600,
+                      width: double.infinity,
                       height: 55,
-                      color: Color(0xFF3E2007),
+                      color: Color(0xFF233067),
                       padding: EdgeInsets.all(8.0),
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '공연 정보',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white),
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.fromLTRB(8, 20, 8, 20),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 80,
+                                child: Text('공연이름', style: TextStyle(fontWeight: FontWeight.w500),),
+                              ),
+                              Text(buskingData?['title'])
+                            ],
+                          ),
+                          SizedBox(height: 10,),
+                          Container(
+                            child:Row(
+                              children: [
+                                Container(
+                                  width: 80,
+                                  child: Text('공연시간', style: TextStyle(fontWeight: FontWeight.w500),),
+                                ),
+                                Text(
+                                  '${DateFormat('yyyy-MM-dd HH:mm').format(buskingData?['buskingStart'].toDate())}',
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: 10,),
+                          Row(
+                            children: [
+                              Container(
+                                width: 80,
+                                child: Text('공연장소', style: TextStyle(fontWeight: FontWeight.w500),),
+                              ),
+                              Text(_spotName)
+                            ],
+                          ),
+                          SizedBox(height: 10,),
+                          Row(
+                            children: [
+                              Container(
+                                width: 80,
+                                child: Text('공연설명', style: TextStyle(fontWeight: FontWeight.w500),),
+                              ),
+                              Expanded( // Using Expanded to allow the text to take available space
+                                child: SingleChildScrollView(
+                                  child: Text(
+                                    buskingData?['description'],
+                                    softWrap: true,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                    Container(
+                      height: 1.0,
+                      width: 320,
+                      color: Colors.black.withOpacity(0.1),
+                    ),
+                    Container(
+                      width: double.infinity,
+                      height: 50,
+                      color: Color(0xFF233067),
+                      padding: EdgeInsets.only(left: 8, right: 8),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
-                            ' ${buskingData?['title']}',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                            "아티스트 정보",
+                            textAlign: TextAlign.left,
+                            style: TextStyle(fontWeight: FontWeight.w500,color: Colors.white),
                           ),
                           TextButton(
                             onPressed: () {
@@ -615,16 +684,17 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                                 }
                               });
                             },
-                            style: TextButton.styleFrom(
-                              foregroundColor: Colors.white, shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(18.0),
-                              ),
+                            style: ButtonStyle(
+                              alignment: Alignment.center
                             ),
-                            child: Text(
-                              _followerFlg ? '팔로잉' : '팔로우',
-                              style: TextStyle(
-                                fontSize: 16, // 텍스트 버튼의 텍스트 크기 변경
-                                fontWeight: FontWeight.bold, // 텍스트 버튼의 텍스트 굵기 변경
+                            child: Center(
+                              child: Text(
+                                _followerFlg ? '팔로잉' : '팔로우',
+                                style: TextStyle(
+                                  fontSize: 16, // 텍스트 버튼의 텍스트 크기 변경
+                                  fontWeight: FontWeight.w500, // 텍스트 버튼의 텍스트 굵기 변경
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ),
@@ -632,96 +702,25 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                       ),
                     ),
                     Container(
-                      height: 1.0,
-                      width: 320,
-                      color: Colors.black.withOpacity(0.1),
-                    ),
-
-
-
-
-
-                    Container(
-                      width: 600,
-                      height: 50,
-                      color: Color(0xFF3E2007),
-                      padding: EdgeInsets.all(8.0), // 내부 여백 설정
-                      child: Text(
-                        "  기본정보",
-                        textAlign: TextAlign.left,
-                        style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white),
-                      ),
-                    ),
-
-                    Container(
-                      color: Colors.grey[200],
-                      height: 610,
-                      width: 400,
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
-
-
-
-                            ),
-
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8.0), // 네모 모양을 위한 BorderRadius 설정
-                                  child: Image.network(
-                                    _path ?? '',
-                                    height: 380,
-                                    width: 310,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                Text(
-                                  '이름: ${artistData2?['artistName']}',
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                ),
-                                SizedBox(height: 30),
-                                Container(
-                                  height: 1.0,
-                                  width: 320,
-                                  color: Colors.black.withOpacity(0.1),
-                                ),
-                                SizedBox(height: 20),
-                                Text(
-                                  '장소:               $_spotName', // widget을 사용하여 spotName에 접근합니다.
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                ),
-                                SizedBox(height: 20),
-                                Text(
-                                  '버스킹시간:    ${DateFormat('yyyy-MM-dd').format(buskingData?['buskingStart'].toDate())}',
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  '장르:                ${artistData2?['genre']}',
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  '소개 :               ${buskingData?['description']}',
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color: Colors.black),
-                                ),
-                              ],
-                            ),
-
-                          ],
-
+                      width: double.infinity,
+                      child: ListTile(
+                        onTap: ()=> Get.to(
+                            () => ArtistInfo(_artistId!),
+                            transition: Transition.noTransition
+                        ),
+                        leading: Image.network(
+                          _path ?? '',
+                          fit: BoxFit.cover,
+                        ),
+                        title: Text(
+                          artistData2?['artistName'],
+                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500),
+                        ),
+                        subtitle: Text(
+                          '${artistData2?['genre']} / ${artistData2?['detailedGenre']}'
                         ),
                       ),
-                    ),
-                    SizedBox(height: 20),
-
-                    SizedBox(height: 10),
-
+                    )
                   ],
                 ),
               ),
@@ -730,7 +729,6 @@ class _ConcertDetailsState extends State<ConcertDetails> {
             SingleChildScrollView(
               child: Container(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     // 상단 이미지
                     for (var index = 0; index < buskingImages!.length; index++)
@@ -740,288 +738,271 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                         width: double.infinity,
                         fit: BoxFit.cover,
                       ),
-                    SizedBox(height: 30), // 간격 추가
-
-                    Padding(
-                      padding: EdgeInsets.only(right:250 ), // 왼쪽 간격을 10으로 지정
-                      child: RatingBar.builder(
-                        initialRating: rating,
-                        minRating: 1,
-                        direction: Axis.horizontal,
-                        allowHalfRating: true,
-                        itemCount: 5,
-                        itemSize: 20.0,
-                        itemBuilder: (context, _) => Icon(
-                          Icons.star,
-                          color: Colors.amber,
-                        ),
-                        onRatingUpdate: (value) {
-                          setState(() {
-                            rating = value;
-                          });
-                          // rating 값을 여기서 활용하거나 필요한 곳으로 전달할 수 있습니다.
-                          // 예를 들어, submitReview 함수 호출 등을 여기서 할 수 있습니다.
-                        },
+                    Container(
+                      width: double.infinity,
+                      height: 55,
+                      color: Color(0xFF233067),
+                      padding: EdgeInsets.all(8.0),
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '리뷰',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white),
                       ),
                     ),
-
-
-
-                    Container(
-                      width: 350,
+                    SizedBox(height: 10,),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
                       child: Column(
                         children: [
-                          TextField(
-                            controller: _review,
-                            maxLines: null,
-                            onChanged: (value) {
-                              setState(() {
-                                _isReviewEmpty = value.isEmpty;
-                              });
-                            },
-                            decoration: InputDecoration(
-
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10.0),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              RatingBar.builder(
+                                initialRating: rating,
+                                minRating: 1,
+                                direction: Axis.horizontal,
+                                allowHalfRating: true,
+                                itemCount: 5,
+                                itemSize: 30.0,
+                                itemBuilder: (context, _) => Icon(
+                                  Icons.star,
+                                  color: Colors.amber,
+                                ),
+                                onRatingUpdate: (value) {
+                                  setState(() {
+                                    rating = value;
+                                  });
+                                },
                               ),
+                            ],
+                          ),
+                          Container(
+
+                            child: Column(
+                              children: [
+                                TextField(
+                                  controller: _review,
+                                  maxLines: null,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _isReviewEmpty = value.isEmpty;
+                                    });
+                                  },
+                                  textInputAction: TextInputAction.go,
+                                  onSubmitted: (value) async{
+                                    if (_nick == null) {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            title: Text('로그인 후 리뷰 작성이 가능합니다'),
+                                            actions: <Widget>[
+                                              TextButton(
+                                                child: Text('확인'),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
+                                    } else {
+                                      double userRating = rating;
+                                      await submitReview(widget.document.id, userRating).then((value) => loadBuskingReview());
+                                    }
+                                  },
+                                  decoration: InputDecoration(
+                                    suffixIcon: IconButton(onPressed: () async{
+                                      if (_nick == null) {
+                                        showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return AlertDialog(
+                                              title: Text('로그인 후 리뷰 작성이 가능합니다'),
+                                              actions: <Widget>[
+                                                TextButton(
+                                                  child: Text('확인'),
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+                                      } else {
+                                        if(_review.text != '') {
+                                          double userRating = rating;
+                                          await submitReview(widget.document.id, userRating).then((value) => loadBuskingReview());
+                                        } else {
+                                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('리뷰를 입력해주세요')));
+                                        }
+                                      }
+                                    }, icon: Icon(Icons.send)),
+                                    suffixIconColor: Color(0xFF233067),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10.0),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: BorderSide(color: Color(0xFF233067), width: 2)
+                                    )
+                                  ),
+                                ),
+                                SizedBox(height: 20,),
+                                Container(
+                                  height: 1.0,
+                                  color: Colors.black.withOpacity(0.1),
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    InkWell(
+                                      onTap: () {
+                                        setState(() {
+                                          if (buskingReview != null) {
+                                            buskingReview!.sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
+                                            showLatestFirst = true;
+                                          }
+                                        });
+                                      },
+                                      child: Text(
+                                        "최신순",
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: showLatestFirst ? FontWeight.w600 : FontWeight.normal,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 20,),
+                                    InkWell(
+                                      onTap: () {
+                                        setState(() {
+                                          if (buskingReview != null) {
+                                            buskingReview!.sort((a, b) => a['timestamp'].compareTo(b['timestamp']));
+                                            showLatestFirst = false;
+                                          }
+                                        });
+                                      },
+                                      child: Text(
+                                        "오래된순",
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: showLatestFirst ? FontWeight.normal : FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 20,),
+                                Column(
+                                  children: [
+                                    // 리뷰 출력 부분
+                                    if (buskingReview != null && buskingReview!.isNotEmpty)
+                                      for (var document in buskingReview!)
+                                        if (document['rating'] != null)
+                                          Container(
+                                            height: 160,
+                                            width: double.infinity,
+                                            margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+                                            padding: EdgeInsets.fromLTRB(16, 8, 16, 16),
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey.withOpacity(0.3),
+                                              borderRadius: BorderRadius.circular(10.0),
+                                            ),
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                    Text(
+                                                      "${document['nick']}",
+                                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black),
+                                                    ),
+                                                    if (document['nick'] == _nick)
+                                                      TextButton(
+                                                        onPressed: () {
+                                                          showDialog(
+                                                            context: context,
+                                                            builder: (BuildContext context) {
+                                                              TextEditingController textEditingController = TextEditingController(text: document['content']);
+                                                              return AlertDialog(
+                                                                title: Text('댓글 수정'),
+                                                                content: TextField(
+                                                                  controller: textEditingController,
+                                                                ),
+                                                                actions: [
+                                                                  TextButton(
+                                                                    onPressed: () async {
+                                                                      if (updatedComment.isNotEmpty) {
+                                                                        try {
+                                                                          await FirebaseFirestore.instance
+                                                                              .collection('busking')
+                                                                              .doc(widget.document.id)
+                                                                              .collection('review')
+                                                                              .doc(document.reference.id)
+                                                                              .update({'content': textEditingController.text});
+                                                                          Navigator.pop(context);
+                                                                        } catch (e) {
+                                                                          print('Error updating review content: $e');
+                                                                        }
+                                                                      }
+                                                                    },
+                                                                    child: Text(
+                                                                      '저장',
+                                                                      style: TextStyle(color: Color(0xFF233067)),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              );
+                                                            },
+                                                          );
+                                                        },
+                                                        child: Text(
+                                                          '수정하기',
+                                                          style: TextStyle(color: Colors.black),
+                                                        ),
+                                                      ),
+                                                  ],
+                                                ),
+                                                Text(
+                                                  "${document['reviewContents']}",
+                                                  style: TextStyle(fontSize: 16), // Adjust font size
+                                                ),
+                                                SizedBox(height: 10,),
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                    RatingBarIndicator(
+                                                      rating: double.parse(document['rating'].toString()),
+                                                      itemBuilder: (context, index) => Icon(
+                                                        Icons.star,
+                                                        color: Colors.amber,
+                                                      ),
+                                                      itemCount: 5,
+                                                      itemSize: 20.0,
+                                                      direction: Axis.horizontal,
+                                                    ),
+                                                    Text(
+                                                      "${DateFormat('yyyy-MM-dd').format(document['timestamp'].toDate())}",
+                                                      style: TextStyle(fontSize: 13, color: Colors.black87),
+                                                    ),
+                                                  ],
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
-                          SizedBox(height: 10), // Add some space between TextField and other elements
-                          Row(
-                            children: [
-                              SizedBox(width: 10), // Add some space between avatar and nickname
-
-
-                              Spacer(),
-
-                              ElevatedButton(
-                                onPressed: () async {
-                                  if (_nick == null) {
-                                    showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return AlertDialog(
-                                          title: Text('로그인 후 리뷰 작성이 가능합니다'),
-                                          actions: <Widget>[
-                                            TextButton(
-                                              child: Text('확인'),
-                                              onPressed: () {
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    );
-                                  } else {
-                                    double userRating = rating;
-                                    await submitReview(widget.document.id, userRating).then((value) => loadBuskingReview());
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color(0xFF233067), // 배경색을 392F31로 설정
-                                ),
-                                child: Text('댓글작성'),
-                              ),
-
-
-                              SizedBox(height: 20,),
-                            ],
-                          ),
-                          // Text("후기글 (총${buskingReview?[0]['reviewCnt']}개)"),
-                          SizedBox(height: 20,),
-                          Container(
-                            height: 1.0,
-                            width: 400,
-                            color: Colors.black.withOpacity(0.1),
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Padding(
-                                padding: EdgeInsets.only(left: 300), // 오른쪽 간격 조절
-                                child: InkWell(
-                                  onTap: () {
-                                    setState(() {
-                                      if (buskingReview != null) {
-                                        buskingReview!.sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
-                                        showLatestFirst = true;
-                                      }
-                                    });
-                                  },
-                                  child: Text(
-                                    "최신순",
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: showLatestFirst ? FontWeight.bold : FontWeight.normal,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(left: 290), // 왼쪽 간격 조절
-                                child: InkWell(
-                                  onTap: () {
-                                    setState(() {
-                                      if (buskingReview != null) {
-                                        buskingReview!.sort((a, b) => a['timestamp'].compareTo(b['timestamp']));
-                                        showLatestFirst = false;
-                                      }
-                                    });
-                                  },
-                                  child: Text(
-                                    "오래된순",
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: showLatestFirst ? FontWeight.normal : FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 20,),
-
-
-                          Column(
-                            children: [
-                              // 리뷰 출력 부분
-                              if (buskingReview != null && buskingReview!.isNotEmpty)
-                                for (var document in buskingReview!)
-                                  if (document['rating'] != null)
-                                    Container(
-                                      height: 160,
-                                      width: double.infinity,
-                                      margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                                      padding: EdgeInsets.all(16.0),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white60, // 흰색 배경색으로 설정
-                                        borderRadius: BorderRadius.circular(10.0),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.grey.withOpacity(0.5),
-                                            spreadRadius: 1,
-                                            blurRadius: 3,
-                                            offset: Offset(0, 2), // 그림자의 위치 조정
-                                          ),
-                                        ],
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          TextButton(
-                                            onPressed: () {
-                                              if (document['nick'] == _nick) {
-                                                showDialog(
-                                                  context: context,
-                                                  builder: (BuildContext context) {
-                                                    TextEditingController textEditingController = TextEditingController(text: currentContent);
-                                                    return AlertDialog(
-                                                      title: Text('댓글 수정'),
-                                                      content: TextField(
-                                                        controller: textEditingController,
-                                                        onChanged: (value) {
-                                                          setState(() {
-                                                            updatedComment = value;
-                                                          });
-                                                        },
-                                                      ),
-                                                      actions: [
-                                                        TextButton(
-                                                          onPressed: () async {
-                                                            if (updatedComment.isNotEmpty) {
-                                                              try {
-                                                                await FirebaseFirestore.instance
-                                                                    .collection('busking')
-                                                                    .doc(widget.document.id)
-                                                                    .collection('review')
-                                                                    .doc(document.reference.id)
-                                                                    .update({'content': updatedComment});
-                                                                Navigator.pop(context);
-                                                              } catch (e) {
-                                                                print('Error updating review content: $e');
-                                                              }
-                                                            }
-                                                          },
-                                                          child: Text(
-                                                            '저장',
-                                                            style: TextStyle(color: Colors.black),
-                                                          ),
-                                                          style: TextButton.styleFrom(
-                                                            backgroundColor: Colors.grey,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    );
-                                                  },
-                                                );
-                                              }
-                                            },
-                                            child: SizedBox(
-                                              width: double.infinity,
-                                              child: Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                children: [
-                                                  Text(
-                                                    "${document['nick']}",
-                                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
-                                                  ),
-                                                  SizedBox(width: 8.0),
-                                                  if (document['nick'] == _nick)
-                                                    Text(
-                                                      '수정하기',
-                                                      style: TextStyle(color: Colors.black),
-                                                    ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-
-
-
-
-
-                                          Text(
-                                            "${document['reviewContents']}",
-                                            style: TextStyle(fontSize: 16), // Adjust font size
-                                          ),
-                                          SizedBox(height: 10,),
-                                          Align(
-                                            alignment: Alignment.bottomLeft,
-                                            child: RatingBarIndicator(
-                                              rating: double.parse(document['rating'].toString()),
-                                              itemBuilder: (context, index) => Icon(
-                                                Icons.star,
-                                                color: Colors.amber,
-                                              ),
-                                              itemCount: 5,
-                                              itemSize: 20.0,
-                                              direction: Axis.horizontal,
-                                            ),
-                                          ),
-
-                                          Align(
-                                            alignment: Alignment.centerRight,
-                                            child: Text(
-                                              "${DateFormat('yyyy-MM-dd').format(document['timestamp'].toDate())}",
-                                              style: TextStyle(fontSize: 13, color: Colors.black87),
-                                            ),
-                                          ),
-
-                                        ],
-                                      ),
-                                    ),
-                            ],
-                          ),
-
-
                         ],
                       ),
                     )
-
-
-
-
                   ],
                 ),
               ),

@@ -513,6 +513,10 @@ class _ArtistEditState extends State<ArtistEdit> {
             ),
             SizedBox(height: 14),
             TextField(
+              maxLength: 10, // 최대 글자수 설정
+              inputFormatters: [
+                LengthLimitingTextInputFormatter(10), // 최대 글자수를 제한하는 포매터 추가
+              ],
               controller: _artistName,
               decoration: InputDecoration(
                   hintText: widget.doc['artistName'],
@@ -527,6 +531,10 @@ class _ArtistEditState extends State<ArtistEdit> {
             ),
             SizedBox(height: 14),
             TextField(
+              maxLength: 220, // 최대 글자수 설정
+              inputFormatters: [
+                LengthLimitingTextInputFormatter(220), // 최대 글자수를 제한하는 포매터 추가
+              ],
               maxLines: 4,
               controller: _artistInfo,
               decoration: InputDecoration(
@@ -550,6 +558,10 @@ class _ArtistEditState extends State<ArtistEdit> {
                 _wrapWidget(_genre!)!,
                 if (selfCon)
                   TextField(
+                    maxLength: 10, // 최대 글자수 설정
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(10), // 최대 글자수를 제한하는 포매터 추가
+                    ],
                     controller: _genreCon,
                     decoration: InputDecoration(
                         hintText: "상세 장르를 입력하시오 ex)락",
