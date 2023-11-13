@@ -353,9 +353,19 @@ class _MyDrawerState extends State<MyDrawer> {
               ListTile(
                 title: Text('팀·솔로 관리'),
                 onTap: () {
-                  // Get.to(
-                  //   ArtistInfo(doc, artistImg)
-                  // );
+                  if(Provider.of<UserModel>(context, listen: false).isLogin){
+                    if(Provider.of<UserModel>(context, listen: false).isArtist){
+                      Get.to(
+                          ArtistInfo(_artistId!), //이동하려는 페이지
+                          preventDuplicates: true, //중복 페이지 이동 방지
+                          transition: Transition.noTransition //이동애니메이션off
+                      );
+                    }else{
+                      DialogHelper.showArtistRegistrationDialog(context);
+                    }
+                  }else{
+                    DialogHelper.showUserRegistrationDialog(context);
+                  }
                 },
               ),
               ListTile(
@@ -394,12 +404,6 @@ class _MyDrawerState extends State<MyDrawer> {
                       preventDuplicates: true,
                       transition: Transition.noTransition
                   );
-                },
-              ),
-              ListTile(
-                title: Text('공연 신청 관리'),
-                onTap: () {
-
                 },
               ),
               ListTile(

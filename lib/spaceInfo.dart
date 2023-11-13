@@ -38,7 +38,8 @@ class _SpaceInfoState extends State<SpaceInfo> {
   DocumentSnapshot? doc;
   String? artistId = "";
   String? userId = "";
-  double _height = 0.5;
+  double _height = 0.45;
+  ScrollController _scrollController = ScrollController();
   @override
   void initState() {
     // TODO: implement initState
@@ -100,6 +101,7 @@ class _SpaceInfoState extends State<SpaceInfo> {
           ),
         ),
         body: ListView(
+          controller: _scrollController,
           children: [
             imgPath.isNotEmpty?
             SizedBox(
@@ -142,9 +144,14 @@ class _SpaceInfoState extends State<SpaceInfo> {
                 onTap: (index) {
                   if(index == 0){
                     setState(() {
-                      _height = 0.5;
+                      _height = 0.45;
                     });
-                  }else{
+                  }else if(index == 1){
+                    _scrollController.animateTo(
+                      _scrollController.position.maxScrollExtent + 200,
+                      duration: Duration(milliseconds: 500),
+                      curve: Curves.easeInOut,
+                    );
                     setState(() {
                       _height = 0.7;
                     });
@@ -299,13 +306,14 @@ class _SpaceInfoState extends State<SpaceInfo> {
                               child: Column(
                                 children: [
                                   calendar(),
+                                  if(artistList.isNotEmpty)
                                   for(var artist in artistList)
                                     Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: Container(
                                         margin: EdgeInsets.only(bottom: 50),
                                         decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.black12))),
-                                        child: ListTile(
+                                        child:ListTile(
                                           title: Text(artist['artistName']),
                                           subtitle: Row(
                                             children: [
@@ -324,6 +332,13 @@ class _SpaceInfoState extends State<SpaceInfo> {
                                             ),
                                           ),
                                         ),
+                                      ),
+                                    )
+                                  else
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 30),
+                                      child: Center(
+                                        child: Text("등록된 일정이 없습니다."),
                                       ),
                                     )
                                 ],
