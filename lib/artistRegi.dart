@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
 import 'package:indie_spot/baseBar.dart';
 import 'package:indie_spot/login.dart';
 import 'package:indie_spot/main.dart';
@@ -14,6 +15,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
 import 'package:image_cropper/image_cropper.dart';
 import 'package:get/get.dart';
+
+import 'loading.dart';
 
 
 class ArtistRegi extends StatefulWidget {
@@ -150,6 +153,14 @@ class _ArtistRegiState extends State<ArtistRegi> {
       return;
     }
     _genreCheck ??= "";
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return LoadingWidget();
+      },
+      barrierDismissible: false,
+    );
+
     final imageUrl = await _uploadImage(_selectedImage!);
 
     try {
@@ -500,6 +511,10 @@ class _ArtistRegiState extends State<ArtistRegi> {
             ),
             SizedBox(height: 14),
             TextField(
+              maxLength: 10, // 최대 글자수 설정
+              inputFormatters: [
+                LengthLimitingTextInputFormatter(10), // 최대 글자수를 제한하는 포매터 추가
+              ],
               controller: _artistName,
               decoration: InputDecoration(
                 hintText: '활동명을 입력해주세요.',
@@ -519,6 +534,10 @@ class _ArtistRegiState extends State<ArtistRegi> {
             ),
             SizedBox(height: 14),
             TextField(
+              maxLength: 220, // 최대 글자수 설정
+              inputFormatters: [
+                LengthLimitingTextInputFormatter(220), // 최대 글자수를 제한하는 포매터 추가
+              ],
               maxLines: 4,
               controller: _artistInfo,
               decoration: InputDecoration(
@@ -538,6 +557,10 @@ class _ArtistRegiState extends State<ArtistRegi> {
             ),
             SizedBox(height: 14),
             TextField(
+              maxLength: 10, // 최대 글자수 설정
+              inputFormatters: [
+                LengthLimitingTextInputFormatter(10), // 최대 글자수를 제한하는 포매터 추가
+              ],
               controller: _position,
               decoration: InputDecoration(
                   hintText: '본인의 특기를 입력해주세요 ex)보컬,기타',

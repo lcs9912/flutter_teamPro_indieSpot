@@ -753,21 +753,17 @@ class _ArtistInfoState extends State<ArtistInfo> {
                   }
                 }
               }
-
-
-
           }
         }
       }
-      return buskingScheduleWidgets;
-    } else {
+      return buskingScheduleWidgets.isEmpty ? [Text("공연일정이 없습니다.")] : buskingScheduleWidgets;
+    }else {
       return [
         Container(
           child: Text("공연일정이 없습니다."),
         )
       ];
     }
-
 
   }
 
@@ -986,6 +982,39 @@ class _ArtistInfoState extends State<ArtistInfo> {
                   ListView(
                     //////////////공연 일정 탭////////////
                     children: [
+                      Row(
+                        children: [
+                          Center(
+                            child: TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  scheduleFlg = true;
+                                });
+                              },
+                              child: Text(
+                                "버스킹",
+                                style: TextStyle(color: scheduleFlg ? Color(0xFF233067) : Colors.grey,
+                                  decoration: scheduleFlg ? TextDecoration.underline : TextDecoration.none,),
+                              ),
+                            ),
+                          ),
+                          Center(
+                            child: TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  scheduleFlg = false;
+                                });
+                              },
+                              child: Text(
+                                "상업공간",
+                                style: TextStyle(color: !scheduleFlg ? Color(0xFF233067) : Colors.grey,
+                                  decoration: !scheduleFlg ? TextDecoration.underline : TextDecoration.none,),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
                       FutureBuilder(
                         future:
                         scheduleFlg ? _buskingSchedule() : _commerSchedule(),
@@ -998,45 +1027,7 @@ class _ArtistInfoState extends State<ArtistInfo> {
                             return Text('Error: ${scheduleSnap.error}');
                           } else {
                             return Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    Center(
-                                      child: TextButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            scheduleFlg = true;
-                                          });
-                                        },
-                                        child: Text(
-                                          "버스킹",
-                                          style: TextStyle(color: scheduleFlg ? Color(0xFF233067) : Colors.grey,
-                                            decoration: scheduleFlg ? TextDecoration.underline : TextDecoration.none,),
-                                        ),
-                                      ),
-                                    ),
-                                    Center(
-                                      child: TextButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            scheduleFlg = false;
-                                          });
-                                        },
-                                        child: Text(
-                                          "상업공간",
-                                          style: TextStyle(color: !scheduleFlg ? Color(0xFF233067) : Colors.grey,
-                                            decoration: !scheduleFlg ? TextDecoration.underline : TextDecoration.none,),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Container(
-                                  child: Column(
-                                    children: scheduleSnap.data ?? [Text("공연일정이 없습니다.")],
-                                  ),
-                                ),
-                              ],
+                              children: scheduleSnap.data ?? [Text("공연일정이 없습니다.")],
                             );
                           }
                         },

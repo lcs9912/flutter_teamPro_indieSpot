@@ -148,7 +148,7 @@ class _MyAppState extends State<MyApp> {
                                   Get.to(
                                     ArtistRegi(),
                                     transition: Transition.noTransition
-                                  );
+                                  )!.then((value) => setState((){}));
                                 } else {
                                   DialogHelper.showUserRegistrationDialog(context);
                                 }
@@ -156,7 +156,7 @@ class _MyAppState extends State<MyApp> {
                                 Get.to(
                                   ArtistInfo(_artistId!),
                                   transition: Transition.noTransition
-                                );
+                                )!.then((value) => setState((){}));
                               }
 
                             },
@@ -179,7 +179,7 @@ class _MyAppState extends State<MyApp> {
                                 Get.to(
                                     BuskingZoneList(),
                                   transition: Transition.noTransition
-                                );
+                                )!.then((value) => setState((){}));
                             },
                             child: Image.asset('assets/spot.png',width: 40,height: 40,),
                           ),
@@ -200,7 +200,7 @@ class _MyAppState extends State<MyApp> {
                                   Get.to(
                                       BuskingReservation(),
                                       transition: Transition.noTransition
-                                  );
+                                  )!.then((value) => setState((){}));
                                 } else {
                                   DialogHelper.showArtistRegistrationDialog(context);
                                 }
@@ -224,7 +224,7 @@ class _MyAppState extends State<MyApp> {
                                 Get.to(
                                     CommercialList(),
                                   transition: Transition.noTransition
-                                );
+                                )!.then((value) => setState((){}));
                               },
                               child: Image.asset('assets/commer.png',width: 40,height: 40,),
                           ),
@@ -250,7 +250,7 @@ class _MyAppState extends State<MyApp> {
                               Get.to(
                                 BoardList(),
                                 transition: Transition.noTransition
-                              );
+                              )!.then((value) => setState((){}));
                             },
                             child: Image.asset('assets/community2.png',width: 40,height: 40,),
                           ),
@@ -271,7 +271,7 @@ class _MyAppState extends State<MyApp> {
                                 Get.to(
                                   VideoList(),
                                   transition: Transition.noTransition
-                                );
+                                )!.then((value) => setState((){}));
                               },
                               child: Image.asset('assets/start.png',width: 40,height: 40,),
                           ),
@@ -292,7 +292,7 @@ class _MyAppState extends State<MyApp> {
                                   Get.to(
                                       DonationArtistList(),
                                       transition: Transition.noTransition
-                                  );
+                                  )!.then((value) => setState((){}));
                                 } else {
                                   DialogHelper.showUserRegistrationDialog(context);
                                 }
@@ -317,7 +317,7 @@ class _MyAppState extends State<MyApp> {
                                   Get.to(
                                       PointDetailed(),
                                       transition: Transition.noTransition
-                                  );
+                                  )!.then((value) => setState((){}));
                                 } else {
                                   DialogHelper.showUserRegistrationDialog(context);
                                 }
@@ -339,35 +339,6 @@ class _MyAppState extends State<MyApp> {
       ),
     );
   }
-
-
-
-  // 로그인 해라
-  _alertDialogWidget() {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            content: Text("로그인이후 이용 가능합니다."),
-            actions: [
-              ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  }, // 기능
-                  child: Text("취소")),
-              ElevatedButton(
-                  onPressed: () {
-                    Get.to(
-                      LoginPage(),
-                      transition: Transition.noTransition
-                    )!.then((value) => Navigator.of(context).pop());
-                  }, // 기능
-                  child: Text("로그인")),
-            ],
-          );
-        });
-  }
-
 
   //best artist
   Future<List<Widget>> _bestArtist() async {
@@ -397,7 +368,7 @@ class _MyAppState extends State<MyApp> {
           Get.to(
             ArtistInfo(artistId),
             transition: Transition.noTransition
-          );
+          )!.then((value) => setState((){}));
         },
         child: Column(
           children: [
@@ -602,7 +573,7 @@ class _MyAppState extends State<MyApp> {
                                   Get.to(
                                     BuskingList(),
                                     transition: Transition.noTransition
-                                  );
+                                  )!.then((value) => setState((){}));
                                 }, // 버스킹 공연 일정 리스트 페이지로 넘어갈것
                                 child: Text("더보기",style: TextStyle(color: Colors.black),))
                           ],
@@ -665,7 +636,7 @@ class _MyAppState extends State<MyApp> {
                                               Get.to(
                                                   () => CommercialList(),
                                                 transition: Transition.noTransition
-                                              );
+                                              )!.then((value) => setState((){}));
                                             },
                                             child: Text("더보기",style: TextStyle(color: Colors.black),)
                                         )
@@ -704,10 +675,7 @@ class _MyAppState extends State<MyApp> {
   Future<List<Widget>> _commercialListWidget() async {
     final commerQuerySnapshot = await FirebaseFirestore.instance.collection('commercial_space').get();
 
-    if (commerQuerySnapshot.docs.isEmpty) {
-      return [Text("상업공간에 내용이 없음")];
-    }
-
+    int cnt =0;
     List<Widget> commerWidgets = [];
 
     for (QueryDocumentSnapshot commerDoc in commerQuerySnapshot.docs) {
@@ -734,6 +702,9 @@ class _MyAppState extends State<MyApp> {
 
       if (commerRentalQuerySnapshot.docs.isNotEmpty) {
         for (QueryDocumentSnapshot rentalDoc in commerRentalQuerySnapshot.docs) {
+          if(cnt == 3){
+            break;
+          }
           final date = DateFormat('MM-dd').format(rentalDoc['startTime'].toDate());
           final startTime = DateFormat('HH:mm').format(rentalDoc['startTime'].toDate());
           final endTime = DateFormat('HH:mm').format(rentalDoc['endTime'].toDate());
@@ -830,14 +801,16 @@ class _MyAppState extends State<MyApp> {
                       Get.to(
                           SpaceInfo(_id),
                           transition: Transition.noTransition
-                      );
+                      )!.then((value) => setState((){}));
                     },
                   ),
                 );
+                cnt++;
                 commerWidgets.add(listItem);
               }
             }
           }
+
         }
       }
     }
