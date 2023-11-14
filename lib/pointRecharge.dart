@@ -95,7 +95,7 @@ class _PointRechargeState extends State<PointRecharge> {
           children: [
             Container(
               color: Colors.white,
-              padding: EdgeInsets.fromLTRB(30, 30, 30, 50),
+              padding: EdgeInsets.fromLTRB(15, 15, 15, 50),
               child: Column(
                 children: [
                   _sizedBox1(),
@@ -167,6 +167,7 @@ class _PointRechargeState extends State<PointRecharge> {
   }
 
   Container _container2(){
+    double screenWidth = MediaQuery.of(context).size.width;
     return Container(
       margin: EdgeInsets.only(bottom: 10),
       child: Row(
@@ -174,6 +175,7 @@ class _PointRechargeState extends State<PointRecharge> {
         children: [
           for(int price in _price)
             Container(
+              width: screenWidth * 0.22,
               child: ElevatedButton(
                   onPressed: (){
                     if(_rechargeControl.text == '') _rechargeControl.text = '0';

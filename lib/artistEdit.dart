@@ -162,29 +162,6 @@ class _ArtistEditState extends State<ArtistEdit> {
 
     _genreCheck ??= "";
 
-      try {
-        showDialog(
-          context: dialogContext,
-          builder: (BuildContext context) {
-            return LoadingWidget();
-          },
-          barrierDismissible: false, // 사용자가 화면을 탭해서 닫는 것을 막습니다.
-        );
-
-        // URL에서 토큰을 추출
-        final token = Uri.parse(widget.artistImg).queryParameters['token'];
-
-        if (token != null) {
-          // 스토리지 레퍼런스를 생성하고 파일을 삭제
-          final Reference storageReference = FirebaseStorage.instance.refFromURL(widget.artistImg);
-          await storageReference.delete();
-          print('파일 삭제 완료');
-        } else {
-          print('토큰이 없는 URL로 파일을 삭제할 수 없습니다.');
-        }
-      } catch (e) {
-        print('파일 삭제 중 오류 발생: $e');
-      }
 
 
     try {
@@ -197,6 +174,14 @@ class _ArtistEditState extends State<ArtistEdit> {
         'udatetime': Timestamp.now(),
         "detailedGenre" : _genreCheck == "직접입력" ? _genreCon.text : _genreCheck
       });
+
+      showDialog(
+        context: dialogContext,
+        builder: (BuildContext context) {
+          return LoadingWidget();
+        },
+        barrierDismissible: false, // 사용자가 화면을 탭해서 닫는 것을 막습니다.
+      );
 
       final QuerySnapshot snapshot = await _fs
           .collection('artist')
