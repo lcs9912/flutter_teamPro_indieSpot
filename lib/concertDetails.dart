@@ -573,7 +573,10 @@ class _ConcertDetailsState extends State<ConcertDetails> {
                           left: 340, // 위치 조절
                           child: GestureDetector(
                             onTap: () {
-                              Get.to(DonationPage(artistId: _artistId!)); // null이 아님을 확신하고 사용
+                              Get.to(
+                                DonationPage(artistId: _artistId!),
+                                transition: Transition.noTransition
+                              ); // null이 아님을 확신하고 사용
                             },
                             child: Image.asset(
                               'assets/nukki.png', // 추가할 이미지의 경로

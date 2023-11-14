@@ -6,6 +6,9 @@ import 'package:indie_spot/baseBar.dart';
 import 'package:indie_spot/spotDetailed.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:indie_spot/userModel.dart';
+import 'package:provider/provider.dart';
+import 'dialog.dart';
 
 class BuskingZoneList extends StatefulWidget {
   @override
@@ -199,10 +202,14 @@ class _BuskingZoneListState extends State<BuskingZoneList> {
           floatingActionButton: FloatingActionButton(
             backgroundColor: Color(0xFF233067),
             onPressed: (){
-              Get.to(
-                AddBuskingSpot(),
-                transition: Transition.noTransition
-              )!.then((value) => setState(() {}));
+              if(Provider.of<UserModel>(context, listen: false).isLogin){
+                Get.to(
+                    AddBuskingSpot(),
+                    transition: Transition.noTransition
+                )!.then((value) => setState(() {}));
+              } else {
+                DialogHelper.showUserRegistrationDialog(context);
+              }
             },
             child: Icon(Icons.edit),
           ),

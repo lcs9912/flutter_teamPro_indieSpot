@@ -432,7 +432,7 @@ class _ProfileState extends State<Profile> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: generateIntroductionWidgets(
-                        _introductionFromFirestore ?? '외않돼'),
+                        _introductionFromFirestore ?? '소개 메세지가 없습니다.'),
                   ),
                 ),
 
