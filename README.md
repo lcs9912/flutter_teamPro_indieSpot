@@ -40,5 +40,9 @@
   <li>결제 API를 사용하여 안전한 결제 지원</li>
 </ul>
 
+# 시연 영상
+
+https://youtu.be/Y3ygFW4pYEo
+
 <img src="https://capsule-render.vercel.app/api?type=waving&color=233067&height=150&section=footer" />
 
