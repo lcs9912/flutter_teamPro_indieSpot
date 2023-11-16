@@ -97,8 +97,8 @@ class _BuskingListState extends State<BuskingList> with SingleTickerProviderStat
 
     List<Map<String, dynamic>> buskingData = await _fetchBuskingData(buskingSnap);
     buskingData.sort((a, b) {
-      DateTime dateTimeA = a['startTime'];
-      DateTime dateTimeB = b['startTime'];
+      DateTime dateTimeA = b['startTime'];
+      DateTime dateTimeB = a['startTime'];
       return dateTimeB.compareTo(dateTimeA);
     });
     QuerySnapshot pastBuskingSnap = await fs.collection("busking")
