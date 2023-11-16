@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'artistRegi.dart';
 import 'login.dart';
 
+
 class DialogHelper {
   static void showArtistRegistrationDialog(BuildContext context) {
     Dialogs.materialDialog(
