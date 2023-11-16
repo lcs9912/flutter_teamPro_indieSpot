@@ -35,7 +35,8 @@ class DialogHelper {
                   ArtistRegi(), //이동하려는 페이지
                   preventDuplicates: true, //중복 페이지 이동 방지
                   transition: Transition.noTransition //이동애니메이션off
-              );
+              )?.then((value) => Get.back());
+
             },
             text: '아티스트 등록',
             iconData: Icons.done,
