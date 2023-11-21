@@ -5,6 +5,10 @@
   <img src="https://github.com/Jeongseonil/Indie_Spot/blob/main/assets/indiespot.png?raw=true" width="300" height="300"/>
 </div>
 
+<h2>🔎 프로젝트 정보</h2>
+<div><b>📆 2023.10.23 ~ 2023.11.13 (22일)</b></div>
+<div>더조은컴퓨터아카데미 수강 두 번째 단체 프로젝트.</div>
+<br>
 <br>
 
 # 프로젝트 소개
@@ -39,6 +43,12 @@
 <ul>
   <li>결제 API를 사용하여 안전한 결제 지원</li>
 </ul>
+
+# 기능 구상도 & 데이터 베이스 구상
+https://docs.google.com/spreadsheets/d/17j2rgXfsVzLLVs930gcgggOC80-VTxdDG6CiF0lXQEk/edit?usp=sharing
+
+# 화면설계
+https://www.figma.com/file/LbLGCvXW7OTjC1ewjsd5ek/%ED%94%8C%EB%9F%AC%ED%84%B0?type=design&mode=design&t=8HRRIaUez8AsEXY0-1
 
 # 시연 영상
 
